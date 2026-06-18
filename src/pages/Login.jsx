@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import './Login.css'
 
@@ -8,6 +9,7 @@ function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { login } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -16,7 +18,11 @@ function Login() {
 
     try {
       const { error } = await login(email, password)
-      if (error) setError(error.message)
+      if (error) {
+        setError(error.message)
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
