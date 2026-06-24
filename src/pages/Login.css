@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1B1A1C 0%, #1B1A1C 75%, #FF5900 100%);
+  background: linear-gradient(to bottom, #1B1A1C 0%, #FF5900 100%);
   padding: 20px;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .login-button {
-  background: linear-gradient(135deg, #1B1A1C 0%, #1B1A1C 80%, #FF5900 100%);
+  background: linear-gradient(to bottom, #1B1A1C 0%, #FF5900 100%);
   color: white;
   border: none;
   padding: 12px;
