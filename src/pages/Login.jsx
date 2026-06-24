@@ -39,7 +39,7 @@ function Login() {
       <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-[#1B1A1C] text-3xl font-bold">Welcome Players!</h1>
-          <p className="text-[#3E4048] text-sm mt-2">Sign In to Play Now</p>
+          <p className="text-[#3E4048] text-sm mt-2">Sign it to Operations Guild</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -80,7 +80,7 @@ function Login() {
             disabled={loading}
             className="bg-[#FF5900] text-white font-semibold py-3 rounded-md text-base cursor-pointer transition-all hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Entering Guild...' : 'Sign in to Enter Guild'}
           </button>
         </form>
       </div>
