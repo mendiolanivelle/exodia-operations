@@ -30,7 +30,7 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1B1A1C] via-[#1B1A1C] to-[#FF5900] p-5">
+    <div className="min-h-screen flex items-center justify-center bg-[#1B1A1C] p-5">
       <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-[#1B1A1C] text-3xl font-bold">Exodia Operations</h1>
@@ -73,7 +73,7 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-gradient-to-b from-[#1B1A1C] via-[#1B1A1C] to-[#FF5900] text-white font-semibold py-3 rounded-md text-base cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+            className="bg-[#FF5900] text-white font-semibold py-3 rounded-md text-base cursor-pointer transition-all hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
