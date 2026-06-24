@@ -24,7 +24,7 @@ function WelcomeSplash({ onComplete }) {
         className="flex flex-col items-center gap-8 transition-opacity duration-500"
         style={{ opacity }}
       >
-        <img src="/logo.png" alt="Operations Department" className="h-24 w-auto" />
+        <img src="/logo.png?v=2" alt="Operations Department" className="h-24 w-auto" />
         <h1 className="text-white text-3xl font-bold tracking-wide">
           Welcome Player {username}
         </h1>
