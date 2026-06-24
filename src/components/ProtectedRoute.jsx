@@ -5,7 +5,7 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <div className="loading">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen text-lg text-[#3E4048]">Loading...</div>
   }
 
   if (!user) {
