@@ -30,7 +30,12 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1B1A1C] p-5">
+    <div className="min-h-screen relative flex items-center justify-center bg-[#1B1A1C] p-5">
+      <div className="absolute top-0 left-0 flex items-center gap-3 p-6">
+        <img src="/logo.png" alt="Exodia Operations" className="h-10 w-auto" />
+        <span className="text-white text-xl font-bold tracking-wide">Exodia Operations</span>
+      </div>
+
       <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-[#1B1A1C] text-3xl font-bold">Exodia Operations</h1>
