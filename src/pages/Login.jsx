@@ -1,14 +1,21 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/useAuth'
+import WelcomeSplash from '../components/WelcomeSplash'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showSplash, setShowSplash] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false)
+    navigate('/')
+  }, [navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -20,13 +27,17 @@ function Login() {
       if (error) {
         setError(error.message)
       } else {
-        navigate('/')
+        setShowSplash(true)
       }
     } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (showSplash) {
+    return <WelcomeSplash onComplete={handleSplashComplete} />
   }
 
   return (
