@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
-import './Login.css'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -31,18 +30,22 @@ function Login() {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>Exodia Operations</h1>
-          <p>Sign in to access the operations portal</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1B1A1C] via-[#1B1A1C] to-[#FF5900] p-5">
+      <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-[#1B1A1C] text-3xl font-bold">Exodia Operations</h1>
+          <p className="text-[#3E4048] text-sm mt-2">Sign in to access the operations portal</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md border-l-4 border-red-600 text-sm">
+              {error}
+            </div>
+          )}
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="email" className="text-[#1B1A1C] font-medium text-sm">Email</label>
             <input
               id="email"
               type="email"
@@ -50,11 +53,12 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
+              className="px-4 py-3 border border-[#CACDD7] rounded-md text-sm transition-colors focus:outline-none focus:border-[#FF5900] focus:ring-1 focus:ring-[#FF5900]"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="password" className="text-[#1B1A1C] font-medium text-sm">Password</label>
             <input
               id="password"
               type="password"
@@ -62,10 +66,15 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
+              className="px-4 py-3 border border-[#CACDD7] rounded-md text-sm transition-colors focus:outline-none focus:border-[#FF5900] focus:ring-1 focus:ring-[#FF5900]"
             />
           </div>
 
-          <button type="submit" className="login-button" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-gradient-to-b from-[#1B1A1C] via-[#1B1A1C] to-[#FF5900] text-white font-semibold py-3 rounded-md text-base cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
