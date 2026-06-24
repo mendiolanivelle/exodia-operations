@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../lib/AuthContext'
+import { useAuth } from '../lib/useAuth'
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -22,7 +22,7 @@ function Login() {
       } else {
         navigate('/')
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred')
     } finally {
       setLoading(false)
