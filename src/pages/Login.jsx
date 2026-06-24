@@ -80,7 +80,7 @@ function Login() {
             disabled={loading}
             className="bg-[#FF5900] text-white font-semibold py-3 rounded-md text-base cursor-pointer transition-all hover:bg-orange-600 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
-            {loading ? 'Entering Guild...' : 'Sign in to Enter Guild'}
+            {loading ? 'Entering Guild...' : 'Enter Guild'}
           </button>
         </form>
       </div>
