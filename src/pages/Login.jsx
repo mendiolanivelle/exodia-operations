@@ -91,17 +91,16 @@ function Login() {
                 onClick={() => setShowPassword(prev => !prev)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FF5900] cursor-pointer"
               >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 15a3 3 0 10-2.8-2.9" />
-                    <path fillRule="evenodd" d="M12 2C6.99 2 2.88 5.61 2 10.64c.12 4.8 3.68 8.72 8 9.36 4.32-.64 7.88-4.56 8-9.36C19.12 5.61 14.01 2 12 2zm0 9.36A3 3 0 109 12a3 3 0 003-3v.11c.89.16 1.6.87 1.76 1.76.1.58.58 1.06.98 1.16.58.16 1.2.16 1.76 0 .4-.1 1.02-.52 1.38-.36.36-.82.64-1.34.82-.52.18-1.06.27-1.62.27a3 3 0 01-3-3 3 3 0 012.8-2.9z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 15a3 3 0 10-2.8-2.9" />
-                    <path fillRule="evenodd" d="M12 2C6.99 2 2.88 5.61 2 10.64c.12 4.8 3.68 8.72 8 9.36 4.32-.64 7.88-4.56 8-9.36C19.12 5.61 14.01 2 12 2zm0 9.36A3 3 0 109 12a3 3 0 003-3v.11c.89.16 1.6.87 1.76 1.76.1.58.58 1.06.98 1.16.58.16 1.2.16 1.76 0 .4-.1 1.02-.52 1.38-.36.36-.82.64-1.34.82-.52.18-1.06.27-1.62.27a3 3 0 01-3-3 3 3 0 012.8-2.9z" clipRule="evenodd" />
-                  </svg>
-                )}
+{showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 4.5c7 0 11 8 11 8s-1.59 8-7.5 8v-.5c3.73-.41 6.5-3.75 6.5-7.5s-2.77-7.09-6.5-7.5zm0 9c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2 2z"/>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 4.5c7 0 11 8 11 8s-1.59 8-7.5 8v-.5c3.73-.41 6.5-3.75 6.5-7.5s-2.77-7.09-6.5-7.5zm0 9c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2 2z"/>
+                      <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                  )}
               </button>
             </div>
           </div>
