@@ -64,7 +64,7 @@ function Projects() {
       </div>
 
       <div className="bg-white p-8 rounded-xl shadow-sm">
-        <h3 className="text-[#1B1A1C] text-lg font-semibold mb-6">Project Dashboard</h3>
+        <h3 className="text-[#1B1A1C] text-lg font-semibold mb-6">Project Phases</h3>
 
         <div className="flex gap-4 overflow-x-auto pb-4">
           {stages.map((stage, index) => (
