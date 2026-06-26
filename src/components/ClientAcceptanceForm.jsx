@@ -96,6 +96,7 @@ function ClientAcceptanceForm() {
   const [saving, setSaving] = useState(false)
   const [selectedBrief, setSelectedBrief] = useState(null)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchBriefs()
@@ -146,6 +147,7 @@ function ClientAcceptanceForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
+    setError(null)
     const payload = {
       ...form,
       expected_start_date: form.expected_start_date || null,
@@ -153,9 +155,12 @@ function ClientAcceptanceForm() {
       signature_date: form.signature_date || null,
       status: 'submitted',
     }
-    const { error } = await supabase.from('client_project_briefs').insert(payload)
+    const { error: err } = await supabase.from('client_project_briefs').insert(payload)
     setSaving(false)
-    if (error) return
+    if (err) {
+      setError(err.message)
+      return
+    }
     setForm(initialForm)
     fetchBriefs()
     setSubmitted(true)
@@ -375,13 +380,20 @@ function ClientAcceptanceForm() {
               </div>
             </section>
 
-            <div className="flex gap-3 pt-4 border-t border-[#CACDD7]">
-              <button type="submit" disabled={saving} className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50">
-                {saving ? 'Submitting...' : 'Submit Acceptance Form'}
-              </button>
-              <button type="button" onClick={() => setView('list')} className="text-[#3E4048] px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-colors cursor-pointer">
-                Cancel
-              </button>
+            <div className="flex flex-col gap-3 pt-4 border-t border-[#CACDD7]">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button type="submit" disabled={saving} className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50">
+                  {saving ? 'Submitting...' : 'Submit Acceptance Form'}
+                </button>
+                <button type="button" onClick={() => setView('list')} className="text-[#3E4048] px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+              </div>
             </div>
           </form>
         </div>
