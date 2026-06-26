@@ -103,7 +103,7 @@ function Dashboard() {
           </button>
         </aside>
 
-        <main className="flex-1 p-10">
+        <main className="flex-1 min-w-0 p-10">
           {activeTab === 'dashboard' && (
             <>
               <div className="bg-white p-8 rounded-xl shadow-sm mb-8">

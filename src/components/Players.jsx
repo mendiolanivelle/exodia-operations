@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const playersColumns = ['employee_id', 'full_name', 'work_email', 'department_text', 'position_title', 'employment_type', 'employment_status', 'date_hired_text']
-
 function Players() {
   const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(true)
@@ -43,7 +41,7 @@ function Players() {
   }
 
   return (
-    <div className="bg-white p-4 sm:p-8 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white p-4 sm:p-8 rounded-xl shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
         <h2 className="text-[#1B1A1C] text-xl font-semibold">Player List</h2>
         <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full self-start sm:self-auto">
@@ -51,28 +49,41 @@ function Players() {
         </span>
       </div>
 
-      <div className="-mx-4 sm:-mx-0 overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px] sm:min-w-0">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#CACDD7]">
-              {playersColumns.map((col) => (
-                <th
-                  key={col}
-                  className="text-left px-4 py-3 text-[#3E4048] font-medium capitalize whitespace-nowrap"
-                >
-                  {col.replace(/_/g, ' ')}
-                </th>
-              ))}
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">ID</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Name</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden md:table-cell">Email</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden lg:table-cell">Department</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Position</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden lg:table-cell">Type</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Status</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden xl:table-cell">Date Hired</th>
             </tr>
           </thead>
           <tbody>
             {employees.map((emp) => (
               <tr key={emp.employee_id || emp.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50">
-                {playersColumns.map((col) => (
-                  <td key={col} className="px-4 py-3 text-[#1B1A1C] whitespace-nowrap">
-                    {emp[col] ?? '-'}
-                  </td>
-                ))}
+                <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{emp.employee_id || '-'}</td>
+                <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap truncate max-w-[180px]">{emp.full_name || '-'}</td>
+                <td className="px-4 py-3 text-[#3E4048] truncate max-w-[200px] hidden md:table-cell">{emp.work_email || '-'}</td>
+                <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{emp.department_text || '-'}</td>
+                <td className="px-4 py-3 text-[#1B1A1C] whitespace-nowrap truncate max-w-[160px]">{emp.position_title || '-'}</td>
+                <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{emp.employment_type || '-'}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    emp.employment_status === 'Active'
+                      ? 'bg-green-100 text-green-700'
+                      : emp.employment_status === 'Floating'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {emp.employment_status || '-'}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden xl:table-cell">{emp.date_hired_text || '-'}</td>
               </tr>
             ))}
           </tbody>
