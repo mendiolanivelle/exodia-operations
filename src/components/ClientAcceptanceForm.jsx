@@ -94,6 +94,7 @@ function ClientAcceptanceForm() {
   const [view, setView] = useState('list')
   const [form, setForm] = useState(initialForm)
   const [saving, setSaving] = useState(false)
+  const [selectedBrief, setSelectedBrief] = useState(null)
 
   useEffect(() => {
     fetchBriefs()
@@ -370,6 +371,156 @@ function ClientAcceptanceForm() {
     )
   }
 
+  if (view === 'detail' && selectedBrief) {
+    const b = selectedBrief
+    const Field = ({ label, value }) => (
+      <div>
+        <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-sm text-[#1B1A1C]">{value || '-'}</p>
+      </div>
+    )
+    const ArrayField = ({ label, items }) => (
+      <div>
+        <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider mb-1">{label}</p>
+        {items && items.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {items.map((item, i) => (
+              <span key={i} className="inline-block bg-[#F3F4F6] text-[#1B1A1C] text-xs px-2.5 py-1 rounded-full">{item}</span>
+            ))}
+          </div>
+        ) : <p className="text-sm text-[#3E4048]">-</p>}
+      </div>
+    )
+
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="bg-white p-8 rounded-xl shadow-sm">
+          <button onClick={() => { setView('list'); setSelectedBrief(null) }} className="flex items-center gap-2 text-[#3E4048] hover:text-[#1B1A1C] mb-6 transition-colors cursor-pointer">
+            <Icon icon="lucide:arrow-left" className="w-4 h-4" />
+            <span className="text-sm font-medium">Back to list</span>
+          </button>
+
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">{b.project_name}</h2>
+              <p className="text-[#3E4048] text-sm">{b.client_name}</p>
+            </div>
+            <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
+              b.status === 'approved' ? 'bg-green-100 text-green-700'
+              : b.status === 'submitted' ? 'bg-blue-100 text-blue-700'
+              : b.status === 'under_review' ? 'bg-yellow-100 text-yellow-700'
+              : 'bg-gray-100 text-gray-700'
+            }`}>
+              {b.status.replace('_', ' ')}
+            </span>
+          </div>
+
+          <div className="space-y-7">
+
+            <section>
+              <h3 className="text-[#FF5900] text-base font-semibold mb-3 pb-2 border-b border-[#CACDD7]">Section 1: Basic Project Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Client / Studio Name" value={b.client_name} />
+                <Field label="Project Name" value={b.project_name} />
+                <Field label="Point of Contact" value={b.point_of_contact} />
+                <Field label="Email Address" value={b.email_address} />
+                <ArrayField label="Project Type" items={b.project_type} />
+                {b.project_type_other && <Field label="Project Type (Other)" value={b.project_type_other} />}
+                <ArrayField label="Target Platform" items={b.target_platform} />
+                {b.target_platform_other && <Field label="Target Platform (Other)" value={b.target_platform_other} />}
+                <Field label="Timezone" value={b.timezone} />
+                <Field label="Expected Start Date" value={b.expected_start_date} />
+                <Field label="Expected Deadline" value={b.expected_deadline} />
+                <Field label="Budget Range" value={b.budget_range} />
+                <div className="md:col-span-2"><Field label="Link to Project Document" value={b.project_document_link} /></div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-[#FF5900] text-base font-semibold mb-3 pb-2 border-b border-[#CACDD7]">Section 2: Deliverables</h3>
+              {b.deliverables && b.deliverables.length > 0 ? (
+                <div className="space-y-3">
+                  {b.deliverables.map((del, i) => (
+                    <div key={i} className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
+                      <p className="text-sm font-semibold text-[#1B1A1C] mb-2">Deliverable #{i + 1}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <Field label="Deliverable" value={del.deliverable} />
+                        <Field label="Description" value={del.description} />
+                        <Field label="Acceptance Criteria" value={del.acceptance_criteria} />
+                        <Field label="Reference Link" value={del.reference_link} />
+                        <Field label="Quantity" value={del.quantity} />
+                        <Field label="Service Type" value={del.service_type} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-sm text-[#3E4048]">No deliverables specified.</p>}
+            </section>
+
+            <section>
+              <h3 className="text-[#FF5900] text-base font-semibold mb-3 pb-2 border-b border-[#CACDD7]">Section 3: Review & Approval</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ArrayField label="Reviewers" items={b.reviewer} />
+                {b.reviewer_other && <Field label="Reviewer (Other)" value={b.reviewer_other} />}
+                <Field label="Review Rounds" value={b.review_rounds} />
+                <Field label="Expected Review Time" value={b.expected_review_time} />
+                <div className="md:col-span-2"><ArrayField label="Basis for Approval" items={b.approval_basis} /></div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-[#FF5900] text-base font-semibold mb-3 pb-2 border-b border-[#CACDD7]">Section 4: Project Governance</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ArrayField label="Communication Tool" items={b.communication_tool} />
+                {b.communication_tool_other && <Field label="Communication Tool (Other)" value={b.communication_tool_other} />}
+              </div>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-[#1B1A1C] mb-3">IF PROJECT BASE</p>
+                  <div className="space-y-3">
+                    <ArrayField label="Weekly Target Meeting" items={b.weekly_target_meeting} />
+                    <Field label="Preferred Meeting Time" value={b.preferred_meeting_time} />
+                    {b.preferred_meeting_time_other && <Field label="Meeting Time (Other)" value={b.preferred_meeting_time_other} />}
+                  </div>
+                </div>
+                <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-[#1B1A1C] mb-3">IF STAFF AUGMENTATION</p>
+                  <div className="space-y-3">
+                    <ArrayField label="Daily Team Sync-up" items={b.daily_team_syncup} />
+                    <Field label="Preferred Sync-up Time" value={b.preferred_syncup_time} />
+                    {b.preferred_syncup_time_other && <Field label="Sync-up Time (Other)" value={b.preferred_syncup_time_other} />}
+                    <ArrayField label="Training & Onboarding" items={b.training_onboarding} />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-[#FF5900] text-base font-semibold mb-3 pb-2 border-b border-[#CACDD7]">Section 5: Technical Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ArrayField label="Game Engine" items={b.game_engine} />
+                {b.game_engine_other && <Field label="Game Engine (Other)" value={b.game_engine_other} />}
+                <div className="md:col-span-2"><Field label="Technical Requirements" value={b.technical_requirements} /></div>
+                <div className="md:col-span-2"><Field label="Tools & Software Required" value={b.tools_software} /></div>
+                <div className="md:col-span-2"><Field label="Performance / Platform Constraints" value={b.performance_constraints} /></div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="text-[#FF5900] text-base font-semibold mb-3 pb-2 border-b border-[#CACDD7]">Section 6: Client Confirmation</h3>
+              <p className="text-[#3E4048] text-xs mb-4 italic">By signing this form, the client confirms that the deliverables, specifications, and acceptance expectations stated above are accurate and approved.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Client Name & Signature" value={b.client_signature} />
+                <Field label="Date" value={b.signature_date} />
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="bg-white p-8 rounded-xl shadow-sm">
@@ -403,7 +554,7 @@ function ClientAcceptanceForm() {
               </thead>
               <tbody>
                 {briefs.map(b => (
-                  <tr key={b.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50">
+                  <tr key={b.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50 cursor-pointer" onClick={() => { setSelectedBrief(b); setView('detail') }}>
                     <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{b.client_name}</td>
                     <td className="px-4 py-3 text-[#1B1A1C] whitespace-nowrap">{b.project_name}</td>
                     <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{b.point_of_contact || '-'}</td>
