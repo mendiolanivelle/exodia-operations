@@ -2,11 +2,6 @@ import { useState } from 'react'
 import { useAuth } from '../lib/useAuth'
 import Players from '../components/Players'
 
-const tabs = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'players', label: 'Players' },
-]
-
 function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -31,19 +26,40 @@ function Dashboard() {
 
       <div className="flex flex-1">
         <aside className="w-64 bg-[#1B1A1C] flex flex-col gap-1 p-4">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-[#FF5900] text-white'
-                  : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'dashboard'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Dashboard
+          </button>
+
+          <div className="text-[#CACDD7]/50 text-xs font-semibold uppercase tracking-wider px-5 pt-4 pb-1">
+            Players
+          </div>
+          <button
+            onClick={() => setActiveTab('player-list')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'player-list'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Player List
+          </button>
+          <button
+            onClick={() => setActiveTab('role-inventory')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'role-inventory'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Role Inventory
+          </button>
         </aside>
 
         <main className="flex-1 p-10">
@@ -71,7 +87,14 @@ function Dashboard() {
             </>
           )}
 
-          {activeTab === 'players' && <Players />}
+          {activeTab === 'player-list' && <Players />}
+
+          {activeTab === 'role-inventory' && (
+            <div className="bg-white p-8 rounded-xl shadow-sm">
+              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Role Inventory</h2>
+              <p className="text-[#3E4048]">Role inventory coming soon.</p>
+            </div>
+          )}
         </main>
       </div>
     </div>
