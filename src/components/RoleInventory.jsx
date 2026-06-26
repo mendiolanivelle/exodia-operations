@@ -29,10 +29,9 @@ function RoleInventory() {
         })
 
         employeeTitles.forEach(title => {
-          const titleLower = title.toLowerCase()
+          const exactMatch = title.toLowerCase().trim()
           Object.keys(roleMap).forEach(roleKey => {
-            const roleLower = roleKey.toLowerCase()
-            if (titleLower.includes(roleLower) || roleLower.includes(titleLower)) {
+            if (roleKey.toLowerCase().trim() === exactMatch) {
               roleMap[roleKey].count += 1
             }
           })
