@@ -61,15 +61,18 @@ function ManpowerPricing() {
       description: form.description || '',
     }
     try {
-      let result
       if (editingId) {
-        result = await supabase.from('manpower_pricing').update(payload).eq('id', editingId).select()
+        const { error } = await supabase.from('manpower_pricing').update(payload).eq('id', editingId)
+        if (error) {
+          alert('Failed to update: ' + error.message)
+          return
+        }
       } else {
-        result = await supabase.from('manpower_pricing').insert(payload).select()
-      }
-      if (result.error) {
-        alert('Failed to save: ' + result.error.message)
-        return
+        const { error } = await supabase.from('manpower_pricing').insert(payload)
+        if (error) {
+          alert('Failed to create: ' + error.message)
+          return
+        }
       }
       setShowModal(false)
       setEditingId(null)
