@@ -10,7 +10,7 @@ function Players() {
       try {
         const { data, error } = await supabase
           .from('employee_master')
-          .select('*')
+          .select('employee_id, full_name, work_email, department_text, position_title, employment_type, employment_status, date_hired_text')
           .eq('department_text', 'Operation')
         if (error) throw error
         setEmployees(data || [])
@@ -90,7 +90,6 @@ function Players() {
                 <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">ID</th>
                 <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Name</th>
                 <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden md:table-cell">Email</th>
-                <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden lg:table-cell">Department</th>
                 <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Position</th>
                 <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden lg:table-cell">Type</th>
                 <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Status</th>
@@ -103,7 +102,6 @@ function Players() {
                   <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{emp.employee_id || '-'}</td>
                   <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap truncate max-w-[180px]">{emp.full_name || '-'}</td>
                   <td className="px-4 py-3 text-[#3E4048] truncate max-w-[200px] hidden md:table-cell">{emp.work_email || '-'}</td>
-                  <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{emp.department_text || '-'}</td>
                   <td className="px-4 py-3 text-[#1B1A1C] whitespace-nowrap truncate max-w-[160px]">{emp.position_title || '-'}</td>
                   <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{emp.employment_type || '-'}</td>
                   <td className="px-4 py-3">
