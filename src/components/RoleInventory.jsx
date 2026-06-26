@@ -6,33 +6,51 @@ function RoleInventory() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchRoles = async () => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
-          .from('employee_master')
-          .select('position_title')
-          .eq('department_text', 'Operation')
+        const [pricingRes, employeesRes] = await Promise.all([
+          supabase.from('manpower_pricing').select('role, level, category'),
+          supabase.from('employee_master').select('position_title').eq('department_text', 'Operation'),
+        ])
 
-        if (error) throw error
+        if (pricingRes.error) throw pricingRes.error
+        if (employeesRes.error) throw employeesRes.error
 
-        const counts = {}
-        ;(data || []).forEach(emp => {
-          const title = emp.position_title || 'Unknown'
-          counts[title] = (counts[title] || 0) + 1
+        const pricingRoles = pricingRes.data || []
+        const employeeTitles = (employeesRes.data || []).map(e => e.position_title || '')
+
+        const roleMap = {}
+        pricingRoles.forEach(r => {
+          const key = r.role
+          if (!roleMap[key]) {
+            roleMap[key] = { role: key, category: r.category, count: 0, levels: new Set() }
+          }
+          roleMap[key].levels.add(r.level)
         })
 
-        const sorted = Object.entries(counts)
-          .map(([role, count]) => ({ role, count }))
-          .sort((a, b) => b.count - a.count)
+        employeeTitles.forEach(title => {
+          const titleLower = title.toLowerCase()
+          Object.keys(roleMap).forEach(roleKey => {
+            const roleLower = roleKey.toLowerCase()
+            if (titleLower.includes(roleLower) || roleLower.includes(titleLower)) {
+              roleMap[roleKey].count += 1
+            }
+          })
+        })
 
-        setRoles(sorted)
+        const result = Object.values(roleMap).map(r => ({
+          ...r,
+          levels: Array.from(r.levels).join(', '),
+        })).sort((a, b) => b.count - a.count || a.role.localeCompare(b.role))
+
+        setRoles(result)
       } catch {
         setRoles([])
       } finally {
         setLoading(false)
       }
     }
-    fetchRoles()
+    fetchData()
   }, [])
 
   if (loading) {
@@ -53,40 +71,43 @@ function RoleInventory() {
     )
   }
 
-  const total = roles.reduce((sum, r) => sum + r.count, 0)
+  const filled = roles.filter(r => r.count > 0)
+  const vacant = roles.filter(r => r.count === 0)
 
   return (
     <div className="bg-white p-8 rounded-xl shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-[#1B1A1C] text-xl font-semibold">Role Inventory</h2>
-          <p className="text-[#3E4048] text-sm mt-1">Operation department headcount by position</p>
+        <h2 className="text-[#1B1A1C] text-xl font-semibold">Role Inventory</h2>
+        <div className="flex gap-2 text-sm">
+          <span className="text-green-700 bg-green-50 px-3 py-1 rounded-full">{filled.length} filled</span>
+          <span className="text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">{vacant.length} vacant</span>
         </div>
-        <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">
-          {total} total
-        </span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#CACDD7]">
-              <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Position Title</th>
-              <th className="text-right px-4 py-3 text-[#3E4048] font-medium">Headcount</th>
-              <th className="text-left px-4 py-3 text-[#3E4048] font-medium">%</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Role</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Category</th>
+              <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Levels</th>
+              <th className="text-center px-4 py-3 text-[#3E4048] font-medium">Headcount</th>
             </tr>
           </thead>
           <tbody>
             {roles.map((r, i) => (
-              <tr key={i} className="border-b border-[#CACDD7]/50 hover:bg-gray-50">
+              <tr key={i} className={`border-b border-[#CACDD7]/50 hover:bg-gray-50 ${r.count > 0 ? '' : 'opacity-50'}`}>
                 <td className="px-4 py-3 text-[#1B1A1C] font-medium">{r.role}</td>
-                <td className="px-4 py-3 text-right">
-                  <span className="bg-[#FF5900] text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                    {r.count}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-[#3E4048]">
-                  {((r.count / total) * 100).toFixed(1)}%
+                <td className="px-4 py-3 text-[#3E4048]">{r.category}</td>
+                <td className="px-4 py-3 text-[#3E4048] text-xs">{r.levels}</td>
+                <td className="px-4 py-3 text-center">
+                  {r.count > 0 ? (
+                    <span className="bg-[#FF5900] text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                      {r.count}
+                    </span>
+                  ) : (
+                    <span className="text-[#CACDD7] text-xs">—</span>
+                  )}
                 </td>
               </tr>
             ))}
