@@ -68,18 +68,15 @@ function Projects() {
       <div className="bg-white p-8 rounded-xl shadow-sm">
         <h3 className="text-[#1B1A1C] text-lg font-semibold mb-6">Project Phases</h3>
 
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {stages.map((stage, index) => (
-            <div key={stage.key} className="flex items-center gap-4 min-w-0">
-              <div className="flex flex-col items-center bg-gray-50 rounded-xl p-6 min-w-[200px] shadow-sm border border-[#CACDD7]/30">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {stages.map((stage) => (
+            <div key={stage.key} className="flex items-center gap-4">
+              <div className="flex-1 flex flex-col items-center bg-gray-50 rounded-xl p-6 shadow-sm border border-[#CACDD7]/30">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3 ${stage.textColor}`} style={{ background: stage.gradient }}>
                   {getStageCount(stage.key)}
                 </div>
                 <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
               </div>
-              {index < stages.length - 1 && (
-                <div className="text-[#CACDD7] text-2xl font-light hidden sm:block">›</div>
-              )}
             </div>
           ))}
         </div>

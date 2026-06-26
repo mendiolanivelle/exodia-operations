@@ -26,7 +26,7 @@ function Dashboard() {
       </header>
 
       <div className="flex flex-1">
-        <aside className="w-64 bg-[#1B1A1C] flex flex-col gap-1 p-4">
+        <aside className="w-64 flex-shrink-0 bg-[#1B1A1C] flex flex-col gap-1 p-4">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
