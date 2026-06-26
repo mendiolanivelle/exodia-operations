@@ -3,6 +3,7 @@ import { useAuth } from '../lib/useAuth'
 import Players from '../components/Players'
 import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
+import RoleInventory from '../components/RoleInventory'
 
 function Dashboard() {
   const { user, logout } = useAuth()
@@ -129,7 +130,7 @@ function Dashboard() {
 
           {activeTab === 'player-list' && <Players />}
 
-          {activeTab === 'role-inventory' && <ManpowerPricing />}
+          {activeTab === 'role-inventory' && <RoleInventory />}
 
           {activeTab === 'project-dashboard' && <Projects />}
 
