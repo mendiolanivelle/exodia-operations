@@ -232,7 +232,7 @@ function ManpowerPricing() {
               <button onClick={handleSave} disabled={saving || !form.role}
                 className="px-4 py-2 text-sm font-medium text-white bg-[#FF5900] rounded-md hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2">
                 {saving && <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />}
-                {editing ? 'Update' : 'Create'}
+                {editingId ? 'Update' : 'Create'}
               </button>
             </div>
           </div>
