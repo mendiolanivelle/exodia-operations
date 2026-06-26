@@ -9,14 +9,6 @@ const stages = [
   { key: 'service-ops', label: 'Service Ops', dotColor: 'bg-green-500' },
 ]
 
-const stageBgs = [
-  'linear-gradient(135deg, #ffffff 0%, #e8e8ec 100%)',
-  'linear-gradient(135deg, #f5f5f7 0%, #c4c5c9 100%)',
-  'linear-gradient(135deg, #e0e0e3 0%, #8a8b90 100%)',
-  'linear-gradient(135deg, #b0b0b5 0%, #4a4b4f 100%)',
-  'linear-gradient(135deg, #707075 0%, #1B1A1C 100%)',
-]
-
 function Projects() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
@@ -77,14 +69,11 @@ function Projects() {
         <div className="flex gap-4 overflow-x-auto pb-4">
           {stages.map((stage, index) => (
             <div key={stage.key} className="flex items-center gap-4 min-w-0">
-              <div
-                className="flex flex-col items-center rounded-xl p-6 min-w-[200px] shadow-sm border border-[#CACDD7]/30"
-                style={{ background: stageBgs[index] }}
-              >
+              <div className="flex flex-col items-center bg-gray-50 rounded-xl p-6 min-w-[200px] shadow-sm border border-[#CACDD7]/30">
                 <div className={`w-12 h-12 rounded-full ${stage.dotColor} flex items-center justify-center text-white text-xl font-bold mb-3`}>
                   {getStageCount(stage.key)}
                 </div>
-                <span className={`text-sm font-medium text-center leading-tight ${index >= 3 ? 'text-white' : 'text-[#1B1A1C]'}`}>{stage.label}</span>
+                <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
               </div>
               {index < stages.length - 1 && (
                 <div className="text-[#CACDD7] text-2xl font-light hidden sm:block">›</div>
