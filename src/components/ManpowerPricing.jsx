@@ -211,7 +211,7 @@ function ManpowerPricing() {
         {categories.map(cat => (
           <div key={cat} className="relative group">
             <button onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-[#FF5900] text-white' : 'bg-gray-100 text-[#3E4048] hover:bg-gray-200'}`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-[#1B1A1C] text-white' : 'bg-gray-100 text-[#3E4048] hover:bg-gray-200'}`}
             >{cat}</button>
             <div className="absolute -top-1.5 -right-1.5 hidden group-hover:flex gap-0.5">
               <button onClick={e => { e.stopPropagation(); openEditCategory(cat) }}
