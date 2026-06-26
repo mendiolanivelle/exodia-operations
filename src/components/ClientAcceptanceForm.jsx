@@ -95,6 +95,7 @@ function ClientAcceptanceForm() {
   const [form, setForm] = useState(initialForm)
   const [saving, setSaving] = useState(false)
   const [selectedBrief, setSelectedBrief] = useState(null)
+  const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
     fetchBriefs()
@@ -156,8 +157,8 @@ function ClientAcceptanceForm() {
     setSaving(false)
     if (error) return
     setForm(initialForm)
-    setView('list')
     fetchBriefs()
+    setSubmitted(true)
   }
 
   const openNewForm = () => {
@@ -516,6 +517,23 @@ function ClientAcceptanceForm() {
             </section>
 
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="bg-white p-8 rounded-xl shadow-sm text-center py-16">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <Icon icon="lucide:check" className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-[#1B1A1C] text-xl font-semibold mb-2">Successfully Submitted</h2>
+          <p className="text-[#3E4048] text-sm mb-6">The acceptance criteria form has been submitted and is now listed for review.</p>
+          <button onClick={() => { setSubmitted(false); setView('list') }} className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer">
+            Back to List
+          </button>
         </div>
       </div>
     )
