@@ -129,12 +129,7 @@ function Dashboard() {
 
           {activeTab === 'player-list' && <Players />}
 
-          {activeTab === 'role-inventory' && (
-            <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Role Inventory</h2>
-              <p className="text-[#3E4048]">Role inventory coming soon.</p>
-            </div>
-          )}
+          {activeTab === 'role-inventory' && <ManpowerPricing />}
 
           {activeTab === 'project-dashboard' && <Projects />}
 
