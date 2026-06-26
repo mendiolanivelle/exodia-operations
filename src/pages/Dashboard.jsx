@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../lib/useAuth'
 import Players from '../components/Players'
 import Projects from '../components/Projects'
+import ManpowerPricing from '../components/ManpowerPricing'
 
 function Dashboard() {
   const { user, logout } = useAuth()
@@ -85,6 +86,20 @@ function Dashboard() {
           >
             Project List
           </button>
+
+          <div className="text-[#CACDD7]/50 text-xs font-semibold uppercase tracking-wider px-5 pt-4 pb-1">
+            Pricing
+          </div>
+          <button
+            onClick={() => setActiveTab('manpower-pricing')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'manpower-pricing'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Manpower & Pricing
+          </button>
         </aside>
 
         <main className="flex-1 p-10">
@@ -129,6 +144,8 @@ function Dashboard() {
               <p className="text-[#3E4048]">Project list coming soon.</p>
             </div>
           )}
+
+          {activeTab === 'manpower-pricing' && <ManpowerPricing />}
         </main>
       </div>
     </div>
