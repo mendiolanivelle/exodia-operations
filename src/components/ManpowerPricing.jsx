@@ -13,10 +13,9 @@ function ManpowerPricing() {
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('Generalist')
   const [showModal, setShowModal] = useState(false)
-  const [editing, setEditing] = useState(null)
+  const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(null)
 
   const fetchData = useCallback(async () => {
     try {
@@ -33,7 +32,7 @@ function ManpowerPricing() {
 
   const openAdd = (category) => {
     setForm({ ...emptyForm, category })
-    setEditing(null)
+    setEditingId(null)
     setShowModal(true)
   }
 
@@ -46,7 +45,7 @@ function ManpowerPricing() {
       price_per_day: record.price_per_day || '',
       description: record.description || '',
     })
-    setEditing(record)
+    setEditingId(record.id)
     setShowModal(true)
   }
 
@@ -62,13 +61,19 @@ function ManpowerPricing() {
       description: form.description || '',
     }
     try {
-      if (editing) {
-        await supabase.from('manpower_pricing').update(payload).eq('id', editing.id)
+      let result
+      if (editingId) {
+        result = await supabase.from('manpower_pricing').update(payload).eq('id', editingId).select()
       } else {
-        await supabase.from('manpower_pricing').insert(payload)
+        result = await supabase.from('manpower_pricing').insert(payload).select()
+      }
+      if (result.error) {
+        alert('Failed to save: ' + result.error.message)
+        return
       }
       setShowModal(false)
-      fetchData()
+      setEditingId(null)
+      await fetchData()
     } catch (err) {
       alert('Failed to save: ' + err.message)
     } finally {
@@ -79,9 +84,12 @@ function ManpowerPricing() {
   const confirmDelete = async (record) => {
     if (!window.confirm(`Delete "${record.role} - ${record.level}"?`)) return
     try {
-      await supabase.from('manpower_pricing').delete().eq('id', record.id)
-      setDeleting(null)
-      fetchData()
+      const result = await supabase.from('manpower_pricing').delete().eq('id', record.id)
+      if (result.error) {
+        alert('Failed to delete: ' + result.error.message)
+        return
+      }
+      await fetchData()
     } catch (err) {
       alert('Failed to delete: ' + err.message)
     }
