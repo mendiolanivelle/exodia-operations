@@ -94,7 +94,6 @@ function Login() {
               >
                 <Icon icon={showPassword ? 'lucide:eye-off' : 'lucide:eye'} className="w-5 h-5" />
               </button>
-              </button>
             </div>
           </div>
 
