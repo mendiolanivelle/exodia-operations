@@ -56,6 +56,23 @@ function ManpowerPricing() {
     })
   }
 
+  const openLevelAdd = (roleName) => {
+    setModal({
+      open: true,
+      type: 'add-level',
+      form: {
+        id: null,
+        role: roleName,
+        category: activeCategory,
+        sub_category: roleName,
+        level: 'Director',
+        price_per_day: '',
+        description: '',
+      },
+      batchRole: null
+    })
+  }
+
   const openLevelDelete = async (record) => {
     if (!window.confirm(`Delete "${record.level}" level for "${record.role}"?`)) return
     try {
@@ -82,6 +99,16 @@ function ManpowerPricing() {
       }
       const { error } = await supabase.from('manpower_pricing').update(payload).eq('id', form.id)
       if (error) { alert('Update failed: ' + error.message); return }
+    } else if (type === 'add-level') {
+      const { error } = await supabase.from('manpower_pricing').insert({
+        category: form.category,
+        sub_category: form.sub_category || form.role,
+        role: form.role,
+        level: form.level,
+        price_per_day: form.price_per_day || null,
+        description: form.description || '',
+      })
+      if (error) { alert('Add failed: ' + error.message); return }
     }
     setModal({ open: false, type: null, form: {}, batchRole: null })
     await fetchData()
@@ -123,6 +150,10 @@ function ManpowerPricing() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[#1B1A1C] text-base font-semibold">{roleName}</h3>
               <div className="flex gap-1">
+                <button onClick={() => openLevelAdd(roleName)}
+                  className="text-xs text-[#3E4048] hover:text-green-600 px-2 py-1 rounded hover:bg-gray-100 flex items-center gap-1">
+                  <Icon icon="lucide:plus" className="w-3 h-3" /> Add Level
+                </button>
                 <button onClick={() => openRoleEdit(roleName)}
                   className="text-xs text-[#3E4048] hover:text-[#FF5900] px-2 py-1 rounded hover:bg-gray-100 flex items-center gap-1">
                   <Icon icon="lucide:pencil" className="w-3 h-3" /> Edit Role
@@ -173,7 +204,7 @@ function ManpowerPricing() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-[#1B1A1C] text-lg font-semibold">
-                {modal.type === 'role' ? 'Edit Role Name' : 'Edit Level'}
+                {modal.type === 'role' ? 'Edit Role Name' : modal.type === 'add-level' ? 'Add Level' : 'Edit Level'}
               </h3>
               <button onClick={() => setModal({ open: false, type: null, form: {}, batchRole: null })} className="text-[#3E4048] hover:text-[#1B1A1C]">
                 <Icon icon="lucide:x" className="w-5 h-5" />
@@ -190,6 +221,13 @@ function ManpowerPricing() {
                 </div>
               ) : (
                 <>
+                  {modal.type === 'add-level' && (
+                    <div>
+                      <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Role</label>
+                      <input value={modal.form.role} disabled
+                        className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm bg-gray-50 text-[#3E4048]" />
+                    </div>
+                  )}
                   <div>
                     <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Level</label>
                     <select value={modal.form.level} onChange={e => setModal(prev => ({ ...prev, form: { ...prev.form, level: e.target.value } }))}
@@ -218,7 +256,7 @@ function ManpowerPricing() {
                 className="px-4 py-2 text-sm font-medium text-[#3E4048] bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
               <button onClick={handleSave}
                 className="px-4 py-2 text-sm font-medium text-white bg-[#FF5900] rounded-md hover:bg-orange-600 flex items-center gap-2">
-                Save
+                {modal.type === 'add-level' ? 'Add' : 'Save'}
               </button>
             </div>
           </div>
