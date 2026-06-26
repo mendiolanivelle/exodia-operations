@@ -10,6 +10,7 @@ function ManpowerPricing() {
   const [categories, setCategories] = useState(['Generalist', 'Specialist', 'Engineering', 'Audio', 'Cinematics', 'Production'])
   const [activeCategory, setActiveCategory] = useState('Generalist')
   const [modal, setModal] = useState({ open: false, type: null, form: {}, batchRole: null })
+  const [confirm, setConfirm] = useState(null)
   const dragItem = useRef(null)
 
   const fetchData = useCallback(async () => {
@@ -38,15 +39,20 @@ function ManpowerPricing() {
   }
 
   const deleteCategory = async (cat) => {
-    if (!window.confirm(`Delete category "${cat}" and ALL its roles and levels?`)) return
-    const ids = data.filter(r => r.category === cat).map(r => r.id)
-    for (const id of ids) {
-      const { error } = await supabase.from('manpower_pricing').delete().eq('id', id)
-      if (error) { alert('Delete failed: ' + error.message); return }
-    }
-    setCategories(prev => prev.filter(c => c !== cat))
-    if (activeCategory === cat) setActiveCategory(categories.find(c => c !== cat) || '')
-    await fetchData()
+    setConfirm({
+      message: `Delete category "${cat}" and ALL its roles and levels?`,
+      onConfirm: async () => {
+        const ids = data.filter(r => r.category === cat).map(r => r.id)
+        for (const id of ids) {
+          const { error } = await supabase.from('manpower_pricing').delete().eq('id', id)
+          if (error) { alert('Delete failed: ' + error.message); setConfirm(null); return }
+        }
+        setCategories(prev => prev.filter(c => c !== cat))
+        if (activeCategory === cat) setActiveCategory(categories.find(c => c !== cat) || '')
+        setConfirm(null)
+        await fetchData()
+      }
+    })
   }
 
   const openAddRole = () => {
@@ -72,12 +78,17 @@ function ManpowerPricing() {
   const openRoleDelete = async (roleName) => {
     const ids = data.filter(r => r.role === roleName && r.category === activeCategory).map(r => r.id)
     if (!ids.length) return
-    if (!window.confirm(`Delete role "${roleName}" and all its levels (${ids.length} records)?`)) return
-    for (const id of ids) {
-      const { error } = await supabase.from('manpower_pricing').delete().eq('id', id)
-      if (error) { alert('Delete failed: ' + error.message); return }
-    }
-    await fetchData()
+    setConfirm({
+      message: `Delete role "${roleName}" and all its levels (${ids.length} records)?`,
+      onConfirm: async () => {
+        for (const id of ids) {
+          const { error } = await supabase.from('manpower_pricing').delete().eq('id', id)
+          if (error) { alert('Delete failed: ' + error.message); setConfirm(null); return }
+        }
+        setConfirm(null)
+        await fetchData()
+      }
+    })
   }
 
   const openLevelEdit = (record) => {
@@ -89,10 +100,15 @@ function ManpowerPricing() {
   }
 
   const openLevelDelete = async (record) => {
-    if (!window.confirm(`Delete "${record.level}" level for "${record.role}"?`)) return
-    const { error } = await supabase.from('manpower_pricing').delete().eq('id', record.id)
-    if (error) { alert('Delete failed: ' + error.message); return }
-    await fetchData()
+    setConfirm({
+      message: `Delete "${record.level}" level for "${record.role}"?`,
+      onConfirm: async () => {
+        const { error } = await supabase.from('manpower_pricing').delete().eq('id', record.id)
+        if (error) { alert('Delete failed: ' + error.message); setConfirm(null); return }
+        setConfirm(null)
+        await fetchData()
+      }
+    })
   }
 
   const handleSave = async () => {
@@ -417,6 +433,26 @@ function ManpowerPricing() {
                 className="px-4 py-2 text-sm font-medium text-white bg-[#FF5900] rounded-md hover:bg-orange-600 flex items-center gap-2">
                 {modal.type === 'add-role' ? 'Create Role' : ['add-level', 'add-category'].includes(modal.type) ? 'Create' : 'Save'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirm && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={() => setConfirm(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[#1B1A1C] text-lg font-semibold">Confirm Delete</h3>
+              <button onClick={() => setConfirm(null)} className="text-[#3E4048] hover:text-[#1B1A1C]">
+                <Icon icon="lucide:x" className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-[#3E4048] text-sm mb-6">{confirm.message}</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setConfirm(null)}
+                className="px-4 py-2 text-sm font-medium text-[#3E4048] bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
+              <button onClick={confirm.onConfirm}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">Delete</button>
             </div>
           </div>
         </div>
