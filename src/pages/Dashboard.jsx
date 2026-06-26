@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../lib/useAuth'
+import { Icon } from '@iconify/react'
 import Players from '../components/Players'
 import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
@@ -31,12 +32,13 @@ function Dashboard() {
         <aside className="w-64 flex-shrink-0 bg-[#1B1A1C] flex flex-col gap-1 p-4">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'dashboard'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
+            <Icon icon="lucide:layout-dashboard" className="w-4 h-4 flex-shrink-0" />
             Dashboard
           </button>
 
@@ -45,22 +47,24 @@ function Dashboard() {
           </div>
           <button
             onClick={() => setActiveTab('player-list')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'player-list'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
+            <Icon icon="lucide:users" className="w-4 h-4 flex-shrink-0" />
             Player List
           </button>
           <button
             onClick={() => setActiveTab('role-inventory')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'role-inventory'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
+            <Icon icon="lucide:briefcase-business" className="w-4 h-4 flex-shrink-0" />
             Role Inventory
           </button>
 
@@ -69,22 +73,24 @@ function Dashboard() {
           </div>
           <button
             onClick={() => setActiveTab('project-dashboard')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'project-dashboard'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
+            <Icon icon="lucide:kanban-square" className="w-4 h-4 flex-shrink-0" />
             Project Dashboard
           </button>
           <button
             onClick={() => setActiveTab('project-list')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'project-list'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
+            <Icon icon="lucide:folder-kanban" className="w-4 h-4 flex-shrink-0" />
             Project List
           </button>
 
@@ -93,12 +99,13 @@ function Dashboard() {
           </div>
           <button
             onClick={() => setActiveTab('manpower-pricing')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'manpower-pricing'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
+            <Icon icon="lucide:dollar-sign" className="w-4 h-4 flex-shrink-0" />
             Manpower & Pricing
           </button>
         </aside>
