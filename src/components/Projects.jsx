@@ -50,28 +50,42 @@ function Projects() {
   }
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-sm">
-      <h2 className="text-[#1B1A1C] text-xl font-semibold mb-6">Project Dashboard</h2>
-
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {stages.map((stage, index) => (
-          <div key={stage.key} className="flex items-center gap-4 min-w-0">
-            <div className="flex flex-col items-center bg-gray-50 rounded-xl p-6 min-w-[200px] shadow-sm border border-[#CACDD7]/30">
-              <div className={`w-12 h-12 rounded-full ${stage.color} flex items-center justify-center text-white text-xl font-bold mb-3`}>
-                {getStageCount(stage.key)}
-              </div>
-              <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
-            </div>
-            {index < stages.length - 1 && (
-              <div className="text-[#CACDD7] text-2xl font-light hidden sm:block">›</div>
-            )}
+    <div className="flex flex-col gap-6">
+      <div className="bg-white p-8 rounded-xl shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">Projects</h2>
+            <p className="text-[#3E4048] text-sm">Total number of projects in the pipeline</p>
           </div>
-        ))}
+          <div className="bg-[#1B1A1C] rounded-full w-20 h-20 flex items-center justify-center">
+            <span className="text-white text-3xl font-bold">{projects.length}</span>
+          </div>
+        </div>
       </div>
 
-      {projects.length === 0 && (
-        <p className="text-[#3E4048] text-sm mt-4">No projects found. Add projects to get started.</p>
-      )}
+      <div className="bg-white p-8 rounded-xl shadow-sm">
+        <h3 className="text-[#1B1A1C] text-lg font-semibold mb-6">Project Dashboard</h3>
+
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {stages.map((stage, index) => (
+            <div key={stage.key} className="flex items-center gap-4 min-w-0">
+              <div className="flex flex-col items-center bg-gray-50 rounded-xl p-6 min-w-[200px] shadow-sm border border-[#CACDD7]/30">
+                <div className={`w-12 h-12 rounded-full ${stage.color} flex items-center justify-center text-white text-xl font-bold mb-3`}>
+                  {getStageCount(stage.key)}
+                </div>
+                <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
+              </div>
+              {index < stages.length - 1 && (
+                <div className="text-[#CACDD7] text-2xl font-light hidden sm:block">›</div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {projects.length === 0 && (
+          <p className="text-[#3E4048] text-sm mt-4">No projects found. Add projects to get started.</p>
+        )}
+      </div>
     </div>
   )
 }
