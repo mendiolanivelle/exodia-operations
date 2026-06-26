@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../lib/useAuth'
 import Players from '../components/Players'
+import Projects from '../components/Projects'
 
 function Dashboard() {
   const { user, logout } = useAuth()
@@ -65,14 +66,24 @@ function Dashboard() {
             Project
           </div>
           <button
-            onClick={() => setActiveTab('project')}
+            onClick={() => setActiveTab('project-dashboard')}
             className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'project'
+              activeTab === 'project-dashboard'
                 ? 'bg-[#FF5900] text-white'
                 : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
             }`}
           >
-            Project
+            Project Dashboard
+          </button>
+          <button
+            onClick={() => setActiveTab('project-list')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'project-list'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Project List
           </button>
         </aside>
 
@@ -110,10 +121,12 @@ function Dashboard() {
             </div>
           )}
 
-          {activeTab === 'project' && (
+          {activeTab === 'project-dashboard' && <Projects />}
+
+          {activeTab === 'project-list' && (
             <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Project</h2>
-              <p className="text-[#3E4048]">Project details coming soon.</p>
+              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Project List</h2>
+              <p className="text-[#3E4048]">Project list coming soon.</p>
             </div>
           )}
         </main>
