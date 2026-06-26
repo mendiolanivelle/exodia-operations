@@ -5,6 +5,7 @@ import Players from '../components/Players'
 import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
 import RoleInventory from '../components/RoleInventory'
+import ProjectReviewTicket from '../components/ProjectReviewTicket'
 
 function Dashboard() {
   const { user, logout } = useAuth()
@@ -93,6 +94,17 @@ function Dashboard() {
             <Icon icon="lucide:folder-kanban" className="w-4 h-4 flex-shrink-0" />
             Project List
           </button>
+          <button
+            onClick={() => setActiveTab('project-review')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
+              activeTab === 'project-review'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Icon icon="lucide:file-text" className="w-4 h-4 flex-shrink-0" />
+            Project Review Ticket
+          </button>
 
           <div className="text-[#CACDD7]/50 text-xs font-semibold uppercase tracking-wider px-5 pt-4 pb-1">
             Pricing
@@ -147,6 +159,8 @@ function Dashboard() {
               <p className="text-[#3E4048]">Project list coming soon.</p>
             </div>
           )}
+
+          {activeTab === 'project-review' && <ProjectReviewTicket />}
 
           {activeTab === 'manpower-pricing' && <ManpowerPricing />}
         </main>
