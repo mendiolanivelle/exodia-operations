@@ -60,6 +60,20 @@ function Dashboard() {
           >
             Role Inventory
           </button>
+
+          <div className="text-[#CACDD7]/50 text-xs font-semibold uppercase tracking-wider px-5 pt-4 pb-1">
+            Project
+          </div>
+          <button
+            onClick={() => setActiveTab('project')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'project'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            Project
+          </button>
         </aside>
 
         <main className="flex-1 p-10">
@@ -93,6 +107,13 @@ function Dashboard() {
             <div className="bg-white p-8 rounded-xl shadow-sm">
               <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Role Inventory</h2>
               <p className="text-[#3E4048]">Role inventory coming soon.</p>
+            </div>
+          )}
+
+          {activeTab === 'project' && (
+            <div className="bg-white p-8 rounded-xl shadow-sm">
+              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Project</h2>
+              <p className="text-[#3E4048]">Project details coming soon.</p>
             </div>
           )}
         </main>
