@@ -10,7 +10,7 @@ function Players() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const { data, error } = await supabase.from('employees').select('*')
+        const { data, error } = await supabase.from('exodia_profiles').select('*')
         if (error) throw error
         if (data && data.length > 0) {
           setColumns(Object.keys(data[0]))
