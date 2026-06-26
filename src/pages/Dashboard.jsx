@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../lib/useAuth'
+import Players from '../components/Players'
 
 const tabs = [
   { key: 'dashboard', label: 'Dashboard' },
@@ -70,12 +71,7 @@ function Dashboard() {
             </>
           )}
 
-          {activeTab === 'players' && (
-            <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Players</h2>
-              <p className="text-[#3E4048]">Player management coming soon.</p>
-            </div>
-          )}
+          {activeTab === 'players' && <Players />}
         </main>
       </div>
     </div>
