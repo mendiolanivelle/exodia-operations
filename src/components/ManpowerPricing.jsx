@@ -50,7 +50,23 @@ function ManpowerPricing() {
   }
 
   const openAddRole = () => {
-    setModal({ open: true, type: 'add-role', form: { category: activeCategory, role: '' }, batchRole: null })
+    setModal({ open: true, type: 'add-role', form: { category: activeCategory, role: '', levels: [{ level: '', price: '', description: '' }] }, batchRole: null })
+  }
+
+  const addLevelRow = () => {
+    setModal(prev => ({ ...prev, form: { ...prev.form, levels: [...prev.form.levels, { level: '', price: '', description: '' }] } }))
+  }
+
+  const removeLevelRow = (idx) => {
+    setModal(prev => ({ ...prev, form: { ...prev.form, levels: prev.form.levels.filter((_, i) => i !== idx) } }))
+  }
+
+  const updateLevelRow = (idx, field, value) => {
+    setModal(prev => {
+      const levels = [...prev.form.levels]
+      levels[idx] = { ...levels[idx], [field]: value }
+      return { ...prev, form: { ...prev.form, levels } }
+    })
   }
 
   const openRoleDelete = async (roleName) => {
@@ -109,8 +125,17 @@ function ManpowerPricing() {
       setActiveCategory(form.category)
     } else if (type === 'add-role') {
       if (!form.role) return
-      const { error } = await supabase.from('manpower_pricing').insert({ category: form.category, sub_category: form.role, role: form.role, level: '', price_per_day: null, description: '' })
-      if (error) { alert('Add failed: ' + error.message); return }
+      for (const lvl of form.levels) {
+        const { error } = await supabase.from('manpower_pricing').insert({
+          category: form.category,
+          sub_category: form.role,
+          role: form.role,
+          level: lvl.level || '',
+          price_per_day: lvl.price || null,
+          description: lvl.description || '',
+        })
+        if (error) { alert('Add failed: ' + error.message); return }
+      }
     }
     setModal({ open: false, type: null, form: {}, batchRole: null })
     await fetchData()
@@ -187,6 +212,10 @@ function ManpowerPricing() {
         <button onClick={openAddCategory}
           className="px-4 py-2 rounded-md text-sm font-medium border border-dashed border-[#CACDD7] text-[#3E4048] hover:border-[#FF5900] hover:text-[#FF5900] transition-colors flex items-center gap-1">
           <Icon icon="lucide:plus" className="w-4 h-4" /> Add Category
+        </button>
+        <button onClick={openAddRole}
+          className="ml-auto px-4 py-2 rounded-md text-sm font-medium bg-[#1B1A1C] text-white hover:bg-gray-800 transition-colors flex items-center gap-1">
+          <Icon icon="lucide:plus" className="w-4 h-4" /> Add Roles
         </button>
       </div>
 
@@ -298,13 +327,57 @@ function ManpowerPricing() {
                 </div>
               ) : modal.type === 'add-role' ? (
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Category</label>
-                  <input value={modal.form.category} disabled className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm bg-gray-50 text-[#3E4048]" />
-                  <div className="mt-4">
+                  <div className="mb-4">
+                    <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Category</label>
+                    <input value={modal.form.category} disabled className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm bg-gray-50 text-[#3E4048]" />
+                  </div>
+                  <div className="mb-4">
                     <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Role Name</label>
                     <input value={modal.form.role} onChange={e => setModal(prev => ({ ...prev, form: { ...prev.form, role: e.target.value } }))}
                       placeholder="e.g. QA Tester, Marketing Lead..."
                       className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm focus:outline-none focus:border-[#FF5900]" />
+                  </div>
+                  <div className="border-t border-[#CACDD7]/50 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-[#1B1A1C] text-sm font-medium">Levels</label>
+                      <button onClick={addLevelRow} className="text-xs text-[#FF5900] hover:text-orange-600 flex items-center gap-1">
+                        <Icon icon="lucide:plus-circle" className="w-4 h-4" /> Add Level
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {modal.form.levels.map((lvl, idx) => (
+                        <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-[#CACDD7]/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-[#3E4048] font-medium">Level {idx + 1}</span>
+                            {modal.form.levels.length > 1 && (
+                              <button onClick={() => removeLevelRow(idx)} className="text-[#3E4048] hover:text-red-600">
+                                <Icon icon="lucide:x" className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mb-2">
+                            <div>
+                              <label className="text-[#3E4048] text-xs block mb-1">Level Name</label>
+                              <input value={lvl.level} onChange={e => updateLevelRow(idx, 'level', e.target.value)}
+                                placeholder="e.g. Director, Senior..."
+                                className="w-full px-2.5 py-1.5 border border-[#CACDD7] rounded text-xs focus:outline-none focus:border-[#FF5900]" />
+                            </div>
+                            <div>
+                              <label className="text-[#3E4048] text-xs block mb-1">Price/Day</label>
+                              <input value={lvl.price} onChange={e => updateLevelRow(idx, 'price', e.target.value)}
+                                placeholder="e.g. 280"
+                                className="w-full px-2.5 py-1.5 border border-[#CACDD7] rounded text-xs focus:outline-none focus:border-[#FF5900]" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[#3E4048] text-xs block mb-1">Description</label>
+                            <textarea value={lvl.description} onChange={e => updateLevelRow(idx, 'description', e.target.value)}
+                              rows={1} placeholder="Brief description..."
+                              className="w-full px-2.5 py-1.5 border border-[#CACDD7] rounded text-xs focus:outline-none focus:border-[#FF5900] resize-none" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 ) : (
@@ -342,7 +415,7 @@ function ManpowerPricing() {
                 className="px-4 py-2 text-sm font-medium text-[#3E4048] bg-gray-100 rounded-md hover:bg-gray-200">Cancel</button>
               <button onClick={handleSave}
                 className="px-4 py-2 text-sm font-medium text-white bg-[#FF5900] rounded-md hover:bg-orange-600 flex items-center gap-2">
-                {['add-level', 'add-role', 'add-category'].includes(modal.type) ? 'Create' : 'Save'}
+                {modal.type === 'add-role' ? 'Create Role' : ['add-level', 'add-category'].includes(modal.type) ? 'Create' : 'Save'}
               </button>
             </div>
           </div>
