@@ -6,6 +6,7 @@ import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
 import RoleInventory from '../components/RoleInventory'
 import ProjectReviewTicket from '../components/ProjectReviewTicket'
+import ClientAcceptanceForm from '../components/ClientAcceptanceForm'
 
 function Dashboard() {
   const { user, logout } = useAuth()
@@ -105,6 +106,17 @@ function Dashboard() {
             <Icon icon="lucide:file-text" className="w-4 h-4 flex-shrink-0" />
             Project Review Ticket
           </button>
+          <button
+            onClick={() => setActiveTab('client-acceptance')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
+              activeTab === 'client-acceptance'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Icon icon="lucide:clipboard-check" className="w-4 h-4 flex-shrink-0" />
+            Client Acceptance Form
+          </button>
 
           <div className="text-[#CACDD7]/50 text-xs font-semibold uppercase tracking-wider px-5 pt-4 pb-1">
             Pricing
@@ -161,6 +173,8 @@ function Dashboard() {
           )}
 
           {activeTab === 'project-review' && <ProjectReviewTicket />}
+
+          {activeTab === 'client-acceptance' && <ClientAcceptanceForm />}
 
           {activeTab === 'manpower-pricing' && <ManpowerPricing />}
         </main>
