@@ -18,6 +18,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@iconify/lucide": "^1.2.1",
+    "@iconify/react": "^5.0.1",
     "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
