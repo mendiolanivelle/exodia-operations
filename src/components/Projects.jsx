@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const stages = [
-  { key: 'initiation', label: 'Project Initiation', dotColor: 'bg-green-500' },
-  { key: 'pre-production', label: 'Pre-Production', dotColor: 'bg-purple-500' },
-  { key: 'production', label: 'Production', dotColor: 'bg-orange-500' },
-  { key: 'post-production', label: 'Post Production & Final QA', dotColor: 'bg-red-500' },
-  { key: 'service-ops', label: 'Service Ops', dotColor: 'bg-green-500' },
+  { key: 'initiation', label: 'Project Initiation', gradient: 'linear-gradient(135deg, #ffffff, #d4d4d8)', textColor: 'text-[#1B1A1C]' },
+  { key: 'pre-production', label: 'Pre-Production', gradient: 'linear-gradient(135deg, #d4d4d8, #a1a1aa)', textColor: 'text-[#1B1A1C]' },
+  { key: 'production', label: 'Production', gradient: 'linear-gradient(135deg, #a1a1aa, #71717a)', textColor: 'text-white' },
+  { key: 'post-production', label: 'Post Production & Final QA', gradient: 'linear-gradient(135deg, #71717a, #52525b)', textColor: 'text-white' },
+  { key: 'service-ops', label: 'Service Ops', gradient: 'linear-gradient(135deg, #52525b, #3f3f46)', textColor: 'text-white' },
+  { key: 'close-out', label: 'Close Out', gradient: 'linear-gradient(135deg, #3f3f46, #1B1A1C)', textColor: 'text-white' },
 ]
 
 function Projects() {
@@ -36,6 +37,7 @@ function Projects() {
       if (stageKey === 'production') return s === 'production' || s.includes('production')
       if (stageKey === 'post-production') return s.includes('post') || s.includes('qa') || s.includes('final')
       if (stageKey === 'service-ops') return s.includes('service') || s.includes('live') || s.includes('ops')
+      if (stageKey === 'close-out') return s.includes('close') || s.includes('complete') || s.includes('done')
       return false
     }).length
   }
@@ -70,7 +72,7 @@ function Projects() {
           {stages.map((stage, index) => (
             <div key={stage.key} className="flex items-center gap-4 min-w-0">
               <div className="flex flex-col items-center bg-gray-50 rounded-xl p-6 min-w-[200px] shadow-sm border border-[#CACDD7]/30">
-                <div className={`w-12 h-12 rounded-full ${stage.dotColor} flex items-center justify-center text-white text-xl font-bold mb-3`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3 ${stage.textColor}`} style={{ background: stage.gradient }}>
                   {getStageCount(stage.key)}
                 </div>
                 <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
