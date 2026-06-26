@@ -229,7 +229,7 @@ function ManpowerPricing() {
               </button>
             </div>
           )}
-        {Object.entries(grouped).sort((a, b) => Math.min(...a[1].map(r => r.id)) - Math.min(...b[1].map(r => r.id))).map(([roleName, rows]) => {
+        {Object.entries(grouped).sort((a, b) => Math.max(...b[1].map(r => r.id)) - Math.max(...a[1].map(r => r.id))).map(([roleName, rows]) => {
           const baseRows = [...rows].sort((a, b) => (a.sort_order ?? a.id) - (b.sort_order ?? b.id))
           return (
             <div key={roleName}>
