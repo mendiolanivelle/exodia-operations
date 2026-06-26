@@ -145,7 +145,11 @@ function ManpowerPricing() {
         {Object.entries(grouped).length === 0 && (
           <p className="text-[#3E4048] text-sm">No roles in this category.</p>
         )}
-        {Object.entries(grouped).map(([roleName, rows]) => (
+        {Object.entries(grouped).sort((a, b) => {
+    const minA = Math.min(...a[1].map(r => r.id))
+    const minB = Math.min(...b[1].map(r => r.id))
+    return minA - minB
+  }).map(([roleName, rows]) => (
           <div key={roleName}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[#1B1A1C] text-base font-semibold">{roleName}</h3>
@@ -175,7 +179,7 @@ function ManpowerPricing() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.sort((a, b) => (levelOrder[a.level] ?? 99) - (levelOrder[b.level] ?? 99)).map((r) => (
+                  {rows.sort((a, b) => (levelOrder[a.level] ?? 99) - (levelOrder[b.level] ?? 99) || a.id - b.id).map((r) => (
                     <tr key={r.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50">
                       <td className="px-4 py-2 text-[#1B1A1C] font-medium whitespace-nowrap">{r.level}</td>
                       <td className="px-4 py-2 text-[#FF5900] font-semibold whitespace-nowrap">
