@@ -180,7 +180,7 @@ function ManpowerPricing() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-[#1B1A1C] text-lg font-semibold">{editing ? 'Edit Role' : 'Add Role'}</h3>
+              <h3 className="text-[#1B1A1C] text-lg font-semibold">{editingId ? 'Edit Role' : 'Add Role'}</h3>
               <button onClick={() => setShowModal(false)} className="text-[#3E4048] hover:text-[#1B1A1C]">
                 <Icon icon="lucide:x" className="w-5 h-5" />
               </button>
@@ -220,7 +220,7 @@ function ManpowerPricing() {
                 <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Description</label>
                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm focus:outline-none focus:border-[#FF5900 resize-none" />
+                  className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
               </div>
             </div>
 
