@@ -74,28 +74,36 @@ function ManpowerPricing() {
     await fetchData()
   }
 
-  const handleDragStart = (e, index, roleName) => {
-    dragItem.current = { index, roleName }
+  const [localReorder, setLocalReorder] = useState(null)
+
+  const handleDragStart = (e, id) => {
+    dragItem.current = id
     e.dataTransfer.effectAllowed = 'move'
-    setTimeout(() => e.target.closest('tr').classList.add('opacity-40'), 0)
+    e.target.closest('tr').classList.add('opacity-40')
   }
 
-  const handleDragOver = (e, index, roleName) => {
+  const handleDragOver = (e, id, roleName) => {
     e.preventDefault()
-    if (!dragItem.current || dragItem.current.roleName !== roleName) return
-    const rows = data.filter(r => r.role === roleName && r.category === activeCategory).sort((a, b) => (a.sort_order ?? a.id) - (b.sort_order ?? b.id))
-    if (dragItem.current.index === index) return
-    const item = rows[dragItem.current.index]
-    const newRows = [...rows]
-    newRows.splice(dragItem.current.index, 1)
-    newRows.splice(index, 0, item)
-    dragItem.current.index = index
-    const updates = newRows.map((r, i) => supabase.from('manpower_pricing').update({ sort_order: i + 1 }).eq('id', r.id))
-    Promise.all(updates).then(fetchData)
+    if (!dragItem.current || dragItem.current === id) return
+    const rows = data.filter(r => r.role === roleName && r.category === activeCategory)
+      .sort((a, b) => (a.sort_order ?? a.id) - (b.sort_order ?? b.id))
+    const fromIdx = rows.findIndex(r => r.id === dragItem.current)
+    const toIdx = rows.findIndex(r => r.id === id)
+    if (fromIdx === -1 || toIdx === -1) return
+    const reordered = [...rows]
+    const [moved] = reordered.splice(fromIdx, 1)
+    reordered.splice(toIdx, 0, moved)
+    setLocalReorder({ roleName, ids: reordered.map(r => r.id) })
   }
 
   const handleDragEnd = (e) => {
     e.target.closest('tr')?.classList.remove('opacity-40')
+    if (localReorder) {
+      const updates = localReorder.ids.map((id, i) =>
+        supabase.from('manpower_pricing').update({ sort_order: i + 1 }).eq('id', id)
+      )
+      Promise.all(updates).then(() => { fetchData(); setLocalReorder(null) })
+    }
     dragItem.current = null
   }
 
@@ -127,7 +135,7 @@ function ManpowerPricing() {
       <div className="space-y-6">
         {Object.entries(grouped).length === 0 && <p className="text-[#3E4048] text-sm">No roles in this category.</p>}
         {Object.entries(grouped).sort((a, b) => Math.min(...a[1].map(r => r.id)) - Math.min(...b[1].map(r => r.id))).map(([roleName, rows]) => {
-          const sortedRows = [...rows].sort((a, b) => (a.sort_order ?? a.id) - (b.sort_order ?? b.id))
+          const baseRows = [...rows].sort((a, b) => (a.sort_order ?? a.id) - (b.sort_order ?? b.id))
           return (
             <div key={roleName}>
               <div className="flex items-center justify-between mb-3">
@@ -156,8 +164,12 @@ function ManpowerPricing() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedRows.map((r, idx) => (
-                      <tr key={r.id} draggable onDragStart={e => handleDragStart(e, idx, roleName)} onDragOver={e => handleDragOver(e, idx, roleName)} onDragEnd={handleDragEnd}
+                    {[...baseRows].sort((a, b) => {
+              const order = localReorder?.roleName === roleName ? localReorder.ids : null
+              if (order) return order.indexOf(a.id) - order.indexOf(b.id)
+              return (a.sort_order ?? a.id) - (b.sort_order ?? b.id)
+            }).map((r) => (
+                      <tr key={r.id} draggable onDragStart={e => handleDragStart(e, r.id)} onDragOver={e => handleDragOver(e, r.id, roleName)} onDragEnd={handleDragEnd}
                         className="border-b border-[#CACDD7]/50 hover:bg-gray-50 cursor-grab active:cursor-grabbing">
                         <td className="px-2 py-2 text-[#CACDD7]"><Icon icon="lucide:grip-vertical" className="w-4 h-4" /></td>
                         <td className="px-4 py-2 text-[#1B1A1C] font-medium whitespace-nowrap">{r.level}</td>
