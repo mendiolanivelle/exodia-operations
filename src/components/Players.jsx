@@ -10,7 +10,10 @@ function Players() {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const { data, error } = await supabase.from('employee_master').select('*')
+        const { data, error } = await supabase
+          .from('employee_master')
+          .select('*')
+          .eq('department_text', 'Operation')
         if (error) throw error
         setEmployees(data || [])
       } catch {
@@ -24,7 +27,7 @@ function Players() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-white p-12 rounded-xl shadow-sm">
+      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-sm">
         <div className="text-[#3E4048] text-base">Loading employee data...</div>
       </div>
     )
@@ -32,7 +35,7 @@ function Players() {
 
   if (employees.length === 0) {
     return (
-      <div className="bg-white p-8 rounded-xl shadow-sm">
+      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-sm">
         <h2 className="text-[#1B1A1C] text-xl font-semibold mb-4">Player List</h2>
         <p className="text-[#3E4048]">No employee records found.</p>
       </div>
@@ -40,16 +43,16 @@ function Players() {
   }
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-sm">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white p-4 sm:p-8 rounded-xl shadow-sm overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
         <h2 className="text-[#1B1A1C] text-xl font-semibold">Player List</h2>
-        <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">
+        <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full self-start sm:self-auto">
           {employees.length} records
         </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="-mx-4 sm:-mx-0 overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px] sm:min-w-0">
           <thead>
             <tr className="border-b border-[#CACDD7]">
               {playersColumns.map((col) => (
