@@ -5,7 +5,7 @@ const stages = [
   { key: 'initiation', label: 'Project Initiation', gradient: 'linear-gradient(135deg, #ffffff, #d4d4d8)', textColor: 'text-[#1B1A1C]' },
   { key: 'pre-production', label: 'Pre-Production', gradient: 'linear-gradient(135deg, #d4d4d8, #a1a1aa)', textColor: 'text-[#1B1A1C]' },
   { key: 'production', label: 'Production', gradient: 'linear-gradient(135deg, #a1a1aa, #71717a)', textColor: 'text-white' },
-  { key: 'post-production', label: 'Post Production & Final QA', gradient: 'linear-gradient(135deg, #71717a, #52525b)', textColor: 'text-white' },
+  { key: 'post-production', labelTop: 'Post Production', labelBottom: '& Final QA', gradient: 'linear-gradient(135deg, #71717a, #52525b)', textColor: 'text-white' },
   { key: 'service-ops', label: 'Service Ops', gradient: 'linear-gradient(135deg, #52525b, #3f3f46)', textColor: 'text-white' },
   { key: 'close-out', label: 'Close Out', gradient: 'linear-gradient(135deg, #3f3f46, #1B1A1C)', textColor: 'text-white' },
 ]
@@ -71,11 +71,17 @@ function Projects() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {stages.map((stage) => (
             <div key={stage.key} className="flex items-center gap-4">
-              <div className="flex-1 flex flex-col items-center bg-gray-50 rounded-xl p-6 shadow-sm border border-[#CACDD7]/30">
+              <div className="flex-1 flex flex-col items-center bg-gray-50 rounded-xl p-6 shadow-sm border border-[#CACDD7]/30 min-h-[130px] justify-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-3 ${stage.textColor}`} style={{ background: stage.gradient }}>
                   {getStageCount(stage.key)}
                 </div>
-                <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
+                {stage.labelTop ? (
+                  <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">
+                    {stage.labelTop}<br />{stage.labelBottom}
+                  </span>
+                ) : (
+                  <span className="text-[#1B1A1C] text-sm font-medium text-center leading-tight">{stage.label}</span>
+                )}
               </div>
             </div>
           ))}
