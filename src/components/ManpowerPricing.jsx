@@ -50,7 +50,7 @@ function ManpowerPricing() {
   const levelOrder = { 'Director': 0, 'Senior': 1, 'Mid': 2, 'Junior': 3 }
   const grouped = {}
   filtered.forEach(r => {
-    const key = r.sub_category || r.role
+    const key = r.role
     if (!grouped[key]) grouped[key] = []
     grouped[key].push(r)
   })
