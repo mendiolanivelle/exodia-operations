@@ -13,7 +13,14 @@ function Players() {
           .select('employee_id, full_name, work_email, department_text, position_title, employment_type, employment_status, date_hired_text')
           .eq('department_text', 'Operation')
         if (error) throw error
-        setEmployees(data || [])
+        const seen = new Set()
+        const unique = (data || []).filter(emp => {
+          const key = emp.employee_id || emp.full_name
+          if (seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+        setEmployees(unique)
       } catch {
         setEmployees([])
       } finally {
