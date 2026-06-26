@@ -33,6 +33,22 @@ function ManpowerPricing() {
     setModal({ open: true, type: 'add-category', form: { category: '' }, batchRole: null })
   }
 
+  const openEditCategory = (oldName) => {
+    setModal({ open: true, type: 'edit-category', form: { category: oldName, oldName }, batchRole: null })
+  }
+
+  const deleteCategory = async (cat) => {
+    if (!window.confirm(`Delete category "${cat}" and ALL its roles and levels?`)) return
+    const ids = data.filter(r => r.category === cat).map(r => r.id)
+    for (const id of ids) {
+      const { error } = await supabase.from('manpower_pricing').delete().eq('id', id)
+      if (error) { alert('Delete failed: ' + error.message); return }
+    }
+    setCategories(prev => prev.filter(c => c !== cat))
+    if (activeCategory === cat) setActiveCategory(categories.find(c => c !== cat) || '')
+    await fetchData()
+  }
+
   const openAddRole = () => {
     setModal({ open: true, type: 'add-role', form: { category: activeCategory, role: '' }, batchRole: null })
   }
@@ -81,6 +97,15 @@ function ManpowerPricing() {
     } else if (type === 'add-category') {
       if (!form.category) return
       setCategories(prev => [...prev, form.category])
+      setActiveCategory(form.category)
+    } else if (type === 'edit-category') {
+      if (!form.category) return
+      const ids = data.filter(r => r.category === form.oldName).map(r => r.id)
+      for (const id of ids) {
+        const { error } = await supabase.from('manpower_pricing').update({ category: form.category }).eq('id', id)
+        if (error) { alert('Update failed: ' + error.message); return }
+      }
+      setCategories(prev => prev.map(c => c === form.oldName ? form.category : c))
       setActiveCategory(form.category)
     } else if (type === 'add-role') {
       if (!form.role) return
@@ -143,9 +168,21 @@ function ManpowerPricing() {
 
       <div className="flex flex-wrap items-center gap-2 mb-6">
         {categories.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-[#FF5900] text-white' : 'bg-gray-100 text-[#3E4048] hover:bg-gray-200'}`}
-          >{cat}</button>
+          <div key={cat} className="relative group">
+            <button onClick={() => setActiveCategory(cat)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-[#FF5900] text-white' : 'bg-gray-100 text-[#3E4048] hover:bg-gray-200'}`}
+            >{cat}</button>
+            <div className="absolute -top-1.5 -right-1.5 hidden group-hover:flex gap-0.5">
+              <button onClick={e => { e.stopPropagation(); openEditCategory(cat) }}
+                className="w-4 h-4 bg-white rounded-full shadow flex items-center justify-center hover:text-[#FF5900] text-[#3E4048] border border-[#CACDD7]">
+                <Icon icon="lucide:pencil" className="w-2.5 h-2.5" />
+              </button>
+              <button onClick={e => { e.stopPropagation(); deleteCategory(cat) }}
+                className="w-4 h-4 bg-white rounded-full shadow flex items-center justify-center hover:text-red-600 text-[#3E4048] border border-[#CACDD7]">
+                <Icon icon="lucide:x" className="w-2.5 h-2.5" />
+              </button>
+            </div>
+          </div>
         ))}
         <button onClick={openAddCategory}
           className="px-4 py-2 rounded-md text-sm font-medium border border-dashed border-[#CACDD7] text-[#3E4048] hover:border-[#FF5900] hover:text-[#FF5900] transition-colors flex items-center gap-1">
@@ -229,7 +266,7 @@ function ManpowerPricing() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-[#1B1A1C] text-lg font-semibold">
-                {modal.type === 'role' ? 'Edit Role Name' : modal.type === 'add-category' ? 'Add Category' : modal.type === 'add-role' ? 'Add Role' : modal.type === 'add-level' ? 'Add Level' : 'Edit Level'}
+                {modal.type === 'role' ? 'Edit Role Name' : modal.type === 'add-category' ? 'Add Category' : modal.type === 'edit-category' ? 'Edit Category' : modal.type === 'add-role' ? 'Add Role' : modal.type === 'add-level' ? 'Add Level' : 'Edit Level'}
               </h3>
               <button onClick={() => setModal({ open: false, type: null, form: {}, batchRole: null })} className="text-[#3E4048] hover:text-[#1B1A1C]">
                 <Icon icon="lucide:x" className="w-5 h-5" />
@@ -251,6 +288,13 @@ function ManpowerPricing() {
                     placeholder="e.g. Marketing, QA..."
                     className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm focus:outline-none focus:border-[#FF5900]" />
                   <p className="text-xs text-[#3E4048] mt-1">New category will be added to the filter bar. You can then add roles under it.</p>
+                </div>
+              ) : modal.type === 'edit-category' ? (
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium block mb-1">Category Name</label>
+                  <input value={modal.form.category} onChange={e => setModal(prev => ({ ...prev, form: { ...prev.form, category: e.target.value } }))}
+                    className="w-full px-3 py-2 border border-[#CACDD7] rounded-md text-sm focus:outline-none focus:border-[#FF5900]" />
+                  <p className="text-xs text-[#3E4048] mt-1">Renaming will update all roles under this category.</p>
                 </div>
               ) : modal.type === 'add-role' ? (
                 <div>
