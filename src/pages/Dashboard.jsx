@@ -22,9 +22,10 @@ function Dashboard() {
           <span className="text-[#CACDD7] text-sm">{user?.email}</span>
           <button
             onClick={logout}
-            className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-red-700"
+            className="text-[#CACDD7] hover:text-red-400 transition-colors cursor-pointer"
+            title="Logout"
           >
-            Logout
+            <Icon icon="lucide:log-out" className="w-5 h-5" />
           </button>
         </div>
       </header>
