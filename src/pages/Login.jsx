@@ -49,6 +49,8 @@ function Login() {
         <span className="text-white text-xl font-bold tracking-wide">Exodia Operations</span>
       </div>
 
+      <img src="/image-218.png" alt="" className="absolute" style={{ left: '879px', top: '-112px' }} />
+
       <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-[#1B1A1C] text-3xl font-bold">Welcome Players!</h1>
