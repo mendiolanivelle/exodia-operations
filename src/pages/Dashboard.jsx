@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import Players from '../components/Players'
@@ -15,6 +15,8 @@ function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
+  const activeTabRef = useRef(activeTab)
+  activeTabRef.current = activeTab
 
   const seenCount = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10)
   const unread = Math.max(0, totalTickets - seenCount)
@@ -28,6 +30,9 @@ function Dashboard() {
         if (res.ok) {
           const data = await res.json()
           setTotalTickets(data.length)
+          if (activeTabRef.current === 'project-review') {
+            localStorage.setItem(SEEN_KEY, String(data.length))
+          }
         }
       } catch {}
     }
