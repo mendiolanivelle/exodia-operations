@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import Players from '../components/Players'
@@ -10,15 +10,29 @@ import ProjectReviewTicket from '../components/ProjectReviewTicket'
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const VIEWED_IDS_KEY = 'prt_viewed_ids'
+const NOTIF_KEY = 'op_notifications'
 
 function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [showNotif, setShowNotif] = useState(false)
+  const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'))
+  const prevCountRef = useRef(totalTickets)
+  const notifPanelRef = useRef(null)
 
   const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
   const unread = Math.max(0, totalTickets - viewedIds.length)
+  const notifRef = useRef(notifications)
+  notifRef.current = notifications
+
+  const addNotif = (msg) => {
+    const entry = { id: Date.now(), msg, time: new Date().toLocaleString(), read: false }
+    const updated = [entry, ...notifRef.current].slice(0, 50)
+    setNotifications(updated)
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(updated))
+  }
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -27,7 +41,14 @@ function Dashboard() {
     }
     const handler = () => setRefreshKey(k => k + 1)
     window.addEventListener('prt-viewed', handler)
-    return () => window.removeEventListener('prt-viewed', handler)
+    const closeNotif = (e) => {
+      if (notifPanelRef.current && !notifPanelRef.current.contains(e.target)) setShowNotif(false)
+    }
+    window.addEventListener('mousedown', closeNotif)
+    return () => {
+      window.removeEventListener('prt-viewed', handler)
+      window.removeEventListener('mousedown', closeNotif)
+    }
   }, [])
 
   useEffect(() => {
@@ -38,7 +59,15 @@ function Dashboard() {
         })
         if (res.ok) {
           const data = await res.json()
-          setTotalTickets(data.length)
+          const count = data.length
+          if (prevCountRef.current > 0 && count > prevCountRef.current) {
+            const entry = { id: Date.now(), msg: 'New project review ticket added', time: new Date().toLocaleString(), read: false }
+            const updated = [entry, ...notifRef.current].slice(0, 50)
+            setNotifications(updated)
+            localStorage.setItem(NOTIF_KEY, JSON.stringify(updated))
+          }
+          prevCountRef.current = count
+          setTotalTickets(count)
         }
       } catch {}
     }
@@ -59,12 +88,34 @@ function Dashboard() {
           <span className="text-white text-xl font-bold tracking-wide">Exodia Operations Portal</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <Icon icon="lucide:bell" className="w-5 h-5 text-[#CACDD7] hover:text-white transition-colors cursor-pointer" />
-            {unread > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
-                {unread > 99 ? '99+' : unread}
-              </span>
+          <div className="relative" ref={notifPanelRef}>
+            <button onClick={() => setShowNotif(v => !v)} className="relative cursor-pointer">
+              <Icon icon="lucide:bell" className="w-5 h-5 text-[#CACDD7] hover:text-white transition-colors" />
+              {unread > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </button>
+            {showNotif && (
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-[#CACDD7]/30 z-50 max-h-96 overflow-y-auto">
+                <div className="p-3 border-b border-[#CACDD7]/30 flex items-center justify-between">
+                  <h3 className="text-[#1B1A1C] text-sm font-semibold">Notifications</h3>
+                  {notifications.length > 0 && (
+                    <button onClick={() => { setNotifications([]); localStorage.removeItem(NOTIF_KEY) }} className="text-xs text-[#3E4048] hover:text-red-500 cursor-pointer">Clear all</button>
+                  )}
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-[#3E4048] text-sm">No notifications yet.</div>
+                ) : (
+                  notifications.map(n => (
+                    <div key={n.id} className="px-4 py-3 border-b border-[#CACDD7]/20 text-sm hover:bg-gray-50">
+                      <p className="text-[#1B1A1C]">{n.msg}</p>
+                      <p className="text-[#3E4048] text-xs mt-0.5">{n.time}</p>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
           <span className="text-[#CACDD7] text-sm">{user?.email}</span>
