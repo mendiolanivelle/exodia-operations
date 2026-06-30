@@ -16,7 +16,7 @@ function Login() {
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false)
-    navigate('/')
+    navigate('/' + window.location.search)
   }, [navigate])
 
   const handleSubmit = async (e) => {

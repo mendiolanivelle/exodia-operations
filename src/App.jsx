@@ -1,9 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
-import TicketView from './components/TicketView'
 
 function App() {
   return (
@@ -11,14 +10,6 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/ticket/:trackingId"
-            element={
-              <ProtectedRoute>
-                <TicketView />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/"
             element={

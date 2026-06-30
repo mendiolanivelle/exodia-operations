@@ -21,6 +21,10 @@ function Dashboard() {
   const unread = Math.max(0, totalTickets - viewedIds.length)
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tracking_id')) {
+      setActiveTab('project-review')
+    }
     const handler = () => setRefreshKey(k => k + 1)
     window.addEventListener('prt-viewed', handler)
     return () => window.removeEventListener('prt-viewed', handler)

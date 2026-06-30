@@ -9,7 +9,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to={`/login${window.location.search}${window.location.hash}`} replace />
   }
 
   return children

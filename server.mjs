@@ -53,7 +53,7 @@ const server = createServer(async (request, response) => {
   const trackingId = url.searchParams.get('tracking_id')
 
   if (trackingId) {
-    response.writeHead(302, { Location: `/ticket/${trackingId}` })
+    response.writeHead(302, { Location: `/?tracking_id=${trackingId}` })
     response.end()
     return
   }
