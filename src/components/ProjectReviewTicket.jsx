@@ -17,6 +17,7 @@ function ProjectReviewTicket() {
     const updated = [...viewedIds, id]
     setViewedIds(updated)
     localStorage.setItem(VIEWED_IDS_KEY, JSON.stringify(updated))
+    window.dispatchEvent(new CustomEvent('prt-viewed'))
   }
 
   useEffect(() => {

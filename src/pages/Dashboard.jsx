@@ -15,6 +15,16 @@ function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
+  const unread = Math.max(0, totalTickets - viewedIds.length)
+
+  useEffect(() => {
+    const handler = () => setRefreshKey(k => k + 1)
+    window.addEventListener('prt-viewed', handler)
+    return () => window.removeEventListener('prt-viewed', handler)
+  }, [])
 
   const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
   const unread = Math.max(0, totalTickets - viewedIds.length)
