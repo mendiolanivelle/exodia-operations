@@ -13,7 +13,10 @@ const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
 function Dashboard() {
   const { user, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('tracking_id') ? 'project-review' : 'dashboard'
+  })
   const [totalTickets, setTotalTickets] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
 
