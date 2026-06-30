@@ -26,9 +26,6 @@ function Dashboard() {
     return () => window.removeEventListener('prt-viewed', handler)
   }, [])
 
-  const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
-  const unread = Math.max(0, totalTickets - viewedIds.length)
-
   useEffect(() => {
     const fetchCount = async () => {
       try {
