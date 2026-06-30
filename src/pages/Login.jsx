@@ -19,9 +19,11 @@ function Login() {
     const trackingId = sessionStorage.getItem('prt_tracking_id')
     sessionStorage.removeItem('prt_tracking_id')
     if (trackingId) {
-      window.location.href = `/?tracking_id=${trackingId}`
+      window.location.href = `/ticket/${trackingId}`
     } else {
-      navigate('/')
+      const params = new URLSearchParams(window.location.search)
+      const redirect = params.get('redirect')
+      navigate(redirect || '/')
     }
   }, [navigate])
 

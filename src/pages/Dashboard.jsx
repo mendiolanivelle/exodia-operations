@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import Players from '../components/Players'
@@ -13,20 +13,12 @@ const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
 function Dashboard() {
   const { user, logout } = useAuth()
-  const hasTrackingParam = window.location.search.includes('tracking_id=') || sessionStorage.getItem('prt_tracking_id') || false
-  const [activeTab, setActiveTab] = useState(hasTrackingParam ? 'project-review' : 'dashboard')
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
   const unread = Math.max(0, totalTickets - viewedIds.length)
-
-  useLayoutEffect(() => {
-    if (hasTrackingParam) {
-      sessionStorage.removeItem('prt_tracking_id')
-      setActiveTab('project-review')
-    }
-  }, [])
 
   useEffect(() => {
     const handler = () => setRefreshKey(k => k + 1)
