@@ -21,6 +21,7 @@ function ProjectReviewTicket() {
   }
 
   useEffect(() => {
+    const fetchTickets = async (isInitial) => {
       try {
         let url = `${SUPABASE_URL}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`
         const params = new URLSearchParams(window.location.search)
