@@ -16,7 +16,9 @@ function Login() {
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false)
-    navigate('/' + (window.location.search || ''))
+    const trackingId = sessionStorage.getItem('prt_tracking_id')
+    sessionStorage.removeItem('prt_tracking_id')
+    navigate(trackingId ? `/?tracking_id=${trackingId}` : '/')
   }, [navigate])
 
   const handleSubmit = async (e) => {

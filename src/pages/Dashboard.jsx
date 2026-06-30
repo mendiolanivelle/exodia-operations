@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import Players from '../components/Players'
@@ -14,8 +13,12 @@ const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
 function Dashboard() {
   const { user, logout } = useAuth()
-  const [searchParams] = useSearchParams()
-  const [activeTab, setActiveTab] = useState(() => searchParams.get('tracking_id') ? 'project-review' : 'dashboard')
+  const [activeTab, setActiveTab] = useState(() => {
+    const p = new URLSearchParams(window.location.search)
+    const stored = sessionStorage.getItem('prt_tracking_id')
+    if (stored) sessionStorage.removeItem('prt_tracking_id')
+    return (p.get('tracking_id') || stored) ? 'project-review' : 'dashboard'
+  })
   const [totalTickets, setTotalTickets] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -23,13 +26,16 @@ function Dashboard() {
   const unread = Math.max(0, totalTickets - viewedIds.length)
 
   useEffect(() => {
-    if (searchParams.get('tracking_id')) {
+    const p = new URLSearchParams(window.location.search)
+    const stored = sessionStorage.getItem('prt_tracking_id')
+    if (p.get('tracking_id') || stored) {
+      if (stored) sessionStorage.removeItem('prt_tracking_id')
       setActiveTab('project-review')
     }
     const handler = () => setRefreshKey(k => k + 1)
     window.addEventListener('prt-viewed', handler)
     return () => window.removeEventListener('prt-viewed', handler)
-  }, [searchParams])
+  }, [])
 
   useEffect(() => {
     const fetchCount = async () => {
