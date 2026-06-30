@@ -42,7 +42,6 @@ function ProjectReviewTicket() {
         if (isInitial && trackingId && data && data.length > 0) {
           markViewed(data[0].id)
           setSelectedTicket(data[0])
-          window.history.replaceState({}, '', window.location.pathname)
         }
       } catch (err) {
         console.error('Failed to fetch project review tickets:', err)
