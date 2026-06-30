@@ -11,9 +11,9 @@ function ProjectReviewTicket() {
     const fetchTickets = async () => {
       try {
         const { data, error } = await supabase
-          .from('project_reviews')
+          .from('project_review_tickets')
           .select('*')
-          .order('created_at', { ascending: false })
+          .order('sent_at', { ascending: false })
         if (error) throw error
         setTickets(data || [])
       } catch {
@@ -46,11 +46,13 @@ function ProjectReviewTicket() {
             <span className="text-sm font-medium">Back to Tickets</span>
           </button>
 
-          <div className="flex items-start justify-between mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">{selectedTicket.project_name || 'Untitled Project'}</h2>
               <p className="text-[#3E4048] text-sm">Client: {selectedTicket.client_name || 'N/A'}</p>
             </div>
+            <div className="text-right">
+              <p className="text-[#3E4048] text-xs">Tracking ID: {selectedTicket.tracking_id || '-'}</p>
             <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
               selectedTicket.status === 'approved'
                 ? 'bg-green-100 text-green-700'
@@ -62,15 +64,36 @@ function ProjectReviewTicket() {
             </span>
           </div>
 
-          <div className="mb-8">
-            <h3 className="text-[#1B1A1C] text-base font-semibold mb-3">Acceptance Criteria</h3>
-            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-5">
-              {selectedTicket.acceptance_criteria ? (
-                <p className="text-[#3E4048] text-sm whitespace-pre-wrap leading-relaxed">
-                  {selectedTicket.acceptance_criteria}
-                </p>
-              ) : (
-                <p className="text-[#3E4048] text-sm italic">No acceptance criteria provided.</p>
+          <div className="mb-6">
+            <h3 className="text-[#1B1A1C] text-base font-semibold mb-3">Email Details</h3>
+            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-5 space-y-3">
+              <div>
+                <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider">To</p>
+                <p className="text-sm text-[#1B1A1C]">{selectedTicket.email_to || '-'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider">Subject</p>
+                <p className="text-sm text-[#1B1A1C]">{selectedTicket.email_subject || '-'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider">Body</p>
+                <p className="text-sm text-[#3E4048] whitespace-pre-wrap leading-relaxed">{selectedTicket.email_body || 'No content.'}</p>
+              </div>
+              {selectedTicket.attachment_pdf && (
+                <div>
+                  <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider">Attachment (PDF)</p>
+                  <p className="text-sm text-[#FF5900]">{selectedTicket.attachment_pdf}</p>
+                </div>
+              )}
+              {selectedTicket.additional_attachments && selectedTicket.additional_attachments.length > 0 && (
+                <div>
+                  <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider">Additional Attachments</p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {selectedTicket.additional_attachments.map((url, i) => (
+                      <span key={i} className="text-xs text-[#FF5900] bg-orange-50 px-2 py-1 rounded">{url}</span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -131,7 +154,7 @@ function ProjectReviewTicket() {
                         {ticket.status ? ticket.status.replace('_', ' ') : 'pending'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : '-'}</td>
+                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{ticket.sent_at ? new Date(ticket.sent_at).toLocaleDateString() : '-'}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => setSelectedTicket(ticket)}
