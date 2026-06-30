@@ -21,9 +21,14 @@ function ProjectReviewTicket() {
   }
 
   useEffect(() => {
-    const fetchTickets = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+        let url = `${SUPABASE_URL}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`
+        const params = new URLSearchParams(window.location.search)
+        const trackingId = params.get('tracking_id')
+        if (isInitial && trackingId) {
+          url = `${SUPABASE_URL}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(trackingId)}&select=*`
+        }
+        const res = await fetch(url, {
           headers: {
             apikey: SUPABASE_KEY,
             Authorization: `Bearer ${SUPABASE_KEY}`,
@@ -33,6 +38,11 @@ function ProjectReviewTicket() {
         const data = await res.json()
         setTickets(data || [])
         setFetchError(null)
+        if (isInitial && trackingId && data && data.length > 0) {
+          markViewed(data[0].id)
+          setSelectedTicket(data[0])
+          window.history.replaceState({}, '', window.location.pathname)
+        }
       } catch (err) {
         console.error('Failed to fetch project review tickets:', err)
         setFetchError(err.message || 'Unknown error')
@@ -42,9 +52,9 @@ function ProjectReviewTicket() {
       }
     }
 
-    fetchTickets()
+    fetchTickets(true)
 
-    const interval = setInterval(fetchTickets, 10000)
+    const interval = setInterval(() => fetchTickets(false), 10000)
     return () => clearInterval(interval)
   }, [])
 
