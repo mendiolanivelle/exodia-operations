@@ -63,6 +63,7 @@ function ProjectReviewTicket() {
               {selectedTicket.status ? selectedTicket.status.replace('_', ' ') : 'pending'}
             </span>
           </div>
+          </div>
 
           <div className="mb-6">
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3">Email Details</h3>
