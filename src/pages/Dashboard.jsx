@@ -19,6 +19,10 @@ function Dashboard() {
           <span className="text-white text-xl font-bold tracking-wide">Exodia Operations Portal</span>
         </div>
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <Icon icon="lucide:bell" className="w-5 h-5 text-[#CACDD7] hover:text-white transition-colors cursor-pointer" />
+            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+          </div>
           <span className="text-[#CACDD7] text-sm">{user?.email}</span>
           <button
             onClick={logout}
