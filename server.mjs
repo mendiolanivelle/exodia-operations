@@ -49,6 +49,15 @@ async function existingFile(filePath) {
 }
 
 const server = createServer(async (request, response) => {
+  const url = new URL(request.url, 'http://localhost')
+  const trackingId = url.searchParams.get('tracking_id')
+
+  if (trackingId) {
+    response.writeHead(302, { Location: `/ticket/${trackingId}` })
+    response.end()
+    return
+  }
+
   const requestedPath = resolvePath(request.url)
   let filePath
 
