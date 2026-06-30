@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import Players from '../components/Players'
@@ -7,9 +7,39 @@ import ManpowerPricing from '../components/ManpowerPricing'
 import RoleInventory from '../components/RoleInventory'
 import ProjectReviewTicket from '../components/ProjectReviewTicket'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const SEEN_KEY = 'prt_seen_count'
+
 function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [totalTickets, setTotalTickets] = useState(0)
+
+  const seenCount = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10)
+  const unread = Math.max(0, totalTickets - seenCount)
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=id`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setTotalTickets(data.length)
+        }
+      } catch {}
+    }
+    fetchCount()
+    const interval = setInterval(fetchCount, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleProjectReviewClick = () => {
+    localStorage.setItem(SEEN_KEY, String(totalTickets))
+    setActiveTab('project-review')
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#CACDD7]/20">
@@ -21,7 +51,11 @@ function Dashboard() {
         <div className="flex items-center gap-4">
           <div className="relative">
             <Icon icon="lucide:bell" className="w-5 h-5 text-[#CACDD7] hover:text-white transition-colors cursor-pointer" />
-            <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            {unread > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
+                {unread > 99 ? '99+' : unread}
+              </span>
+            )}
           </div>
           <span className="text-[#CACDD7] text-sm">{user?.email}</span>
           <button
@@ -100,7 +134,7 @@ function Dashboard() {
             Project List
           </button>
           <button
-            onClick={() => setActiveTab('project-review')}
+            onClick={handleProjectReviewClick}
             className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'project-review'
                 ? 'bg-[#FF5900] text-white'
@@ -108,7 +142,12 @@ function Dashboard() {
             }`}
           >
             <Icon icon="lucide:file-text" className="w-4 h-4 flex-shrink-0" />
-            Project Review Ticket
+            <span className="flex-1">Project Review Ticket</span>
+            {unread > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                {unread > 99 ? '99+' : unread}
+              </span>
+            )}
           </button>
 
           <div className="text-[#CACDD7]/50 text-xs font-semibold uppercase tracking-wider px-5 pt-4 pb-1">
