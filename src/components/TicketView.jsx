@@ -10,17 +10,25 @@ function TicketView() {
   const navigate = useNavigate()
   const [ticket, setTicket] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [debug, setDebug] = useState(`URL: ${window.location.href}`)
 
   useEffect(() => {
+    setDebug(prev => prev + `\nMounted with trackingId: ${trackingId}`)
     const fetchTicket = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(trackingId)}&select=*`, {
+        setDebug(prev => prev + '\nFetching ticket...')
+        const url = `${SUPABASE_URL}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(trackingId)}&select=*`
+        setDebug(prev => prev + `\nURL: ${url}`)
+        const res = await fetch(url, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         })
+        setDebug(prev => prev + `\nResponse status: ${res.status}`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
+        setDebug(prev => prev + `\nData received: ${data?.length || 0} records`)
         setTicket(data?.[0] || null)
       } catch (err) {
+        setDebug(prev => prev + `\nError: ${err.message}`)
         console.error(err)
       } finally {
         setLoading(false)
@@ -31,18 +39,26 @@ function TicketView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#CACDD7]/20 flex items-center justify-center">
-        <div className="text-[#3E4048]">Loading ticket...</div>
+      <div className="min-h-screen bg-[#CACDD7]/20 p-10">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <h1 className="text-[#1B1A1C] text-xl font-semibold mb-4">Loading ticket...</h1>
+            <pre className="text-xs text-[#3E4048] whitespace-pre-wrap">{debug}</pre>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (!ticket) {
     return (
-      <div className="min-h-screen bg-[#CACDD7]/20 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-sm text-center">
-          <p className="text-[#3E4048] mb-4">Ticket not found.</p>
-          <button onClick={() => navigate('/')} className="text-[#FF5900] text-sm font-semibold cursor-pointer">Back to Dashboard</button>
+      <div className="min-h-screen bg-[#CACDD7]/20 p-10">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <h1 className="text-[#1B1A1C] text-xl font-semibold mb-2">Ticket Not Found</h1>
+            <pre className="text-xs text-[#3E4048] whitespace-pre-wrap mb-4">{debug}</pre>
+            <button onClick={() => navigate('/')} className="text-[#FF5900] text-sm font-semibold cursor-pointer">Back to Dashboard</button>
+          </div>
         </div>
       </div>
     )
@@ -51,6 +67,7 @@ function TicketView() {
   return (
     <div className="min-h-screen bg-[#CACDD7]/20 p-10">
       <div className="max-w-3xl mx-auto">
+        <pre className="text-xs text-[#3E4048] whitespace-pre-wrap mb-4 bg-white p-4 rounded-xl">{debug}</pre>
         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-[#3E4048] hover:text-[#1B1A1C] mb-6 transition-colors cursor-pointer">
           <Icon icon="lucide:arrow-left" className="w-4 h-4" />
           <span className="text-sm font-medium">Back to Dashboard</span>

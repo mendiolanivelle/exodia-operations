@@ -25,7 +25,7 @@ function Dashboard() {
     const trackingId = params.get('tracking_id') || sessionStorage.getItem('prt_tracking_id')
     if (trackingId) {
       sessionStorage.removeItem('prt_tracking_id')
-      window.location.href = `/ticket/${trackingId}`
+      window.location.replace(`/ticket/${trackingId}`)
       return
     }
     const handler = () => setRefreshKey(k => k + 1)
