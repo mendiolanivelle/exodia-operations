@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 function ProjectReviewTicket() {
   const [tickets, setTickets] = useState([])
@@ -11,11 +13,14 @@ function ProjectReviewTicket() {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const { data, error } = await supabase
-          .from('project_review_tickets')
-          .select('*')
-          .order('sent_at', { ascending: false })
-        if (error) throw error
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+          },
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+        const data = await res.json()
         setTickets(data || [])
         setFetchError(null)
       } catch (err) {
