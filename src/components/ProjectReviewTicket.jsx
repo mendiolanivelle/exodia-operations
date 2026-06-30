@@ -3,12 +3,21 @@ import { Icon } from '@iconify/react'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
 function ProjectReviewTicket() {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [fetchError, setFetchError] = useState(null)
+  const [viewedIds, setViewedIds] = useState(() => JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]'))
+
+  const markViewed = (id) => {
+    if (viewedIds.includes(id)) return
+    const updated = [...viewedIds, id]
+    setViewedIds(updated)
+    localStorage.setItem(VIEWED_IDS_KEY, JSON.stringify(updated))
+  }
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -61,7 +70,10 @@ function ProjectReviewTicket() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">{selectedTicket.project_name || 'Untitled Project'}</h2>
+              <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">
+                {selectedTicket.project_name || 'Untitled Project'}
+                {!viewedIds.includes(selectedTicket.id) && <span className="inline-block w-2 h-2 bg-[#FF5900] rounded-full ml-2 align-middle" />}
+              </h2>
               <p className="text-[#3E4048] text-sm">Client: {selectedTicket.client_name || 'N/A'}</p>
             </div>
             <div className="text-right">
@@ -161,7 +173,12 @@ function ProjectReviewTicket() {
               <tbody>
                 {tickets.map((ticket) => (
                   <tr key={ticket.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{ticket.project_name || 'Untitled'}</td>
+                    <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        {!viewedIds.includes(ticket.id) && <span className="w-2 h-2 bg-[#FF5900] rounded-full flex-shrink-0" />}
+                        {ticket.project_name || 'Untitled'}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{ticket.client_name || '-'}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
@@ -177,7 +194,7 @@ function ProjectReviewTicket() {
                     <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{ticket.sent_at ? new Date(ticket.sent_at).toLocaleDateString() : '-'}</td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => setSelectedTicket(ticket)}
+                        onClick={() => { markViewed(ticket.id); setSelectedTicket(ticket) }}
                         className="text-[#FF5900] text-xs font-semibold hover:underline cursor-pointer"
                       >
                         View

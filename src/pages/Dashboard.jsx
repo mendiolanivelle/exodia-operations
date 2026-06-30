@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import Players from '../components/Players'
@@ -9,17 +9,15 @@ import ProjectReviewTicket from '../components/ProjectReviewTicket'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-const SEEN_KEY = 'prt_seen_count'
+const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
 function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
-  const activeTabRef = useRef(activeTab)
-  activeTabRef.current = activeTab
 
-  const seenCount = parseInt(localStorage.getItem(SEEN_KEY) || '0', 10)
-  const unread = Math.max(0, totalTickets - seenCount)
+  const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
+  const unread = Math.max(0, totalTickets - viewedIds.length)
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -30,9 +28,6 @@ function Dashboard() {
         if (res.ok) {
           const data = await res.json()
           setTotalTickets(data.length)
-          if (activeTabRef.current === 'project-review') {
-            localStorage.setItem(SEEN_KEY, String(data.length))
-          }
         }
       } catch {}
     }
@@ -42,7 +37,6 @@ function Dashboard() {
   }, [])
 
   const handleProjectReviewClick = () => {
-    localStorage.setItem(SEEN_KEY, String(totalTickets))
     setActiveTab('project-review')
   }
 
