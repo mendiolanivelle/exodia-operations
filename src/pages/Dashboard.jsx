@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
+import { supabase } from '../lib/supabase'
 import Players from '../components/Players'
 import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
@@ -16,6 +17,7 @@ function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
+  const [teamMemberCount, setTeamMemberCount] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showNotif, setShowNotif] = useState(false)
   const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'))
@@ -74,6 +76,19 @@ function Dashboard() {
     fetchCount()
     const interval = setInterval(fetchCount, 10000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const { count } = await supabase
+          .from('employee_master')
+          .select('*', { count: 'exact', head: true })
+          .eq('department_text', 'Operation')
+        if (count !== null) setTeamMemberCount(count)
+      } catch {}
+    }
+    fetchTeamMembers()
   }, [])
 
   const handleProjectReviewClick = () => {
@@ -246,7 +261,7 @@ function Dashboard() {
                 </div>
                 <div className="bg-white p-8 rounded-xl shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
                   <h3 className="text-[#3E4048] text-base font-medium mb-4">Team Members</h3>
-                  <p className="text-[#FF5900] text-5xl font-bold">0</p>
+                  <p className="text-[#FF5900] text-5xl font-bold">{teamMemberCount}</p>
                 </div>
               </div>
             </>
