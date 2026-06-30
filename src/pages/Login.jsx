@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
 import WelcomeSplash from '../components/WelcomeSplash'
@@ -13,11 +13,12 @@ function Login() {
   const [showSplash, setShowSplash] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false)
-    navigate('/')
-  }, [navigate])
+    navigate(`/${location.search}`)
+  }, [navigate, location.search])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
