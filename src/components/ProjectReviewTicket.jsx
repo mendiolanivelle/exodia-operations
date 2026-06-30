@@ -6,6 +6,7 @@ function ProjectReviewTicket() {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedTicket, setSelectedTicket] = useState(null)
+  const [fetchError, setFetchError] = useState(null)
 
   useEffect(() => {
     const fetchTickets = async () => {
@@ -16,8 +17,10 @@ function ProjectReviewTicket() {
           .order('sent_at', { ascending: false })
         if (error) throw error
         setTickets(data || [])
+        setFetchError(null)
       } catch (err) {
         console.error('Failed to fetch project review tickets:', err)
+        setFetchError(err.message || 'Unknown error')
         setTickets([])
       } finally {
         setLoading(false)
@@ -122,6 +125,12 @@ function ProjectReviewTicket() {
             {tickets.length} tickets
           </span>
         </div>
+
+        {fetchError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
+              Error loading tickets: {fetchError}
+            </div>
+          )}
 
         {tickets.length === 0 ? (
           <div className="text-center py-16">
