@@ -16,15 +16,7 @@ function Login() {
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false)
-    const trackingId = sessionStorage.getItem('prt_tracking_id')
-    sessionStorage.removeItem('prt_tracking_id')
-    if (trackingId) {
-      window.location.href = `/ticket/${trackingId}`
-    } else {
-      const params = new URLSearchParams(window.location.search)
-      const redirect = params.get('redirect')
-      navigate(redirect || '/')
-    }
+    navigate('/')
   }, [navigate])
 
   const handleSubmit = async (e) => {

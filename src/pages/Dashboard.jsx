@@ -21,13 +21,6 @@ function Dashboard() {
   const unread = Math.max(0, totalTickets - viewedIds.length)
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const trackingId = params.get('tracking_id') || sessionStorage.getItem('prt_tracking_id')
-    if (trackingId) {
-      sessionStorage.removeItem('prt_tracking_id')
-      window.location.replace(`/ticket/${trackingId}`)
-      return
-    }
     const handler = () => setRefreshKey(k => k + 1)
     window.addEventListener('prt-viewed', handler)
     return () => window.removeEventListener('prt-viewed', handler)
