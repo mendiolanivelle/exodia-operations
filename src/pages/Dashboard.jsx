@@ -13,11 +13,7 @@ const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
 function Dashboard() {
   const { user, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState(
-    window.location.search.includes('tracking_id=') || sessionStorage.getItem('prt_tracking_id')
-      ? 'project-review'
-      : 'dashboard'
-  )
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [totalTickets, setTotalTickets] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -25,7 +21,11 @@ function Dashboard() {
   const unread = Math.max(0, totalTickets - viewedIds.length)
 
   useEffect(() => {
-    sessionStorage.removeItem('prt_tracking_id')
+    const hasTracking = window.location.search.includes('tracking_id=') || sessionStorage.getItem('prt_tracking_id')
+    if (hasTracking) {
+      sessionStorage.removeItem('prt_tracking_id')
+      setActiveTab('project-review')
+    }
     const handler = () => setRefreshKey(k => k + 1)
     window.addEventListener('prt-viewed', handler)
     return () => window.removeEventListener('prt-viewed', handler)
