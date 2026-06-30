@@ -97,7 +97,7 @@ function ProjectReviewTicket() {
               <p className="text-[#3E4048] text-sm">Client: {selectedTicket.client_name || 'N/A'}</p>
             </div>
             <div className="text-right">
-              <p className="text-[#3E4048] text-xs">Tracking ID: {selectedTicket.tracking_id || '-'}</p>
+              <span className="bg-[#1B1A1C] text-white text-xs px-3 py-1 rounded-full font-medium">Tracking ID: {selectedTicket.tracking_id || '-'}</span>
             </div>
           </div>
 
@@ -186,7 +186,9 @@ function ProjectReviewTicket() {
                     {!viewedIds.includes(ticket.id) && <span className="w-2.5 h-2.5 bg-[#FF5900] rounded-full flex-shrink-0 mt-0.5" />}
                     <h3 className={`text-sm font-semibold truncate ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>{ticket.project_name || 'Untitled'}</h3>
                   </div>
-                  <span className={`text-xs flex-shrink-0 ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>{ticket.tracking_id || ''}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+  !viewedIds.includes(ticket.id) ? 'bg-white/20 text-white' : 'bg-[#1B1A1C] text-white'
+}`}>{ticket.tracking_id || ''}</span>
                 </div>
 
                 <div className={`flex flex-col gap-1 text-xs ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>
