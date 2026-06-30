@@ -16,7 +16,8 @@ function ProjectReviewTicket() {
           .order('sent_at', { ascending: false })
         if (error) throw error
         setTickets(data || [])
-      } catch {
+      } catch (err) {
+        console.error('Failed to fetch project review tickets:', err)
         setTickets([])
       } finally {
         setLoading(false)
