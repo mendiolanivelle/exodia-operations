@@ -31,7 +31,11 @@ function ProjectReviewTicket() {
         setLoading(false)
       }
     }
+
     fetchTickets()
+
+    const interval = setInterval(fetchTickets, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {
