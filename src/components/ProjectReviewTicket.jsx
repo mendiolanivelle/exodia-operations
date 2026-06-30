@@ -186,11 +186,11 @@ function ProjectReviewTicket() {
                     {!viewedIds.includes(ticket.id) && <span className="w-2.5 h-2.5 bg-[#FF5900] rounded-full flex-shrink-0 mt-0.5" />}
                     <h3 className={`text-sm font-semibold truncate ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>{ticket.project_name || 'Untitled'}</h3>
                   </div>
+                  <span className={`text-xs flex-shrink-0 ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>{ticket.tracking_id || ''}</span>
                 </div>
 
                 <div className={`flex flex-col gap-1 text-xs ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>
                   <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Client:</span> {ticket.client_name || '-'}</p>
-                  <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Tracking:</span> {ticket.tracking_id || '-'}</p>
                   <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Date:</span> {formatDateTime(ticket.sent_at)}</p>
                 </div>
 
