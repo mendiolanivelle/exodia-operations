@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
+import { supabase } from '../lib/supabase'
 import Players from '../components/Players'
 import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
@@ -74,14 +75,20 @@ function Dashboard() {
     }
     const fetchTeamCount = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/employee_master?department_text=eq.Operation&select=id`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        const { data, error } = await supabase
+          .from('employee_master')
+          .select('employee_id')
+          .eq('department_text', 'Operation')
+        if (error) throw error
+        const seen = new Set()
+        const unique = (data || []).filter(emp => {
+          const key = emp.employee_id
+          if (!key || seen.has(key)) return false
+          seen.add(key)
+          return true
         })
-        if (res.ok) {
-          const data = await res.json()
-          setTeamMemberCount(data.length)
-        }
-      } catch (e) { console.error('team count fetch error:', e) }
+        setTeamMemberCount(unique.length)
+      } catch {}
     }
     fetchCount()
     fetchTeamCount()
