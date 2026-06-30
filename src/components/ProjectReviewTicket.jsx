@@ -8,7 +8,10 @@ const VIEWED_IDS_KEY = 'prt_viewed_ids'
 function formatDateTime(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  let h = d.getHours()
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12 || 12
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
 function ProjectReviewTicket() {
@@ -95,16 +98,7 @@ function ProjectReviewTicket() {
             </div>
             <div className="text-right">
               <p className="text-[#3E4048] text-xs">Tracking ID: {selectedTicket.tracking_id || '-'}</p>
-            <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
-              selectedTicket.status === 'approved'
-                ? 'bg-green-100 text-green-700'
-                : selectedTicket.status === 'in_review'
-                ? 'bg-yellow-100 text-yellow-700'
-                : 'bg-blue-100 text-blue-700'
-            }`}>
-              {selectedTicket.status ? selectedTicket.status.replace('_', ' ') : 'pending'}
-            </span>
-          </div>
+            </div>
           </div>
 
           <div className="mb-6">
@@ -192,15 +186,6 @@ function ProjectReviewTicket() {
                     {!viewedIds.includes(ticket.id) && <span className="w-2.5 h-2.5 bg-[#FF5900] rounded-full flex-shrink-0 mt-0.5" />}
                     <h3 className={`text-sm font-semibold truncate ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>{ticket.project_name || 'Untitled'}</h3>
                   </div>
-                  <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full flex-shrink-0 ${
-                    ticket.status === 'approved'
-                      ? 'bg-green-100 text-green-700'
-                      : ticket.status === 'in_review'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {ticket.status ? ticket.status.replace('_', ' ') : 'pending'}
-                  </span>
                 </div>
 
                 <div className={`flex flex-col gap-1 text-xs ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>
