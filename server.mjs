@@ -53,6 +53,13 @@ const server = createServer(async (request, response) => {
   const pathname = url.pathname
   const trackingId = url.searchParams.get('tracking_id')
 
+  const ticketMatch = pathname.match(/^\/ticket\/(.+)$/)
+  if (ticketMatch) {
+    response.writeHead(302, { Location: `/?tracking_id=${encodeURIComponent(ticketMatch[1])}` })
+    response.end()
+    return
+  }
+
   if (trackingId && pathname !== '/') {
     response.writeHead(302, { Location: `/?tracking_id=${trackingId}` })
     response.end()
