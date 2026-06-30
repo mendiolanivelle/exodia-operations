@@ -160,51 +160,40 @@ function ProjectReviewTicket() {
             <p className="text-[#3E4048] text-sm">No review tickets found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#CACDD7]">
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Project</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden md:table-cell">Client</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap">Status</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap hidden lg:table-cell">Date</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium whitespace-nowrap"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {tickets.map((ticket) => (
-                  <tr key={ticket.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {!viewedIds.includes(ticket.id) && <span className="w-2 h-2 bg-[#FF5900] rounded-full flex-shrink-0" />}
-                        {ticket.project_name || 'Untitled'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{ticket.client_name || '-'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                        ticket.status === 'approved'
-                          ? 'bg-green-100 text-green-700'
-                          : ticket.status === 'in_review'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {ticket.status ? ticket.status.replace('_', ' ') : 'pending'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{ticket.sent_at ? new Date(ticket.sent_at).toLocaleDateString() : '-'}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => { markViewed(ticket.id); setSelectedTicket(ticket) }}
-                        className="text-[#FF5900] text-xs font-semibold hover:underline cursor-pointer"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {tickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                onClick={() => { markViewed(ticket.id); setSelectedTicket(ticket) }}
+                className="bg-white border border-[#CACDD7]/30 rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {!viewedIds.includes(ticket.id) && <span className="w-2.5 h-2.5 bg-[#FF5900] rounded-full flex-shrink-0 mt-0.5" />}
+                    <h3 className="text-[#1B1A1C] text-sm font-semibold truncate">{ticket.project_name || 'Untitled'}</h3>
+                  </div>
+                  <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full flex-shrink-0 ${
+                    ticket.status === 'approved'
+                      ? 'bg-green-100 text-green-700'
+                      : ticket.status === 'in_review'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {ticket.status ? ticket.status.replace('_', ' ') : 'pending'}
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1 text-xs text-[#3E4048]">
+                  <p><span className="font-medium text-[#1B1A1C]">Client:</span> {ticket.client_name || '-'}</p>
+                  <p><span className="font-medium text-[#1B1A1C]">Tracking:</span> {ticket.tracking_id || '-'}</p>
+                  <p><span className="font-medium text-[#1B1A1C]">Date:</span> {ticket.sent_at ? new Date(ticket.sent_at).toLocaleDateString() : '-'}</p>
+                </div>
+
+                <div className="pt-1">
+                  <span className="text-[#FF5900] text-xs font-semibold">View Details &rarr;</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
