@@ -5,15 +5,6 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import TicketView from './components/TicketView'
 
-function RootRedirect() {
-  const params = new URLSearchParams(window.location.search)
-  const trackingId = params.get('tracking_id')
-  if (trackingId) {
-    return <Navigate to={`/ticket/${trackingId}`} replace />
-  }
-  return <Dashboard />
-}
-
 function App() {
   return (
     <AuthProvider>
@@ -32,7 +23,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <RootRedirect />
+                <Dashboard />
               </ProtectedRoute>
             }
           />
