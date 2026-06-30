@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/useAuth'
 import { Icon } from '@iconify/react'
-import { supabase } from '../lib/supabase'
 import Players from '../components/Players'
 import Projects from '../components/Projects'
 import ManpowerPricing from '../components/ManpowerPricing'
@@ -73,22 +72,21 @@ function Dashboard() {
         }
       } catch {}
     }
+    const fetchTeamCount = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/employee_master?department_text=eq.Operation&select=id`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setTeamMemberCount(data.length)
+        }
+      } catch (e) { console.error('team count fetch error:', e) }
+    }
     fetchCount()
+    fetchTeamCount()
     const interval = setInterval(fetchCount, 10000)
     return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
-      try {
-        const { count } = await supabase
-          .from('employee_master')
-          .select('*', { count: 'exact', head: true })
-          .eq('department_text', 'Operation')
-        if (count !== null) setTeamMemberCount(count)
-      } catch {}
-    }
-    fetchTeamMembers()
   }, [])
 
   const handleProjectReviewClick = () => {
