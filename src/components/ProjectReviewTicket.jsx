@@ -5,6 +5,12 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
+function formatDateTime(iso) {
+  if (!iso) return '-'
+  const d = new Date(iso)
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 function ProjectReviewTicket() {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
@@ -191,9 +197,7 @@ function ProjectReviewTicket() {
                       ? 'bg-green-100 text-green-700'
                       : ticket.status === 'in_review'
                       ? 'bg-yellow-100 text-yellow-700'
-                      : ticket.status === 'Sent'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-gray-100 text-gray-700'
+                      : 'bg-blue-100 text-blue-700'
                   }`}>
                     {ticket.status ? ticket.status.replace('_', ' ') : 'pending'}
                   </span>
@@ -202,7 +206,7 @@ function ProjectReviewTicket() {
                 <div className={`flex flex-col gap-1 text-xs ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>
                   <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Client:</span> {ticket.client_name || '-'}</p>
                   <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Tracking:</span> {ticket.tracking_id || '-'}</p>
-                  <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Date:</span> {ticket.sent_at ? new Date(ticket.sent_at).toLocaleDateString() : '-'}</p>
+                  <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Date:</span> {formatDateTime(ticket.sent_at)}</p>
                 </div>
 
                 <div className="pt-1">
