@@ -50,9 +50,10 @@ async function existingFile(filePath) {
 
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://localhost')
+  const pathname = url.pathname
   const trackingId = url.searchParams.get('tracking_id')
 
-  if (trackingId) {
+  if (trackingId && pathname !== '/') {
     response.writeHead(302, { Location: `/?tracking_id=${trackingId}` })
     response.end()
     return
