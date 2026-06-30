@@ -18,7 +18,11 @@ function Login() {
     setShowSplash(false)
     const trackingId = sessionStorage.getItem('prt_tracking_id')
     sessionStorage.removeItem('prt_tracking_id')
-    navigate(trackingId ? `/?tracking_id=${trackingId}` : '/')
+    if (trackingId) {
+      window.location.href = `/?tracking_id=${trackingId}`
+    } else {
+      navigate('/')
+    }
   }, [navigate])
 
   const handleSubmit = async (e) => {
