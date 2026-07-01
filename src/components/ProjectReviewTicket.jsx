@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const VIEWED_IDS_KEY = 'prt_viewed_ids'
+const PROCEEDED_IDS_KEY = 'prt_proceeded_ids'
 
 const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
 
@@ -16,12 +17,42 @@ function formatDateTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
+function Toast({ trackingId, onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center" onClick={e => e.stopPropagation()}>
+        <div className="w-14 h-14 bg-[#1B1A1C] rounded-full flex items-center justify-center mx-auto mb-4">
+          <Icon icon="lucide:clipboard-check" className="w-7 h-7 text-[#FF5900]" />
+        </div>
+        <h3 className="text-[#1B1A1C] text-lg font-bold mb-2">Proceeding to Feasibility Check</h3>
+        <p className="text-[#3E4048] text-sm leading-relaxed">
+          Tracking ticket <span className="font-semibold text-[#1B1A1C]">{trackingId}</span> is now in the potential list and proceeding for feasibility check.
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-6 bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ProjectReviewTicket() {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [fetchError, setFetchError] = useState(null)
   const [viewedIds, setViewedIds] = useState(() => JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]'))
+  const [proceededIds, setProceededIds] = useState(() => JSON.parse(localStorage.getItem(PROCEEDED_IDS_KEY) || '[]'))
+  const [toastTracking, setToastTracking] = useState(null)
+  const [creating, setCreating] = useState(false)
 
   const markViewed = (id) => {
     if (viewedIds.includes(id)) return
@@ -32,7 +63,8 @@ function ProjectReviewTicket() {
   }
 
   const handleProceed = async () => {
-    if (!selectedTicket) return
+    if (!selectedTicket || creating) return
+    setCreating(true)
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/projects`, {
         method: 'POST',
@@ -44,7 +76,15 @@ function ProjectReviewTicket() {
           status: 'potential',
         }),
       })
-    } catch {}
+      const id = selectedTicket.id
+      const updated = [...proceededIds, id]
+      setProceededIds(updated)
+      localStorage.setItem(PROCEEDED_IDS_KEY, JSON.stringify(updated))
+      setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
+      setSelectedTicket(null)
+    } catch {} finally {
+      setCreating(false)
+    }
   }
 
   useEffect(() => {
@@ -84,6 +124,8 @@ function ProjectReviewTicket() {
     const interval = setInterval(() => fetchTickets(false), 10000)
     return () => clearInterval(interval)
   }, [])
+
+  const visibleTickets = tickets.filter(t => !proceededIds.includes(t.id))
 
   if (loading) {
     return (
@@ -155,9 +197,10 @@ function ProjectReviewTicket() {
 
           <button
             onClick={handleProceed}
-            className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+            disabled={creating}
+            className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Proceed to Feasibility check
+            {creating ? 'Processing...' : 'Proceed to Feasibility check'}
           </button>
         </div>
       </div>
@@ -166,6 +209,9 @@ function ProjectReviewTicket() {
 
   return (
     <div className="flex flex-col gap-6">
+      {toastTracking && (
+        <Toast trackingId={toastTracking} onClose={() => setToastTracking(null)} />
+      )}
       <div className="bg-white p-8 rounded-xl shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -173,7 +219,7 @@ function ProjectReviewTicket() {
             <p className="text-[#3E4048] text-sm">Review tickets from client project reviews</p>
           </div>
           <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">
-            {tickets.length} tickets
+            {visibleTickets.length} tickets
           </span>
         </div>
 
@@ -183,14 +229,14 @@ function ProjectReviewTicket() {
             </div>
           )}
 
-        {tickets.length === 0 ? (
+        {visibleTickets.length === 0 ? (
           <div className="text-center py-16">
             <Icon icon="lucide:inbox" className="w-12 h-12 text-[#CACDD7] mx-auto mb-4" />
             <p className="text-[#3E4048] text-sm">No review tickets found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {tickets.map((ticket) => (
+            {visibleTickets.map((ticket) => (
               <div
                 key={ticket.id}
                 onClick={() => { markViewed(ticket.id); setSelectedTicket(ticket) }}
