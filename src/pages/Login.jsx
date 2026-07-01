@@ -49,9 +49,9 @@ function Login() {
         <span className="text-white text-xl font-bold tracking-wide">Exodia Operations</span>
       </div>
 
-      <img src="/image-218.png" alt="" className="hidden lg:block absolute right-0 bottom-0 h-[90vh] w-auto" />
+      <img src="/mask-group.png" alt="" className="hidden lg:block absolute right-0 bottom-0 h-[90vh] w-auto" />
 
-      <img src="/mask-group.png" alt="" className="hidden lg:block absolute left-0 bottom-0 h-[90vh] w-auto" />
+      <img src="/image-218.png" alt="" className="hidden lg:block absolute right-0 bottom-0 h-[90vh] w-auto" />
 
       <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md z-10 relative">
         <div className="text-center mb-8">
