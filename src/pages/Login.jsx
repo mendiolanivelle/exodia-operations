@@ -51,7 +51,9 @@ function Login() {
 
       <img src="/image-218.png" alt="" className="hidden lg:block absolute right-0 bottom-0 h-[90vh] w-auto" />
 
-      <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md">
+      <img src="/mask-group.png" alt="" className="hidden lg:block absolute left-0 bottom-0 h-[90vh] w-auto" />
+
+      <div className="bg-white rounded-xl shadow-2xl p-10 w-full max-w-md z-10 relative">
         <div className="text-center mb-8">
           <h1 className="text-[#1B1A1C] text-3xl font-bold">Welcome Players!</h1>
           <p className="text-[#3E4048] text-sm mt-2">Sign in to Operations Guild</p>
