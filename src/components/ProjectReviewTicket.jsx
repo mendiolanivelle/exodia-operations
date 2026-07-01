@@ -76,6 +76,11 @@ function ProjectReviewTicket() {
           status: 'potential',
         }),
       })
+      await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?id=eq.${selectedTicket.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ status: 'potential' }),
+      })
       const id = selectedTicket.id
       const updated = [...proceededIds, id]
       setProceededIds(updated)

@@ -2,42 +2,57 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+
 function ProjectList() {
-  const [projects, setProjects] = useState([])
+  const [potentialProjects, setPotentialProjects] = useState([])
+  const [approvedProjects, setApprovedProjects] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchProjects()
+    fetchAll()
   }, [])
 
-  const fetchProjects = async () => {
+  const fetchAll = async () => {
     try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      setProjects(data || [])
+      const [potentialRes, approvedRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?status=eq.potential&select=id,project_name,client_name,tracking_id,sent_at&order=sent_at.desc`, { headers }),
+        supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false }),
+      ])
+      if (potentialRes.ok) {
+        const data = await potentialRes.json()
+        setPotentialProjects(data || [])
+      }
+      if (!approvedRes.error) setApprovedProjects(approvedRes.data || [])
     } catch {
-      setProjects([])
+      setPotentialProjects([])
+      setApprovedProjects([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (project) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('projects')
-        .update({ status: 'approved' })
-        .eq('id', id)
+        .insert({
+          project_name: project.project_name,
+          client_name: project.client_name,
+          tracking_id: project.tracking_id,
+          status: 'approved',
+        })
+        .select()
       if (error) throw error
-      setProjects(prev => prev.map(p => p.id === id ? { ...p, status: 'approved' } : p))
+      setPotentialProjects(prev => prev.filter(p => p.id !== project.id))
+      if (data) setApprovedProjects(prev => [data[0], ...prev])
     } catch {}
   }
 
-  const potential = projects.filter(p => p.status === 'potential')
-  const approved = projects.filter(p => p.status === 'approved')
+  const allEmpty = potentialProjects.length === 0 && approvedProjects.length === 0
 
   if (loading) {
     return (
@@ -57,15 +72,15 @@ function ProjectList() {
         <div className="flex gap-4 mb-6">
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex-1">
             <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Potential Projects</p>
-            <p className="text-amber-900 text-3xl font-bold mt-1">{potential.length}</p>
+            <p className="text-amber-900 text-3xl font-bold mt-1">{potentialProjects.length}</p>
           </div>
           <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex-1">
             <p className="text-green-700 text-xs font-medium uppercase tracking-wider">Approved Projects</p>
-            <p className="text-green-900 text-3xl font-bold mt-1">{approved.length}</p>
+            <p className="text-green-900 text-3xl font-bold mt-1">{approvedProjects.length}</p>
           </div>
         </div>
 
-        {potential.length > 0 && (
+        {potentialProjects.length > 0 && (
           <div className="mb-8">
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
               <Icon icon="lucide:clock" className="w-4 h-4 text-amber-600" />
@@ -83,15 +98,15 @@ function ProjectList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {potential.map(p => (
+                  {potentialProjects.map(p => (
                     <tr key={p.id} className="border-b border-[#CACDD7]/50 hover:bg-amber-50/50 transition-colors">
-                      <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || p.name || 'Untitled'}</td>
+                      <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell text-xs font-mono">{p.tracking_id || '-'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '-'}</td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button
-                          onClick={() => handleApprove(p.id)}
+                          onClick={() => handleApprove(p)}
                           className="bg-green-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-green-700 transition-colors cursor-pointer"
                         >
                           Approve
@@ -105,7 +120,7 @@ function ProjectList() {
           </div>
         )}
 
-        {approved.length > 0 && (
+        {approvedProjects.length > 0 && (
           <div>
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
               <Icon icon="lucide:check-circle" className="w-4 h-4 text-green-600" />
@@ -123,7 +138,7 @@ function ProjectList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {approved.map(p => (
+                  {approvedProjects.map(p => (
                     <tr key={p.id} className="border-b border-[#CACDD7]/50 hover:bg-green-50/50 transition-colors">
                       <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || p.name || 'Untitled'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
@@ -140,7 +155,7 @@ function ProjectList() {
           </div>
         )}
 
-        {projects.length === 0 && (
+        {allEmpty && (
           <div className="text-center py-16">
             <Icon icon="lucide:folder-kanban" className="w-12 h-12 text-[#CACDD7] mx-auto mb-4" />
             <p className="text-[#3E4048] text-sm">No projects yet. Click "Proceed to Feasibility check" from a review ticket to create one.</p>
