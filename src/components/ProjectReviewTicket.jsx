@@ -5,6 +5,8 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const VIEWED_IDS_KEY = 'prt_viewed_ids'
 
+const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
+
 function formatDateTime(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
@@ -27,6 +29,22 @@ function ProjectReviewTicket() {
     setViewedIds(updated)
     localStorage.setItem(VIEWED_IDS_KEY, JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent('prt-viewed'))
+  }
+
+  const handleProceed = async () => {
+    if (!selectedTicket) return
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/projects`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          project_name: selectedTicket.project_name,
+          client_name: selectedTicket.client_name,
+          tracking_id: selectedTicket.tracking_id,
+          status: 'potential',
+        }),
+      })
+    } catch {}
   }
 
   useEffect(() => {
@@ -136,6 +154,7 @@ function ProjectReviewTicket() {
           </div>
 
           <button
+            onClick={handleProceed}
             className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
           >
             Proceed to Feasibility check
