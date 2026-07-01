@@ -81,6 +81,18 @@ function ProjectReviewTicket() {
         headers,
         body: JSON.stringify({ status: 'potential' }),
       })
+      const potentialKey = 'prt_potential_projects'
+      const existing = JSON.parse(localStorage.getItem(potentialKey) || '[]')
+      const newEntry = {
+        id: selectedTicket.id,
+        project_name: selectedTicket.project_name,
+        client_name: selectedTicket.client_name,
+        tracking_id: selectedTicket.tracking_id,
+        sent_at: selectedTicket.sent_at,
+        status: 'potential',
+        createdAt: new Date().toISOString(),
+      }
+      localStorage.setItem(potentialKey, JSON.stringify([newEntry, ...existing]))
       const id = selectedTicket.id
       const updated = [...proceededIds, id]
       setProceededIds(updated)

@@ -2,11 +2,6 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-
 function ProjectList() {
   const [potentialProjects, setPotentialProjects] = useState([])
   const [approvedProjects, setApprovedProjects] = useState([])
@@ -17,18 +12,16 @@ function ProjectList() {
   }, [])
 
   const fetchAll = async () => {
+    const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
+    setPotentialProjects(stored)
     try {
-      const [potentialRes, approvedRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?status=eq.potential&select=id,project_name,client_name,tracking_id,sent_at&order=sent_at.desc`, { headers }),
-        supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false }),
-      ])
-      if (potentialRes.ok) {
-        const data = await potentialRes.json()
-        setPotentialProjects(data || [])
-      }
-      if (!approvedRes.error) setApprovedProjects(approvedRes.data || [])
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+      if (!error) setApprovedProjects(data || [])
     } catch {
-      setPotentialProjects([])
       setApprovedProjects([])
     } finally {
       setLoading(false)
@@ -47,7 +40,9 @@ function ProjectList() {
         })
         .select()
       if (error) throw error
-      setPotentialProjects(prev => prev.filter(p => p.id !== project.id))
+      const updated = potentialProjects.filter(p => p.id !== project.id)
+      setPotentialProjects(updated)
+      localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
       if (data) setApprovedProjects(prev => [data[0], ...prev])
     } catch {}
   }
