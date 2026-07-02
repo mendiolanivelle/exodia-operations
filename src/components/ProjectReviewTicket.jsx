@@ -17,12 +17,7 @@ function formatDateTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
-function Toast({ trackingId, onClose }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 4000)
-    return () => clearTimeout(timer)
-  }, [onClose])
-
+function Toast({ trackingId, onClose, onGoToList }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center" onClick={e => e.stopPropagation()}>
@@ -33,18 +28,107 @@ function Toast({ trackingId, onClose }) {
         <p className="text-[#3E4048] text-sm leading-relaxed">
           Tracking ticket <span className="font-semibold text-[#1B1A1C]">{trackingId}</span> is now in the potential list and proceeding for feasibility check.
         </p>
-        <button
-          onClick={onClose}
-          className="mt-6 bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-        >
-          Got it
-        </button>
+        <div className="flex gap-3 mt-6 justify-center">
+          <button
+            onClick={onClose}
+            className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+          >
+            Got it
+          </button>
+          <button
+            onClick={onGoToList}
+            className="bg-[#FF5900] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+          >
+            Go to Project List
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-function ProjectReviewTicket() {
+function EmailComposeModal({ ticket, onSend, onClose }) {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const [to, setTo] = useState(ticket.email_to || '')
+  const [subject, setSubject] = useState('Proceeding to Feasibility check')
+  const [body, setBody] = useState(
+    `Good Day Marketing, thank you for forwarding "${ticket.project_name}", "${ticket.tracking_id}" to review. Operation will proceed to our 2 days feasibility check. Starting today, ${today}.
+
+Set meeting with the client and me for our discovery call with ops.
+
+Thank you`
+  )
+  const [sending, setSending] = useState(false)
+
+  const handleSend = () => {
+    setSending(true)
+    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.open(mailto, '_blank')
+    onSend()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[#1B1A1C] text-lg font-bold">Compose Email to Marketing</h3>
+          <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+            <Icon icon="lucide:x" className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">To</label>
+            <input
+              type="email"
+              value={to}
+              onChange={e => setTo(e.target.value)}
+              placeholder="marketing@example.com"
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+          </div>
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Subject</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+          </div>
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Body</label>
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              rows={10}
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6 justify-end">
+          <button
+            onClick={onClose}
+            className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={sending || !to}
+            className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? 'Sending...' : 'Send email to Marketing'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProjectReviewTicket({ onGoToProjectList }) {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedTicket, setSelectedTicket] = useState(null)
@@ -53,6 +137,7 @@ function ProjectReviewTicket() {
   const [proceededIds, setProceededIds] = useState(() => JSON.parse(localStorage.getItem(PROCEEDED_IDS_KEY) || '[]'))
   const [toastTracking, setToastTracking] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [showEmailCompose, setShowEmailCompose] = useState(false)
 
   const markViewed = (id) => {
     if (viewedIds.includes(id)) return
@@ -212,22 +297,30 @@ function ProjectReviewTicket() {
             </div>
           </div>
 
-          <button
-            onClick={handleProceed}
-            disabled={creating}
-            className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+<button
+            onClick={() => setShowEmailCompose(true)}
+            className="bg-[#1B1A1C] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
           >
-            {creating ? 'Processing...' : 'Proceed to Feasibility check'}
+            Proceed to Feasibility check
           </button>
         </div>
       </div>
-    )
+
+      {showEmailCompose && selectedTicket && (
+        <EmailComposeModal
+          ticket={selectedTicket}
+          onSend={handleProceed}
+          onClose={() => setShowEmailCompose(false)}
+        />
+      )}
+    </div>
+  )
   }
 
   return (
     <div className="flex flex-col gap-6">
       {toastTracking && (
-        <Toast trackingId={toastTracking} onClose={() => setToastTracking(null)} />
+        <Toast trackingId={toastTracking} onClose={() => setToastTracking(null)} onGoToList={onGoToProjectList} />
       )}
       <div className="bg-white p-8 rounded-xl shadow-sm">
         <div className="flex items-center justify-between mb-6">
