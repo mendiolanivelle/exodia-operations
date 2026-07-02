@@ -63,18 +63,10 @@ Thank you`
   const handleSend = async () => {
     setSending(true)
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/email_queue`, {
+      await fetch('/api/send-email', {
         method: 'POST',
-        headers,
-        body: JSON.stringify({
-          to_email: to,
-          subject,
-          body,
-          project_name: ticket.project_name,
-          tracking_id: ticket.tracking_id,
-          type: 'feasibility_check',
-          status: 'pending',
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, body }),
       })
     } catch {}
     onSend()
