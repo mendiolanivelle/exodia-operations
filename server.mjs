@@ -3,21 +3,11 @@ import { stat } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createTransport } from 'nodemailer'
 
 const root = process.env.STATIC_ROOT || '/usr/share/nginx/html'
 const port = Number(process.env.PORT || 80)
-const gmailUser = process.env.GMAIL_USER || ''
-const gmailAppPass = process.env.GMAIL_APP_PASS || ''
-
-const transporter = gmailUser && gmailAppPass
-  ? createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: { user: gmailUser, pass: gmailAppPass },
-    })
-  : null
+const resendApiKey = process.env.RESEND_API_KEY || ''
+const emailFrom = process.env.EMAIL_FROM || ''
 
 const types = {
   '.css': 'text/css; charset=utf-8',
@@ -72,20 +62,33 @@ const server = createServer(async (request, response) => {
 
   if (pathname === '/api/send-email' && request.method === 'POST') {
     try {
-      if (!transporter) {
+      if (!resendApiKey || !emailFrom) {
         response.writeHead(503, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify({ success: false, error: 'Gmail not configured — add GMAIL_USER and GMAIL_APP_PASS in Coolify env vars' }))
+        response.end(JSON.stringify({ success: false, error: 'Email not configured — add RESEND_API_KEY and EMAIL_FROM in Coolify env vars' }))
         return
       }
       const body = JSON.parse(await readBody(request))
-      const info = await transporter.sendMail({
-        from: `"Exodia Operations" <${gmailUser}>`,
-        to: body.to,
-        subject: body.subject || 'No Subject',
-        text: body.body || '',
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: emailFrom,
+          to: body.to,
+          subject: body.subject || 'No Subject',
+          text: body.body || '',
+        }),
       })
+      const data = await res.json()
+      if (!res.ok) {
+        response.writeHead(200, { 'Content-Type': 'application/json' })
+        response.end(JSON.stringify({ success: false, error: data.message || data.error || 'Resend API error' }))
+        return
+      }
       response.writeHead(200, { 'Content-Type': 'application/json' })
-      response.end(JSON.stringify({ success: true, messageId: info.messageId }))
+      response.end(JSON.stringify({ success: true, messageId: data.id }))
     } catch (err) {
       response.writeHead(500, { 'Content-Type': 'application/json' })
       response.end(JSON.stringify({ success: false, error: err.message }))
@@ -130,6 +133,6 @@ const server = createServer(async (request, response) => {
 server.listen(port, '0.0.0.0', () => {
   const script = fileURLToPath(import.meta.url)
   console.log(`${script} serving ${root} on port ${port}`)
-  if (transporter) console.log('Gmail SMTP configured and ready')
-  else console.log('Gmail not configured — set GMAIL_USER and GMAIL_APP_PASS env vars')
+  if (resendApiKey) console.log('Resend API configured and ready')
+  else console.log('Resend not configured — set RESEND_API_KEY and EMAIL_FROM env vars')
 })
