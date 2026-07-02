@@ -73,8 +73,8 @@ const server = createServer(async (request, response) => {
   if (pathname === '/api/send-email' && request.method === 'POST') {
     try {
       if (!transporter) {
-        response.writeHead(200, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify({ success: true, message: 'Email queued (Gmail not configured)' }))
+        response.writeHead(503, { 'Content-Type': 'application/json' })
+        response.end(JSON.stringify({ success: false, error: 'Gmail not configured — add GMAIL_USER and GMAIL_APP_PASS in Coolify env vars' }))
         return
       }
       const body = JSON.parse(await readBody(request))

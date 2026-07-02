@@ -59,16 +59,28 @@ Set meeting with the client and me for our discovery call with ops.
 Thank you`
   )
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
 
   const handleSend = async () => {
     setSending(true)
+    setSendError('')
     try {
-      await fetch('/api/send-email', {
+      const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to, subject, body }),
       })
-    } catch {}
+      const data = await res.json()
+      if (!data.success) {
+        setSendError(data.error || 'Failed to send email')
+        setSending(false)
+        return
+      }
+    } catch {
+      setSendError('Could not reach email server')
+      setSending(false)
+      return
+    }
     onSend()
   }
 
@@ -112,6 +124,12 @@ Thank you`
             />
           </div>
         </div>
+
+        {sendError && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            {sendError}
+          </div>
+        )}
 
         <div className="flex gap-3 mt-6 justify-end">
           <button
