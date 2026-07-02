@@ -13,6 +13,7 @@ FROM node:22-alpine AS runtime
 WORKDIR /app
 
 COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/node_modules ./node_modules
 COPY server.mjs ./server.mjs
 
 EXPOSE 80
