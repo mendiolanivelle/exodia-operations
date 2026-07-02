@@ -60,10 +60,23 @@ Thank you`
   )
   const [sending, setSending] = useState(false)
 
-  const handleSend = () => {
+  const handleSend = async () => {
     setSending(true)
-    const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    window.open(mailto, '_blank')
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/email_queue`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          to_email: to,
+          subject,
+          body,
+          project_name: ticket.project_name,
+          tracking_id: ticket.tracking_id,
+          type: 'feasibility_check',
+          status: 'pending',
+        }),
+      })
+    } catch {}
     onSend()
   }
 
