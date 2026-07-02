@@ -240,8 +240,9 @@ function ProjectReviewTicket({ onGoToProjectList }) {
 
   if (selectedTicket) {
     return (
-      <div className="flex flex-col gap-6">
-        <div className="bg-white p-8 rounded-xl shadow-sm">
+      <>
+        <div className="flex flex-col gap-6">
+          <div className="bg-white p-8 rounded-xl shadow-sm">
           <button
             onClick={() => setSelectedTicket(null)}
             className="flex items-center gap-2 text-[#3E4048] hover:text-[#1B1A1C] mb-6 transition-colors cursor-pointer"
@@ -303,7 +304,7 @@ function ProjectReviewTicket({ onGoToProjectList }) {
           >
             Proceed to Feasibility check
           </button>
-        </div>
+</div>
       </div>
 
       {showEmailCompose && selectedTicket && (
@@ -313,7 +314,7 @@ function ProjectReviewTicket({ onGoToProjectList }) {
           onClose={() => setShowEmailCompose(false)}
         />
       )}
-    </div>
+    </>
   )
   }
 
