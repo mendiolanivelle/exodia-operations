@@ -61,12 +61,54 @@ Thank you`
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
 
-const handleSend = async () => {
+const handleSend = () => {
     setSending(true)
     setSendError('')
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    window.open(gmailUrl, '_blank')
-    onSend()
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: '771932544725-5trevl51v4i49g8j0a0vnqkh7hnikd12.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/gmail.send',
+      callback: async (response) => {
+        if (response.error) {
+          setSendError('Access denied — please allow Gmail access')
+          setSending(false)
+          return
+        }
+        setSending(true)
+        try {
+          const email = [
+            `From: ${userEmail || response.email}`,
+            `To: ${to}`,
+            `Subject: ${subject}`,
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: 7bit',
+            '',
+            body,
+          ].join('\r\n')
+          const raw = btoa(unescape(encodeURIComponent(email)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+          const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${response.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ raw }),
+          })
+          if (!res.ok) {
+            const err = await res.json()
+            setSendError(err.error?.message || 'Failed to send email')
+            setSending(false)
+            return
+          }
+          onSend()
+        } catch {
+          setSendError('Could not send email')
+          setSending(false)
+        }
+      },
+    })
+    client.requestAccessToken()
   }
 
   return (
