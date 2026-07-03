@@ -52,11 +52,42 @@ function EmailComposeModal({ ticket, onSend, onClose, userEmail }) {
   const [to, setTo] = useState(ticket.email_to || '')
   const [subject, setSubject] = useState('Proceeding to Feasibility check')
   const [body, setBody] = useState(
-    `Good Day Marketing, thank you for forwarding "${ticket.project_name}", "${ticket.tracking_id}" to review. Operation will proceed to our 2 days feasibility check. Starting today, ${today}.
-
-Set meeting with the client and me for our discovery call with ops.
-
-Thank you`
+    `<table width="100%" cellpadding="0" cellspacing="0" style="background:#1B1A1C;padding:40px 20px;font-family:Arial,Helvetica,sans-serif">
+  <tr>
+    <td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden">
+        <tr>
+          <td style="background:#1B1A1C;padding:24px 32px">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+              <td style="color:#ffffff;font-size:18px;font-weight:700">Exodia Operations</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px">
+            <h2 style="color:#1B1A1C;font-size:20px;margin:0 0 8px">Feasibility Check In Progress</h2>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 20px">Good Day Marketing,</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Thank you for forwarding <strong style="color:#FF5900">"${ticket.project_name}"</strong>, tracking ID <strong style="color:#1B1A1C">${ticket.tracking_id}</strong> to review.</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 20px">Operations will proceed to our 2 days feasibility check starting today, <strong>${today}</strong>.</p>
+            <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin:0 0 20px">
+              <p style="color:#1B1A1C;font-size:13px;font-weight:600;margin:0 0 4px">Next Step</p>
+              <p style="color:#3E4048;font-size:13px;line-height:1.5;margin:0">Set meeting with the client and us for our discovery call with operations.</p>
+            </div>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 4px">Best regards,</p>
+            <p style="color:#FF5900;font-size:14px;font-weight:600;margin:0">Exodia Operations Team</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#F9FAFB;padding:16px 32px">
+            <p style="color:#9CA3AF;font-size:11px;margin:0;text-align:center">Exodia Game Dev &middot; Operations Department</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`
   )
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
@@ -80,7 +111,7 @@ const handleSend = () => {
             `To: ${to}`,
             `Subject: ${subject}`,
             'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Type: text/html; charset=UTF-8',
             'Content-Transfer-Encoding: 7bit',
             '',
             body,
