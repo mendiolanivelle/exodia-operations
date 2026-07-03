@@ -97,7 +97,8 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Project</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Tracking ID</th>
-                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Date</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Marketing Sent</th>
                     <th className="text-right px-4 py-3 text-[#3E4048] font-medium">Action</th>
                   </tr>
                 </thead>
@@ -107,6 +108,7 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell text-xs font-mono">{p.tracking_id || '-'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Today'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '-'}</td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button
