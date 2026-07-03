@@ -12,13 +12,14 @@ function formatDateTime(iso) {
 }
 
 function getFeasibilityStatus(createdAt) {
-  if (!createdAt) return 'Feasibility checking - 1st Day'
+  if (!createdAt) return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
   const start = new Date(createdAt)
   const now = new Date()
   const diffMs = now - start
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (diffDays >= 1) return 'Feasibility checking - Final Day'
-  return 'Feasibility checking - 1st Day'
+  if (diffDays >= 2) return { text: 'Discovery Meeting with client', color: 'bg-green-100 text-green-700' }
+  if (diffDays >= 1) return { text: 'Feasibility checking - Final Day', color: 'bg-orange-100 text-orange-700' }
+  return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
 }
 
 function ProjectList() {
@@ -130,12 +131,8 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
-                          getFeasibilityStatus(p.createdAt).includes('Final')
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {getFeasibilityStatus(p.createdAt)}
+                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${getFeasibilityStatus(p.createdAt).color}`}>
+                          {getFeasibilityStatus(p.createdAt).text}
                         </span>
                       </td>
                     </tr>
