@@ -61,7 +61,7 @@ Thank you`
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
 
-  const handleSend = async () => {
+const handleSend = async () => {
     setSending(true)
     setSendError('')
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
