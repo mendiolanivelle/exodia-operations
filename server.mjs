@@ -7,8 +7,8 @@ import { createTransport } from 'nodemailer'
 
 const root = process.env.STATIC_ROOT || '/usr/share/nginx/html'
 const port = Number(process.env.PORT || 80)
-const gmailUser = process.env.GMAIL_USER || ''
-const gmailAppPass = process.env.GMAIL_APP_PASS || ''
+const gmailUser = 'neil@exodiagamedev.com'
+const gmailAppPass = 'tqdhhkvktxvrptyr'
 
 const transporter = gmailUser && gmailAppPass
   ? createTransport({
