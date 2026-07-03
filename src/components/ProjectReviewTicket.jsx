@@ -123,12 +123,6 @@ const handleSend = () => {
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">From</label>
-            <div className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#1B1A1C]">
-              {userEmail || 'Not signed in'}
-            </div>
-          </div>
-          <div>
             <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">To</label>
             <input
               type="email"
