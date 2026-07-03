@@ -6,6 +6,7 @@ function ProjectList() {
   const [potentialProjects, setPotentialProjects] = useState([])
   const [approvedProjects, setApprovedProjects] = useState([])
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState('potential')
 
   useEffect(() => {
     fetchAll()
@@ -47,8 +48,6 @@ function ProjectList() {
     } catch {}
   }
 
-  const allEmpty = potentialProjects.length === 0 && approvedProjects.length === 0
-
   if (loading) {
     return (
       <div className="bg-white p-8 rounded-xl shadow-sm">
@@ -65,18 +64,28 @@ function ProjectList() {
         <p className="text-[#3E4048] text-sm mb-6">Manage potential and approved projects</p>
 
         <div className="flex gap-4 mb-6">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex-1">
+          <button
+            onClick={() => setTab('potential')}
+            className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
+              tab === 'potential' ? 'bg-amber-50 border-2 border-amber-300' : 'bg-amber-50/50 border border-amber-200 hover:bg-amber-50'
+            }`}
+          >
             <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Potential Projects</p>
             <p className="text-amber-900 text-3xl font-bold mt-1">{potentialProjects.length}</p>
-          </div>
-          <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex-1">
-            <p className="text-green-700 text-xs font-medium uppercase tracking-wider">Approved Projects</p>
+          </button>
+          <button
+            onClick={() => setTab('projects')}
+            className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
+              tab === 'projects' ? 'bg-green-50 border-2 border-green-300' : 'bg-green-50/50 border border-green-200 hover:bg-green-50'
+            }`}
+          >
+            <p className="text-green-700 text-xs font-medium uppercase tracking-wider">Projects</p>
             <p className="text-green-900 text-3xl font-bold mt-1">{approvedProjects.length}</p>
-          </div>
+          </button>
         </div>
 
-        {potentialProjects.length > 0 && (
-          <div className="mb-8">
+        {tab === 'potential' && potentialProjects.length > 0 && (
+          <div>
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
               <Icon icon="lucide:clock" className="w-4 h-4 text-amber-600" />
               Potential Projects
@@ -115,11 +124,18 @@ function ProjectList() {
           </div>
         )}
 
-        {approvedProjects.length > 0 && (
+        {tab === 'potential' && potentialProjects.length === 0 && (
+          <div className="text-center py-12">
+            <Icon icon="lucide:clock" className="w-10 h-10 text-[#CACDD7] mx-auto mb-3" />
+            <p className="text-[#3E4048] text-sm">No potential projects yet.</p>
+          </div>
+        )}
+
+        {tab === 'projects' && approvedProjects.length > 0 && (
           <div>
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
               <Icon icon="lucide:check-circle" className="w-4 h-4 text-green-600" />
-              Approved Projects
+              Projects
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -150,10 +166,10 @@ function ProjectList() {
           </div>
         )}
 
-        {allEmpty && (
-          <div className="text-center py-16">
-            <Icon icon="lucide:folder-kanban" className="w-12 h-12 text-[#CACDD7] mx-auto mb-4" />
-            <p className="text-[#3E4048] text-sm">No projects yet. Click "Proceed to Feasibility check" from a review ticket to create one.</p>
+        {tab === 'projects' && approvedProjects.length === 0 && (
+          <div className="text-center py-12">
+            <Icon icon="lucide:check-circle" className="w-10 h-10 text-[#CACDD7] mx-auto mb-3" />
+            <p className="text-[#3E4048] text-sm">No approved projects yet.</p>
           </div>
         )}
       </div>
