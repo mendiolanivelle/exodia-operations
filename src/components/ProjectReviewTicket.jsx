@@ -47,7 +47,7 @@ function Toast({ trackingId, onClose, onGoToList }) {
   )
 }
 
-function EmailComposeModal({ ticket, onSend, onClose }) {
+function EmailComposeModal({ ticket, onSend, onClose, userEmail }) {
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   const [to, setTo] = useState(ticket.email_to || '')
   const [subject, setSubject] = useState('Proceeding to Feasibility check')
@@ -80,6 +80,12 @@ const handleSend = async () => {
         </div>
 
         <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">From</label>
+            <div className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#1B1A1C]">
+              {userEmail || 'Not signed in'}
+            </div>
+          </div>
           <div>
             <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">To</label>
             <input
@@ -136,7 +142,7 @@ const handleSend = async () => {
   )
 }
 
-function ProjectReviewTicket({ onGoToProjectList }) {
+function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedTicket, setSelectedTicket] = useState(null)
@@ -320,6 +326,7 @@ function ProjectReviewTicket({ onGoToProjectList }) {
           ticket={selectedTicket}
           onSend={handleProceed}
           onClose={() => setShowEmailCompose(false)}
+          userEmail={userEmail}
         />
       )}
     </>

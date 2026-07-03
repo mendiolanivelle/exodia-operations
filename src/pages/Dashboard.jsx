@@ -292,7 +292,7 @@ function Dashboard() {
 
           {activeTab === 'project-list' && <ProjectList />}
 
-          {activeTab === 'project-review' && <ProjectReviewTicket onGoToProjectList={() => setActiveTab('project-list')} />}
+          {activeTab === 'project-review' && <ProjectReviewTicket onGoToProjectList={() => setActiveTab('project-list')} userEmail={user?.email} />}
 
           {activeTab === 'manpower-pricing' && <ManpowerPricing />}
         </main>
