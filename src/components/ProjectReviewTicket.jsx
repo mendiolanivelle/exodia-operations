@@ -60,15 +60,26 @@ Thank you`
   )
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
+  const [showSender, setShowSender] = useState(false)
+  const [senderEmail, setSenderEmail] = useState(() => localStorage.getItem('ops_sender_email') || '')
+  const [senderPass, setSenderPass] = useState(() => localStorage.getItem('ops_sender_pass') || '')
 
   const handleSend = async () => {
+    if (!senderEmail || !senderPass) {
+      setSendError('Set your sender email and App Password first')
+      setShowSender(true)
+      setSending(false)
+      return
+    }
+    localStorage.setItem('ops_sender_email', senderEmail)
+    localStorage.setItem('ops_sender_pass', senderPass)
     setSending(true)
     setSendError('')
     try {
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body }),
+        body: JSON.stringify({ to, subject, body, senderEmail, senderPass }),
       })
       const data = await res.json()
       if (!data.success) {
@@ -124,6 +135,34 @@ Thank you`
             />
           </div>
         </div>
+
+        <button
+          onClick={() => setShowSender(!showSender)}
+          className="mt-4 text-xs text-[#3E4048] hover:text-[#1B1A1C] flex items-center gap-1 cursor-pointer"
+        >
+          <Icon icon={showSender ? 'lucide:chevron-up' : 'lucide:chevron-down'} className="w-3 h-3" />
+          {showSender ? 'Hide' : 'Set'} sender email
+        </button>
+
+        {showSender && (
+          <div className="mt-3 p-4 bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl flex flex-col gap-3">
+            <p className="text-xs text-[#3E4048]">Your Gmail address and App Password (stored only in your browser)</p>
+            <input
+              type="email"
+              value={senderEmail}
+              onChange={e => setSenderEmail(e.target.value)}
+              placeholder="you@gmail.com"
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+            <input
+              type="password"
+              value={senderPass}
+              onChange={e => setSenderPass(e.target.value)}
+              placeholder="App Password (16-character code)"
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+          </div>
+        )}
 
         {sendError && (
           <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">

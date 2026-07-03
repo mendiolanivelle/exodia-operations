@@ -7,17 +7,6 @@ import { createTransport } from 'nodemailer'
 
 const root = process.env.STATIC_ROOT || '/usr/share/nginx/html'
 const port = Number(process.env.PORT || 80)
-const gmailUser = 'neil@exodiagamedev.com'
-const gmailAppPass = 'tqdhhkvktxvrptyr'
-
-const transporter = gmailUser && gmailAppPass
-  ? createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: { user: gmailUser, pass: gmailAppPass },
-    })
-  : null
 
 const types = {
   '.css': 'text/css; charset=utf-8',
@@ -72,17 +61,24 @@ const server = createServer(async (request, response) => {
 
   if (pathname === '/api/send-email' && request.method === 'POST') {
     try {
-      if (!transporter) {
-        response.writeHead(503, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify({ success: false, error: 'Gmail not configured — add GMAIL_USER and GMAIL_APP_PASS in Coolify env vars' }))
+      const body = JSON.parse(await readBody(request))
+      const { senderEmail, senderPass, to, subject, body: emailBody } = body
+      if (!senderEmail || !senderPass) {
+        response.writeHead(400, { 'Content-Type': 'application/json' })
+        response.end(JSON.stringify({ success: false, error: 'Sender email and App Password required' }))
         return
       }
-      const body = JSON.parse(await readBody(request))
+      const transporter = createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: { user: senderEmail, pass: senderPass },
+      })
       const info = await transporter.sendMail({
-        from: `"Exodia Operations" <${gmailUser}>`,
-        to: body.to,
-        subject: body.subject || 'No Subject',
-        text: body.body || '',
+        from: `"Exodia Operations" <${senderEmail}>`,
+        to,
+        subject: subject || 'No Subject',
+        text: emailBody || '',
       })
       response.writeHead(200, { 'Content-Type': 'application/json' })
       response.end(JSON.stringify({ success: true, messageId: info.messageId }))
@@ -130,6 +126,5 @@ const server = createServer(async (request, response) => {
 server.listen(port, '0.0.0.0', () => {
   const script = fileURLToPath(import.meta.url)
   console.log(`${script} serving ${root} on port ${port}`)
-  if (transporter) console.log('Gmail SMTP configured and ready')
-  else console.log('Gmail not configured — set GMAIL_USER and GMAIL_APP_PASS env vars')
+  console.log('Email sending ready — sender credentials provided per request')
 })
