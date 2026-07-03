@@ -61,24 +61,25 @@ const server = createServer(async (request, response) => {
 
   if (pathname === '/api/send-email' && request.method === 'POST') {
     try {
-      const body = JSON.parse(await readBody(request))
-      const { senderEmail, senderPass, to, subject, body: emailBody } = body
-      if (!senderEmail || !senderPass) {
-        response.writeHead(400, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify({ success: false, error: 'Sender email and App Password required' }))
+      const gmailUser = process.env.GMAIL_USER
+      const gmailAppPass = process.env.GMAIL_APP_PASS
+      if (!gmailUser || !gmailAppPass) {
+        response.writeHead(503, { 'Content-Type': 'application/json' })
+        response.end(JSON.stringify({ success: false, error: 'Gmail not configured — set GMAIL_USER and GMAIL_APP_PASS in Coolify env vars' }))
         return
       }
+      const body = JSON.parse(await readBody(request))
       const transporter = createTransport({
         host: 'smtp.gmail.com',
         port: 587,
         secure: false,
-        auth: { user: senderEmail, pass: senderPass },
+        auth: { user: gmailUser, pass: gmailAppPass },
       })
       const info = await transporter.sendMail({
-        from: `"Exodia Operations" <${senderEmail}>`,
-        to,
-        subject: subject || 'No Subject',
-        text: emailBody || '',
+        from: `"Exodia Operations" <${gmailUser}>`,
+        to: body.to,
+        subject: body.subject || 'No Subject',
+        text: body.body || '',
       })
       response.writeHead(200, { 'Content-Type': 'application/json' })
       response.end(JSON.stringify({ success: true, messageId: info.messageId }))
@@ -126,5 +127,6 @@ const server = createServer(async (request, response) => {
 server.listen(port, '0.0.0.0', () => {
   const script = fileURLToPath(import.meta.url)
   console.log(`${script} serving ${root} on port ${port}`)
-  console.log('Email sending ready — sender credentials provided per request')
+  if (process.env.GMAIL_USER) console.log('Gmail SMTP configured via env vars')
+  else console.log('Gmail not configured — set GMAIL_USER and GMAIL_APP_PASS in Coolify env vars')
 })
