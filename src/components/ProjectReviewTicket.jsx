@@ -64,23 +64,8 @@ Thank you`
   const handleSend = async () => {
     setSending(true)
     setSendError('')
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body }),
-      })
-      const data = await res.json()
-      if (!data.success) {
-        setSendError(data.error || 'Failed to send email')
-        setSending(false)
-        return
-      }
-    } catch {
-      setSendError('Could not reach email server')
-      setSending(false)
-      return
-    }
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.open(gmailUrl, '_blank')
     onSend()
   }
 

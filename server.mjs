@@ -3,7 +3,6 @@ import { stat } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createTransport } from 'nodemailer'
 
 const root = process.env.STATIC_ROOT || '/usr/share/nginx/html'
 const port = Number(process.env.PORT || 80)
@@ -47,48 +46,9 @@ async function existingFile(filePath) {
   return info.isDirectory() ? join(filePath, 'index.html') : filePath
 }
 
-function readBody(request) {
-  return new Promise((resolve) => {
-    const chunks = []
-    request.on('data', (c) => chunks.push(c))
-    request.on('end', () => resolve(Buffer.concat(chunks).toString()))
-  })
-}
-
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://localhost')
   const pathname = url.pathname
-
-  if (pathname === '/api/send-email' && request.method === 'POST') {
-    try {
-      const gmailUser = process.env.GMAIL_USER
-      const gmailAppPass = process.env.GMAIL_APP_PASS
-      if (!gmailUser || !gmailAppPass) {
-        response.writeHead(503, { 'Content-Type': 'application/json' })
-        response.end(JSON.stringify({ success: false, error: 'Gmail not configured — set GMAIL_USER and GMAIL_APP_PASS in Coolify env vars' }))
-        return
-      }
-      const body = JSON.parse(await readBody(request))
-      const transporter = createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: { user: gmailUser, pass: gmailAppPass },
-      })
-      const info = await transporter.sendMail({
-        from: `"Exodia Operations" <${gmailUser}>`,
-        to: body.to,
-        subject: body.subject || 'No Subject',
-        text: body.body || '',
-      })
-      response.writeHead(200, { 'Content-Type': 'application/json' })
-      response.end(JSON.stringify({ success: true, messageId: info.messageId }))
-    } catch (err) {
-      response.writeHead(500, { 'Content-Type': 'application/json' })
-      response.end(JSON.stringify({ success: false, error: err.message }))
-    }
-    return
-  }
 
   const trackingId = url.searchParams.get('tracking_id')
 
@@ -127,6 +87,4 @@ const server = createServer(async (request, response) => {
 server.listen(port, '0.0.0.0', () => {
   const script = fileURLToPath(import.meta.url)
   console.log(`${script} serving ${root} on port ${port}`)
-  if (process.env.GMAIL_USER) console.log('Gmail SMTP configured via env vars')
-  else console.log('Gmail not configured — set GMAIL_USER and GMAIL_APP_PASS in Coolify env vars')
 })
