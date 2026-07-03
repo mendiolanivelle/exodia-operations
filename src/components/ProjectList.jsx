@@ -2,6 +2,25 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
+function formatDateTime(iso) {
+  if (!iso) return '-'
+  const d = new Date(iso)
+  let h = d.getHours()
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12 || 12
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
+}
+
+function getFeasibilityStatus(createdAt) {
+  if (!createdAt) return 'Feasibility checking - 1st Day'
+  const start = new Date(createdAt)
+  const now = new Date()
+  const diffMs = now - start
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (diffDays >= 1) return 'Feasibility checking - Final Day'
+  return 'Feasibility checking - 1st Day'
+}
+
 function ProjectList() {
   const [potentialProjects, setPotentialProjects] = useState([])
   const [approvedProjects, setApprovedProjects] = useState([])
@@ -99,7 +118,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Project</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
-                    <th className="text-right px-4 py-3 text-[#3E4048] font-medium">Action</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -108,15 +127,16 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
                       <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '-'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Today'}</td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => handleApprove(p)}
-                          className="bg-green-600 text-white text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-green-700 transition-colors cursor-pointer"
-                        >
-                          Approve
-                        </button>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
+                          getFeasibilityStatus(p.createdAt).includes('Final')
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {getFeasibilityStatus(p.createdAt)}
+                        </span>
                       </td>
                     </tr>
                   ))}
