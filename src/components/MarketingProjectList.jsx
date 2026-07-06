@@ -72,7 +72,7 @@ function ScheduleMeetingModal({ project, onClose, onScheduled }) {
             conferenceData: { createRequest: { requestId: `${project.id}-${Date.now()}` } },
           }
 
-          const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1', {
+          const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${response.access_token}`,
