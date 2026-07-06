@@ -262,13 +262,14 @@ function MarketingProjectList() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#CACDD7]">
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Tracking ID</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Project</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
-                  <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
-                </tr>
+                    <th className="w-6 px-1 py-3"></th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Tracking ID</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Project</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
+                  </tr>
               </thead>
               <tbody>
                 {projects
@@ -290,6 +291,7 @@ function MarketingProjectList() {
                           : 'bg-[#1B1A1C] hover:bg-[#2a292c] border-[#3E4048]/50 cursor-pointer'
                       }`}
                     >
+                      <td className="px-1 py-3">{!isScheduled && <span className="inline-block w-2 h-2 bg-red-500 rounded-full" />}</td>
                       <td className={`px-4 py-3 whitespace-nowrap text-xs font-mono ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.tracking_id || '-'}</td>
                       <td className={`px-4 py-3 whitespace-nowrap hidden md:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.client_name || '-'}</td>
                       <td className={`px-4 py-3 font-medium whitespace-nowrap ${isScheduled ? 'text-[#1B1A1C]' : 'text-white'}`}>{p.project_name || 'Untitled'}</td>
