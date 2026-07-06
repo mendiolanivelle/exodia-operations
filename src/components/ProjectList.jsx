@@ -11,6 +11,71 @@ function formatDateTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
+function MeetingNotesModal({ project, onClose, getNotes, saveNotes }) {
+  const existing = getNotes(project.tracking_id)
+  const [notes, setNotes] = useState(existing.notes || '')
+  const [videoLink, setVideoLink] = useState(existing.videoLink || '')
+
+  const handleSave = () => {
+    saveNotes(project.tracking_id, { notes, videoLink })
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[#1B1A1C] text-lg font-bold">Discovery Meeting Documentation</h3>
+          <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+            <Icon icon="lucide:x" className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4 mb-5">
+          <p className="text-xs text-[#3E4048] font-medium">Project</p>
+          <p className="text-sm text-[#1B1A1C] font-semibold mt-0.5">{project.project_name || 'Untitled'}</p>
+          <p className="text-xs text-[#3E4048] mt-1">Tracking: {project.tracking_id} | Client: {project.client_name || '-'}</p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Meeting Notes</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={8}
+              placeholder="Document your discovery meeting notes here..."
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Video Recording Link</label>
+            <input
+              type="url"
+              value={videoLink}
+              onChange={e => setVideoLink(e.target.value)}
+              placeholder="Paste Google Drive, YouTube, or other video link"
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6 justify-end">
+          <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+          >
+            Save Documentation
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function getFeasibilityDay(createdAt) {
   if (!createdAt) return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
   const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
@@ -24,6 +89,18 @@ function ProjectList() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('potential')
   const [detailProject, setDetailProject] = useState(null)
+  const [notesProject, setNotesProject] = useState(null)
+
+  const getProjectNotes = (trackingId) => {
+    const all = JSON.parse(localStorage.getItem('prt_meeting_notes') || '{}')
+    return all[trackingId] || { notes: '', videoLink: '' }
+  }
+
+  const saveProjectNotes = (trackingId, data) => {
+    const all = JSON.parse(localStorage.getItem('prt_meeting_notes') || '{}')
+    all[trackingId] = { ...all[trackingId], ...data, updatedAt: new Date().toISOString() }
+    localStorage.setItem('prt_meeting_notes', JSON.stringify(all))
+  }
 
   useEffect(() => {
     fetchAll()
@@ -247,7 +324,7 @@ function ProjectList() {
                 <span className="text-sm text-[#1B1A1C] font-semibold">{detailProject.client_name || '-'}</span>
               </div>
               {detailProject.meetLink && (
-                <div className="pt-3 border-t border-[#CACDD7]/30">
+                <div className="pt-3 border-t border-[#CACDD7]/30 space-y-2">
                   <a
                     href={detailProject.meetLink}
                     target="_blank"
@@ -257,11 +334,27 @@ function ProjectList() {
                     <Icon icon="lucide:video" className="w-4 h-4" />
                     Open Google Meet
                   </a>
+                  <button
+                    onClick={() => { setNotesProject(detailProject); setDetailProject(null) }}
+                    className="bg-[#FF5900] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    <Icon icon="lucide:file-text" className="w-4 h-4" />
+                    Discovery Meeting Documentation
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
+      )}
+
+      {notesProject && (
+        <MeetingNotesModal
+          project={notesProject}
+          onClose={() => setNotesProject(null)}
+          getNotes={getProjectNotes}
+          saveNotes={saveProjectNotes}
+        />
       )}
     </div>
   )
