@@ -308,7 +308,7 @@ function MarketingProjectList() {
                               Scheduled Discovery meeting
                             </a>
                           ) : (
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#1B1A1C] text-white">
                               Waiting for discovery meeting link
                             </span>
                           )}

@@ -141,7 +141,7 @@ function ProjectList() {
                     const day = getFeasibilityDay(p.createdAt)
                     const action = isScheduled
                       ? { text: 'Scheduled Discovery meeting', color: 'bg-green-100 text-green-700' }
-                      : { text: 'Waiting for discovery meeting link', color: 'bg-purple-100 text-purple-700' }
+                      : { text: 'Waiting for discovery meeting link', color: 'bg-[#1B1A1C] text-white' }
                     return (
                     <tr
                       key={p.id}
