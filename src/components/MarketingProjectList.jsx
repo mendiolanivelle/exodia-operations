@@ -53,9 +53,15 @@ function ScheduleMeetingModal({ project, onClose, onScheduled }) {
         try {
           const startDate = new Date(date)
           const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
-          const attendeeList = [project.client_name || project.email_to, ...attendees.split(',').map(a => a.trim()).filter(Boolean)]
-            .filter(Boolean)
+          const attendeeList = attendees.split(',').map(a => a.trim()).filter(Boolean)
+            .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
             .map(email => ({ email }))
+
+          if (attendeeList.length === 0) {
+            setError('Please add at least one valid attendee email')
+            setSending(false)
+            return
+          }
 
           const event = {
             summary: `Discovery Meeting - ${project.project_name || 'Untitled'}`,
