@@ -113,6 +113,9 @@ function getFeasibilityDay(createdAt) {
 function FeasibilityDecisionModal({ project, onClose }) {
   const [decision, setDecision] = useState(null)
   const [reasons, setReasons] = useState('')
+  const [to, setTo] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
   const template = decision === 'go'
     ? { subject: `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will GO` }
@@ -120,13 +123,56 @@ function FeasibilityDecisionModal({ project, onClose }) {
     ? { subject: `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will decline the project` }
     : {}
 
-  const handleSendEmail = () => {
-    const body = `For the following reasons:\n${reasons}` + (decision === 'go'
-      ? `\n\nLet us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.`
-      : '')
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(project.client_name || '')}&su=${encodeURIComponent(template.subject)}&body=${encodeURIComponent(body)}`
-    window.open(gmailUrl, '_blank')
-    onClose()
+  const handleSubmit = () => {
+    if (!to) { setError('Enter recipient email'); return }
+    setSending(true)
+    setError('')
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: '771932544725-5trevl51v4i49g8j0a0vnqkh7hnikd12.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/gmail.send',
+      callback: async (response) => {
+        if (response.error) {
+          setError('Access denied')
+          setSending(false)
+          return
+        }
+        try {
+          const body = `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will GO.\n\nFor the following reasons:\n${reasons}` + (decision === 'go'
+            ? `\n\nLet us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.`
+            : '')
+          const email = [
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: 7bit',
+            `To: ${to}`,
+            `Subject: ${template.subject}`,
+            '',
+            body,
+          ].join('\r\n')
+          const raw = btoa(unescape(encodeURIComponent(email)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+          const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${response.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ raw }),
+          })
+          if (!res.ok) {
+            const err = await res.json()
+            setError(err.error?.message || 'Failed to send')
+            setSending(false)
+            return
+          }
+          onClose()
+        } catch {
+          setError('Could not send email')
+          setSending(false)
+        }
+      },
+    })
+    client.requestAccessToken()
   }
 
   return (
@@ -168,9 +214,19 @@ function FeasibilityDecisionModal({ project, onClose }) {
 
         {decision && (
           <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">To</label>
+              <input
+                type="email"
+                value={to}
+                onChange={e => setTo(e.target.value)}
+                placeholder="client@email.com"
+                className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+              />
+            </div>
             <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
               <p className="text-xs text-[#3E4048] font-medium mb-1">Email Template</p>
-              <p className="text-sm text-[#1B1A1C] font-semibold">{template.subject}</p>
+              <p className="text-sm text-[#1B1A1C]">{template.subject}</p>
             </div>
             <div>
               <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">For the following reasons:</label>
@@ -190,17 +246,24 @@ function FeasibilityDecisionModal({ project, onClose }) {
           </div>
         )}
 
+        {error && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         <div className="flex gap-3 mt-6 justify-end">
           <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
             Cancel
           </button>
           <button
-            onClick={handleSendEmail}
-            disabled={!decision}
+            onClick={handleSubmit}
+            disabled={!decision || sending}
             className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Icon icon="lucide:mail" className="w-4 h-4 inline mr-1" />
-            Email Client
+            <Icon icon="lucide:send" className="w-4 h-4 inline mr-1" />
+            {sending ? 'Sending...' : 'Submit Decision'}
+          </button>
           </button>
         </div>
       </div>
