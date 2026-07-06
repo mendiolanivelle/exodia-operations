@@ -366,11 +366,11 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
                   <p className="text-sm text-[#FF5900]">{selectedTicket.attachment_pdf}</p>
                 </div>
               )}
-              {selectedTicket.additional_attachments && selectedTicket.additional_attachments.length > 0 && (
+              {selectedTicket.additional_attachments && selectedTicket.additional_attachments.filter(a => typeof a === 'string').length > 0 && (
                 <div>
                   <p className="text-xs text-[#3E4048] font-medium uppercase tracking-wider">Additional Attachments</p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {selectedTicket.additional_attachments.map((url, i) => (
+                    {selectedTicket.additional_attachments.filter(a => typeof a === 'string').map((url, i) => (
                       <span key={i} className="text-xs text-[#FF5900] bg-orange-50 px-2 py-1 rounded">{url}</span>
                     ))}
                   </div>

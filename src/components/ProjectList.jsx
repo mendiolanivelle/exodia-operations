@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseHeaders = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
+
 function formatDateTime(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
@@ -12,8 +16,32 @@ function formatDateTime(iso) {
 }
 
 function MeetingNotesModal({ project, onClose, onSave }) {
-  const [notes, setNotes] = useState(project.notes || '')
-  const [videoLink, setVideoLink] = useState(project.videoLink || '')
+  const [notes, setNotes] = useState('')
+  const [videoLink, setVideoLink] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      setNotes(project.notes || '')
+      setVideoLink(project.videoLink || '')
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}&select=additional_attachments`, {
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+        })
+        if (res.ok) {
+          const rows = await res.json()
+          if (rows && rows[0]?.additional_attachments) {
+            const meta = rows[0].additional_attachments.find(a => a._type === 'meeting_notes')
+            if (meta) {
+              if (meta.notes) setNotes(meta.notes)
+              if (meta.videoLink) setVideoLink(meta.videoLink)
+            }
+          }
+        }
+      } catch {}
+      setLoading(false)
+    })()
+  }, [])
 
   const handleSave = () => {
     onSave(project.tracking_id, { notes, videoLink })
@@ -99,6 +127,11 @@ function ProjectList() {
     })
     setPotentialProjects(updated)
     localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(trackingId)}`, {
+      method: 'PATCH',
+      headers: supabaseHeaders,
+      body: JSON.stringify({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }),
+    })
   }
 
   useEffect(() => {
