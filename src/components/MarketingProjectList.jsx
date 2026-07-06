@@ -294,7 +294,7 @@ function MarketingProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{formatDateTime(p.sent_at)}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
                           <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
                             {day.text}
                           </span>
