@@ -17,15 +17,11 @@ function formatDateInput(iso) {
   return d.toISOString().slice(0, 16)
 }
 
-function getFeasibilityStatus(createdAt) {
-  if (!createdAt) return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700', key: 'day1' }
-  const start = new Date(createdAt)
-  const now = new Date()
-  const diffMs = now - start
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (diffDays >= 2) return { text: 'Waiting for Discovery Meeting link', color: 'bg-purple-100 text-purple-700', key: 'waiting' }
-  if (diffDays >= 1) return { text: 'Feasibility checking - Final Day', color: 'bg-orange-100 text-orange-700', key: 'final' }
-  return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700', key: 'day1' }
+function getFeasibilityDay(createdAt) {
+  if (!createdAt) return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
+  const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
+  if (diffDays >= 1) return { text: 'Feasibility Checking Final Day', color: 'bg-orange-100 text-orange-700' }
+  return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
 }
 
 function ScheduleMeetingModal({ project, onClose, onScheduled }) {
@@ -282,15 +278,14 @@ function MarketingProjectList() {
                     return 0
                   })
                   .map(p => {
-                  const status = p.status === 'discovery_scheduled'
-                    ? { text: 'Scheduled Discovery Meeting', color: 'bg-green-100 text-green-700', key: 'scheduled' }
-                    : getFeasibilityStatus(p.createdAt)
-                  return (
+                    const isScheduled = p.status === 'discovery_scheduled'
+                    const day = getFeasibilityDay(p.createdAt)
+                    return (
                     <tr
                       key={p.id}
-                      onClick={status.key === 'waiting' ? () => setSelectedProject(p) : undefined}
+                      onClick={!isScheduled ? () => setSelectedProject(p) : undefined}
                       className={`border-b border-[#CACDD7]/50 transition-colors ${
-                        status.key === 'waiting' ? 'hover:bg-purple-50 cursor-pointer' : 'hover:bg-gray-50'
+                        isScheduled ? 'hover:bg-gray-50' : 'hover:bg-purple-50 cursor-pointer'
                       }`}
                     >
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
@@ -299,20 +294,25 @@ function MarketingProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{formatDateTime(p.sent_at)}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {status.key === 'scheduled' ? (
-                          <a
-                            href={p.meetLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
-                          >
-                            {status.text}
-                          </a>
-                        ) : (
-                          <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${status.color}`}>
-                            {status.text}
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
+                            {day.text}
                           </span>
-                        )}
+                          {isScheduled ? (
+                            <a
+                              href={p.meetLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                            >
+                              Scheduled Discovery meeting
+                            </a>
+                          ) : (
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                              Waiting for discovery meeting link
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )

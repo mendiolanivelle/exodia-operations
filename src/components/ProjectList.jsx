@@ -11,15 +11,11 @@ function formatDateTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
-function getFeasibilityStatus(createdAt) {
-  if (!createdAt) return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
-  const start = new Date(createdAt)
-  const now = new Date()
-  const diffMs = now - start
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (diffDays >= 2) return { text: 'Waiting for Discovery Meeting link', color: 'bg-purple-100 text-purple-700' }
-  if (diffDays >= 1) return { text: 'Feasibility checking - Final Day', color: 'bg-orange-100 text-orange-700' }
-  return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
+function getFeasibilityDay(createdAt) {
+  if (!createdAt) return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
+  const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
+  if (diffDays >= 1) return { text: 'Feasibility Checking Final Day', color: 'bg-orange-100 text-orange-700' }
+  return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
 }
 
 function ProjectList() {
@@ -142,9 +138,10 @@ function ProjectList() {
                   })
                   .map(p => {
                     const isScheduled = p.status === 'discovery_scheduled'
-                    const status = isScheduled
-                      ? { text: 'Scheduled Discovery Meeting', color: 'bg-green-100 text-green-700' }
-                      : getFeasibilityStatus(p.createdAt)
+                    const day = getFeasibilityDay(p.createdAt)
+                    const action = isScheduled
+                      ? { text: 'Scheduled Discovery meeting', color: 'bg-green-100 text-green-700' }
+                      : { text: 'Waiting for discovery meeting link', color: 'bg-purple-100 text-purple-700' }
                     return (
                     <tr
                       key={p.id}
@@ -159,9 +156,14 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${status.color}`}>
-                          {status.text}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
+                            {day.text}
+                          </span>
+                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${action.color}`}>
+                            {action.text}
+                          </span>
+                        </div>
                       </td>
                     </tr>
                     )
