@@ -264,7 +264,6 @@ function FeasibilityDecisionModal({ project, onClose }) {
             <Icon icon="lucide:send" className="w-4 h-4 inline mr-1" />
             {sending ? 'Sending...' : 'Submit Decision'}
           </button>
-          </button>
         </div>
       </div>
     </div>
