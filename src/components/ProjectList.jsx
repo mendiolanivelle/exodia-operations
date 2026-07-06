@@ -110,12 +110,13 @@ function getFeasibilityDay(createdAt) {
   return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
 }
 
-function FeasibilityDecisionModal({ project, onClose }) {
+function FeasibilityDecisionModal({ project, onClose, onApprove }) {
   const [decision, setDecision] = useState(null)
   const [reasons, setReasons] = useState('')
   const [to, setTo] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const [successProject, setSuccessProject] = useState(null)
 
   const template = decision === 'go'
     ? { subject: `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will GO` }
@@ -165,7 +166,11 @@ function FeasibilityDecisionModal({ project, onClose }) {
             setSending(false)
             return
           }
-          onClose()
+          if (decision === 'go') {
+            await onApprove(project)
+          }
+          setSuccessProject(project)
+          setSending(false)
         } catch {
           setError('Could not send email')
           setSending(false)
@@ -175,98 +180,132 @@ function FeasibilityDecisionModal({ project, onClose }) {
     client.requestAccessToken()
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-[#1B1A1C] text-lg font-bold">Feasibility Decision</h3>
-          <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
-            <Icon icon="lucide:x" className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4 mb-5">
-          <p className="text-xs text-[#3E4048] font-medium">Project</p>
-          <p className="text-sm text-[#1B1A1C] font-semibold mt-0.5">{project.project_name || 'Untitled'}</p>
-          <p className="text-xs text-[#3E4048] mt-1">Tracking: {project.tracking_id} | Client: {project.client_name || '-'}</p>
-        </div>
-
-        <div className="flex gap-3 mb-5">
-          <button
-            onClick={() => setDecision('go')}
-            className={`flex-1 py-4 rounded-xl text-sm font-semibold border-2 transition-all cursor-pointer ${
-              decision === 'go' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-[#CACDD7] text-[#3E4048] hover:border-green-300'
-            }`}
-          >
-            <Icon icon="lucide:check-circle" className="w-5 h-5 mx-auto mb-1" />
-            Go
-          </button>
-          <button
-            onClick={() => setDecision('decline')}
-            className={`flex-1 py-4 rounded-xl text-sm font-semibold border-2 transition-all cursor-pointer ${
-              decision === 'decline' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white border-[#CACDD7] text-[#3E4048] hover:border-red-300'
-            }`}
-          >
-            <Icon icon="lucide:x-circle" className="w-5 h-5 mx-auto mb-1" />
-            Decline
-          </button>
-        </div>
-
-        {decision && (
-          <div className="flex flex-col gap-4">
-            <div>
-              <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">To</label>
-              <input
-                type="email"
-                value={to}
-                onChange={e => setTo(e.target.value)}
-                placeholder="client@email.com"
-                className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
-              />
-            </div>
-            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
-              <p className="text-xs text-[#3E4048] font-medium mb-1">Email Template</p>
-              <p className="text-sm text-[#1B1A1C]">{template.subject}</p>
-            </div>
-            <div>
-              <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">For the following reasons:</label>
-              <textarea
-                value={reasons}
-                onChange={e => setReasons(e.target.value)}
-                rows={5}
-                placeholder="Enter the reasons for this decision..."
-                className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none"
-              />
-            </div>
-            {decision === 'go' && (
-              <p className="text-xs text-[#3E4048] bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                Let us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.
-              </p>
-            )}
+return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-[#1B1A1C] text-lg font-bold">Feasibility Decision</h3>
+            <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+              <Icon icon="lucide:x" className="w-5 h-5" />
+            </button>
           </div>
-        )}
 
-        {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
-            {error}
+          <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4 mb-5">
+            <p className="text-xs text-[#3E4048] font-medium">Project</p>
+            <p className="text-sm text-[#1B1A1C] font-semibold mt-0.5">{project.project_name || 'Untitled'}</p>
+            <p className="text-xs text-[#3E4048] mt-1">Tracking: {project.tracking_id} | Client: {project.client_name || '-'}</p>
           </div>
-        )}
 
-        <div className="flex gap-3 mt-6 justify-end">
-          <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!decision || sending}
-            className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Icon icon="lucide:send" className="w-4 h-4 inline mr-1" />
-            {sending ? 'Sending...' : 'Submit Decision'}
-          </button>
+          <div className="flex gap-3 mb-5">
+            <button
+              onClick={() => setDecision('go')}
+              className={`flex-1 py-4 rounded-xl text-sm font-semibold border-2 transition-all cursor-pointer ${
+                decision === 'go' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-[#CACDD7] text-[#3E4048] hover:border-green-300'
+              }`}
+            >
+              <Icon icon="lucide:check-circle" className="w-5 h-5 mx-auto mb-1" />
+              Go
+            </button>
+            <button
+              onClick={() => setDecision('decline')}
+              className={`flex-1 py-4 rounded-xl text-sm font-semibold border-2 transition-all cursor-pointer ${
+                decision === 'decline' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white border-[#CACDD7] text-[#3E4048] hover:border-red-300'
+              }`}
+            >
+              <Icon icon="lucide:x-circle" className="w-5 h-5 mx-auto mb-1" />
+              Decline
+            </button>
+          </div>
+
+          {decision && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">To</label>
+                <input
+                  type="email"
+                  value={to}
+                  onChange={e => setTo(e.target.value)}
+                  placeholder="Client email / Marketing email"
+                  className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                />
+              </div>
+              <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
+                <p className="text-xs text-[#3E4048] font-medium mb-1">Email Template</p>
+                <p className="text-sm text-[#1B1A1C]">{template.subject}</p>
+              </div>
+              <div>
+                <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">For the following reasons:</label>
+                <textarea
+                  value={reasons}
+                  onChange={e => setReasons(e.target.value)}
+                  rows={5}
+                  placeholder="Enter the reasons for this decision..."
+                  className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none"
+                />
+              </div>
+              {decision === 'go' && (
+                <p className="text-xs text-[#3E4048] bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                  Let us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.
+                </p>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 mt-6 justify-end">
+            <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!decision || sending}
+              className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Icon icon="lucide:send" className="w-4 h-4 inline mr-1" />
+              {sending ? 'Sending...' : 'Submit Decision'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {successProject && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={onClose}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Icon icon="lucide:check-check" className="w-7 h-7 text-green-600" />
+            </div>
+            <h3 className="text-[#1B1A1C] text-lg font-bold mb-1">Feasibility Decision Sent!</h3>
+            <p className="text-[#3E4048] text-sm mb-6">The decision has been sent successfully.</p>
+            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4 text-left space-y-2 mb-6">
+              <div className="flex justify-between">
+                <span className="text-xs text-[#3E4048]">Project</span>
+                <span className="text-xs text-[#1B1A1C] font-semibold">{successProject.project_name || 'Untitled'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs text-[#3E4048]">Client</span>
+                <span className="text-xs text-[#1B1A1C] font-semibold">{successProject.client_name || '-'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs text-[#3E4048]">Tracking ID</span>
+                <span className="text-xs text-[#1B1A1C] font-semibold">{successProject.tracking_id || '-'}</span>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -293,6 +332,18 @@ function ProjectList() {
       headers: supabaseHeaders,
       body: JSON.stringify({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }),
     })
+  }
+
+  const handleFeasibilityApprove = async (project) => {
+    const { error } = await supabase
+      .from('projects')
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved' })
+    if (error) return
+    const updated = potentialProjects.filter(p => p.id !== project.id)
+    setPotentialProjects(updated)
+    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
+    if (data) setApprovedProjects(data)
   }
 
   useEffect(() => {
@@ -574,6 +625,7 @@ function ProjectList() {
         <FeasibilityDecisionModal
           project={decisionProject}
           onClose={() => setDecisionProject(null)}
+          onApprove={handleFeasibilityApprove}
         />
       )}
     </div>
