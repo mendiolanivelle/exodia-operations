@@ -137,7 +137,7 @@ function FeasibilityDecisionModal({ project, onClose }) {
           return
         }
         try {
-          const body = `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will GO.\n\nFor the following reasons:\n${reasons}` + (decision === 'go'
+          const body = `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will ${decision === 'go' ? 'GO' : 'decline the project'}.\n\nFor the following reasons:\n${reasons}` + (decision === 'go'
             ? `\n\nLet us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.`
             : '')
           const email = [
