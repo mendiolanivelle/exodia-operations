@@ -204,6 +204,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
+                    <th className="w-10 px-2 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -241,6 +242,20 @@ function ProjectList() {
                             {action.text}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-2 py-3">
+                        {(() => {
+                          const n = getProjectNotes(p.tracking_id)
+                          return (n.notes || n.videoLink) ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setNotesProject(p); setDetailProject(null) }}
+                              className="text-[#FF5900] hover:text-[#e05000] transition-colors cursor-pointer"
+                              title="View documentation"
+                            >
+                              <Icon icon="lucide:file-text" className="w-4 h-4" />
+                            </button>
+                          ) : null
+                        })()}
                       </td>
                     </tr>
                     )
