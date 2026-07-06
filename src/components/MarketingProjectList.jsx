@@ -232,21 +232,20 @@ function MarketingProjectList() {
                     ? { text: 'Discovery Meeting with client', color: 'bg-green-100 text-green-700', key: 'scheduled' }
                     : getFeasibilityStatus(p.createdAt)
                   return (
-                    <tr key={p.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={p.id}
+                      onClick={status.key === 'waiting' ? () => setSelectedProject(p) : undefined}
+                      className={`border-b border-[#CACDD7]/50 transition-colors ${
+                        status.key === 'waiting' ? 'hover:bg-purple-50 cursor-pointer' : 'hover:bg-gray-50'
+                      }`}
+                    >
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
                       <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{formatDateTime(p.sent_at)}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {status.key === 'waiting' ? (
-                          <button
-                            onClick={() => setSelectedProject(p)}
-                            className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors cursor-pointer"
-                          >
-                            {status.text}
-                          </button>
-                        ) : status.key === 'scheduled' ? (
+                        {status.key === 'scheduled' ? (
                           <a
                             href={p.meetLink}
                             target="_blank"
