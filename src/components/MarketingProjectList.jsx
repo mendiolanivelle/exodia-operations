@@ -166,6 +166,7 @@ function MarketingProjectList() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedProject, setSelectedProject] = useState(null)
+  const [successProject, setSuccessProject] = useState(null)
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
@@ -183,6 +184,7 @@ function MarketingProjectList() {
     setProjects(updated)
     localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
     setSelectedProject(null)
+    setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }
 
   if (loading) {
@@ -202,6 +204,45 @@ function MarketingProjectList() {
           onClose={() => setSelectedProject(null)}
           onScheduled={handleScheduled}
         />
+      )}
+      {successProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setSuccessProject(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Icon icon="lucide:check-check" className="w-7 h-7 text-green-600" />
+            </div>
+            <h3 className="text-[#1B1A1C] text-lg font-bold mb-1">Schedule Sent!</h3>
+            <p className="text-[#3E4048] text-sm mb-6">Meeting invitation has been sent to attendees.</p>
+            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4 text-left space-y-2 mb-6">
+              <div className="flex justify-between">
+                <span className="text-xs text-[#3E4048]">Tracking ID</span>
+                <span className="text-xs text-[#1B1A1C] font-semibold">{successProject.tracking_id || '-'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs text-[#3E4048]">Project</span>
+                <span className="text-xs text-[#1B1A1C] font-semibold">{successProject.project_name || 'Untitled'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs text-[#3E4048]">Client</span>
+                <span className="text-xs text-[#1B1A1C] font-semibold">{successProject.client_name || '-'}</span>
+              </div>
+              {successProject.meetLink && (
+                <div className="pt-2 border-t border-[#CACDD7]/30">
+                  <a href={successProject.meetLink} target="_blank" rel="noopener noreferrer" className="text-[#FF5900] text-xs font-semibold flex items-center gap-1 justify-center">
+                    <Icon icon="lucide:video" className="w-3.5 h-3.5" />
+                    Open Google Meet
+                  </a>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setSuccessProject(null)}
+              className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
       )}
       <div className="bg-white p-8 rounded-xl shadow-sm">
         <div className="flex items-center justify-between mb-6">
