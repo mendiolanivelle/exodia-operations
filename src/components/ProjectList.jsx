@@ -141,20 +141,22 @@ function ProjectList() {
                     const day = getFeasibilityDay(p.createdAt)
                     const action = isScheduled
                       ? { text: 'Scheduled Discovery meeting', color: 'bg-green-100 text-green-700' }
-                      : { text: 'Waiting for discovery meeting link', color: 'bg-[#1B1A1C] text-white' }
+                      : { text: 'Waiting for discovery meeting link', color: 'bg-white/20 text-white' }
                     return (
                     <tr
                       key={p.id}
                       onClick={isScheduled ? () => setDetailProject(p) : undefined}
-                      className={`border-b border-[#CACDD7]/50 transition-colors ${
-                        isScheduled ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
+                      className={`border-b transition-colors ${
+                        isScheduled
+                          ? 'hover:bg-green-50 cursor-pointer border-[#CACDD7]/50'
+                          : 'bg-[#1B1A1C] hover:bg-[#2a292c] border-[#3E4048]/50'
                       }`}
                     >
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
-                      <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap text-xs font-mono ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.tracking_id || '-'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden md:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.client_name || '-'}</td>
+                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isScheduled ? 'text-[#1B1A1C]' : 'text-white'}`}>{p.project_name || 'Untitled'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
