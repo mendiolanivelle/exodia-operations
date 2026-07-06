@@ -27,9 +27,20 @@ function ProjectList() {
   const [approvedProjects, setApprovedProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('potential')
+  const [detailProject, setDetailProject] = useState(null)
 
   useEffect(() => {
     fetchAll()
+    const handler = () => {
+      const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
+      setPotentialProjects(stored)
+    }
+    window.addEventListener('storage', handler)
+    window.addEventListener('prt-projects-updated', handler)
+    return () => {
+      window.removeEventListener('storage', handler)
+      window.removeEventListener('prt-projects-updated', handler)
+    }
   }, [])
 
   const fetchAll = async () => {
@@ -123,20 +134,32 @@ function ProjectList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {potentialProjects.map(p => (
-                    <tr key={p.id} className="border-b border-[#CACDD7]/50 hover:bg-amber-50/50 transition-colors">
+                  {potentialProjects.map(p => {
+                    const isScheduled = p.status === 'discovery_scheduled'
+                    const status = isScheduled
+                      ? { text: 'Discovery Meeting with client', color: 'bg-green-100 text-green-700' }
+                      : getFeasibilityStatus(p.createdAt)
+                    return (
+                    <tr
+                      key={p.id}
+                      onClick={isScheduled ? () => setDetailProject(p) : undefined}
+                      className={`border-b border-[#CACDD7]/50 transition-colors ${
+                        isScheduled ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
+                      }`}
+                    >
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
                       <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${getFeasibilityStatus(p.createdAt).color}`}>
-                          {getFeasibilityStatus(p.createdAt).text}
+                        <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${status.color}`}>
+                          {status.text}
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -192,6 +215,46 @@ function ProjectList() {
           </div>
         )}
       </div>
+
+      {detailProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDetailProject(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[#1B1A1C] text-lg font-bold">Discovery Meeting</h3>
+              <button onClick={() => setDetailProject(null)} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+                <Icon icon="lucide:x" className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-5 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Tracking ID</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailProject.tracking_id || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Project</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailProject.project_name || 'Untitled'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Client</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailProject.client_name || '-'}</span>
+              </div>
+              {detailProject.meetLink && (
+                <div className="pt-3 border-t border-[#CACDD7]/30">
+                  <a
+                    href={detailProject.meetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#1B1A1C] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    <Icon icon="lucide:video" className="w-4 h-4" />
+                    Open Google Meet
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

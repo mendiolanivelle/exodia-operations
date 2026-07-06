@@ -183,6 +183,7 @@ function MarketingProjectList() {
     })
     setProjects(updated)
     localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    window.dispatchEvent(new CustomEvent('prt-projects-updated'))
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }
