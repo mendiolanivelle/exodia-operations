@@ -137,7 +137,7 @@ function ProjectList() {
                   {potentialProjects.map(p => {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const status = isScheduled
-                      ? { text: 'Discovery Meeting with client', color: 'bg-green-100 text-green-700' }
+                      ? { text: 'Scheduled Discovery Meeting', color: 'bg-green-100 text-green-700' }
                       : getFeasibilityStatus(p.createdAt)
                     return (
                     <tr
