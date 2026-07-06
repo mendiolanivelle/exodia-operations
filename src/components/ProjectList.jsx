@@ -11,13 +11,12 @@ function formatDateTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
-function MeetingNotesModal({ project, onClose, getNotes, saveNotes }) {
-  const existing = getNotes(project.tracking_id)
-  const [notes, setNotes] = useState(existing.notes || '')
-  const [videoLink, setVideoLink] = useState(existing.videoLink || '')
+function MeetingNotesModal({ project, onClose, onSave }) {
+  const [notes, setNotes] = useState(project.notes || '')
+  const [videoLink, setVideoLink] = useState(project.videoLink || '')
 
   const handleSave = () => {
-    saveNotes(project.tracking_id, { notes, videoLink })
+    onSave(project.tracking_id, { notes, videoLink })
     onClose()
   }
 
@@ -91,15 +90,15 @@ function ProjectList() {
   const [detailProject, setDetailProject] = useState(null)
   const [notesProject, setNotesProject] = useState(null)
 
-  const getProjectNotes = (trackingId) => {
-    const all = JSON.parse(localStorage.getItem('prt_meeting_notes') || '{}')
-    return all[trackingId] || { notes: '', videoLink: '' }
-  }
-
   const saveProjectNotes = (trackingId, data) => {
-    const all = JSON.parse(localStorage.getItem('prt_meeting_notes') || '{}')
-    all[trackingId] = { ...all[trackingId], ...data, updatedAt: new Date().toISOString() }
-    localStorage.setItem('prt_meeting_notes', JSON.stringify(all))
+    const updated = potentialProjects.map(p => {
+      if (p.tracking_id === trackingId) {
+        return { ...p, notes: data.notes, videoLink: data.videoLink }
+      }
+      return p
+    })
+    setPotentialProjects(updated)
+    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
   }
 
   useEffect(() => {
@@ -245,8 +244,7 @@ function ProjectList() {
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
-                          const n = getProjectNotes(p.tracking_id)
-                          return (n.notes || n.videoLink) ? (
+                          return (p.notes || p.videoLink) ? (
                             <button
                               onClick={(e) => { e.stopPropagation(); setNotesProject(p); setDetailProject(null) }}
                               className="text-[#FF5900] hover:text-[#e05000] transition-colors cursor-pointer"
@@ -367,8 +365,7 @@ function ProjectList() {
         <MeetingNotesModal
           project={notesProject}
           onClose={() => setNotesProject(null)}
-          getNotes={getProjectNotes}
-          saveNotes={saveProjectNotes}
+          onSave={saveProjectNotes}
         />
       )}
     </div>
