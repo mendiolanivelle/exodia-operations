@@ -226,7 +226,7 @@ return (
                   type="email"
                   value={to}
                   onChange={e => setTo(e.target.value)}
-                  placeholder="Client email / Marketing email"
+                  placeholder="Marketing email"
                   className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
                 />
               </div>
