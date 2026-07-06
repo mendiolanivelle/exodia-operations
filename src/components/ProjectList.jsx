@@ -134,7 +134,13 @@ function ProjectList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {potentialProjects.map(p => {
+                  {potentialProjects
+                  .sort((a, b) => {
+                    if (a.status === 'discovery_scheduled' && b.status !== 'discovery_scheduled') return -1
+                    if (a.status !== 'discovery_scheduled' && b.status === 'discovery_scheduled') return 1
+                    return 0
+                  })
+                  .map(p => {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const status = isScheduled
                       ? { text: 'Scheduled Discovery Meeting', color: 'bg-green-100 text-green-700' }
