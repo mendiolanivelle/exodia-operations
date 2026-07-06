@@ -375,20 +375,20 @@ function ProjectList() {
                     href={detailProject.meetLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#1B1A1C] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+                    className="bg-white text-[#1B1A1C] border-2 border-[#1B1A1C] w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-opacity"
                   >
                     <Icon icon="lucide:video" className="w-4 h-4" />
                     Open Google Meet
                   </a>
                   <button
                     onClick={() => { setNotesProject(detailProject); setDetailProject(null) }}
-                    className="bg-[#FF5900] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                    className="bg-white text-[#1B1A1C] border-2 border-[#1B1A1C] w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-opacity cursor-pointer"
                   >
                     <Icon icon="lucide:file-text" className="w-4 h-4" />
                     Discovery Meeting Documentation
                   </button>
                   <button
-                    className="bg-white text-[#1B1A1C] border-2 border-[#1B1A1C] w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-opacity cursor-pointer"
+                    className="bg-[#1B1A1C] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     <Icon icon="lucide:arrow-right-circle" className="w-4 h-4" />
                     Proceed to Feasibility Decision
