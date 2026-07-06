@@ -17,7 +17,7 @@ function getFeasibilityStatus(createdAt) {
   const now = new Date()
   const diffMs = now - start
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (diffDays >= 2) return { text: 'Discovery Meeting with client', color: 'bg-green-100 text-green-700' }
+  if (diffDays >= 2) return { text: 'Waiting for Discovery Meeting link', color: 'bg-purple-100 text-purple-700' }
   if (diffDays >= 1) return { text: 'Feasibility checking - Final Day', color: 'bg-orange-100 text-orange-700' }
   return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
 }
