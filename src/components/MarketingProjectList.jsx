@@ -11,26 +11,173 @@ function formatDateTime(iso) {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()} ${h}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`
 }
 
+function formatDateInput(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toISOString().slice(0, 16)
+}
+
 function getFeasibilityStatus(createdAt) {
-  if (!createdAt) return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
+  if (!createdAt) return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700', key: 'day1' }
   const start = new Date(createdAt)
   const now = new Date()
   const diffMs = now - start
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  if (diffDays >= 2) return { text: 'Waiting for Discovery Meeting link', color: 'bg-purple-100 text-purple-700' }
-  if (diffDays >= 1) return { text: 'Feasibility checking - Final Day', color: 'bg-orange-100 text-orange-700' }
-  return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700' }
+  if (diffDays >= 2) return { text: 'Waiting for Discovery Meeting link', color: 'bg-purple-100 text-purple-700', key: 'waiting' }
+  if (diffDays >= 1) return { text: 'Feasibility checking - Final Day', color: 'bg-orange-100 text-orange-700', key: 'final' }
+  return { text: 'Feasibility checking - 1st Day', color: 'bg-yellow-100 text-yellow-700', key: 'day1' }
+}
+
+function ScheduleMeetingModal({ project, onClose, onScheduled }) {
+  const [date, setDate] = useState(() => {
+    const d = new Date()
+    d.setHours(d.getHours() + 1, 0, 0, 0)
+    return formatDateInput(d.toISOString())
+  })
+  const [attendees, setAttendees] = useState('')
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSchedule = () => {
+    setSending(true)
+    setError('')
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: '771932544725-5trevl51v4i49g8j0a0vnqkh7hnikd12.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/calendar.events',
+      callback: async (response) => {
+        if (response.error) {
+          setError('Access denied — please allow Calendar access')
+          setSending(false)
+          return
+        }
+        try {
+          const startDate = new Date(date)
+          const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
+          const attendeeList = [project.client_name || project.email_to, ...attendees.split(',').map(a => a.trim()).filter(Boolean)]
+            .filter(Boolean)
+            .map(email => ({ email }))
+
+          const event = {
+            summary: `Discovery Meeting - ${project.project_name || 'Untitled'}`,
+            description: `Discovery call for project: ${project.project_name}\nTracking ID: ${project.tracking_id}`,
+            start: { dateTime: startDate.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+            end: { dateTime: endDate.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+            attendees: attendeeList,
+            conferenceData: { createRequest: { requestId: `${project.id}-${Date.now()}` } },
+          }
+
+          const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${response.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(event),
+          })
+
+          if (!res.ok) {
+            const err = await res.json()
+            setError(err.error?.message || 'Failed to create event')
+            setSending(false)
+            return
+          }
+
+          const created = await res.json()
+          onScheduled(created)
+        } catch {
+          setError('Could not create meeting')
+          setSending(false)
+        }
+      },
+    })
+    client.requestAccessToken()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[#1B1A1C] text-lg font-bold">Schedule Discovery Meeting</h3>
+          <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+            <Icon icon="lucide:x" className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
+            <p className="text-xs text-[#3E4048] font-medium">Project</p>
+            <p className="text-sm text-[#1B1A1C] font-semibold mt-0.5">{project.project_name || 'Untitled'}</p>
+            <p className="text-xs text-[#3E4048] mt-1">Tracking: {project.tracking_id} | Client: {project.client_name || '-'}</p>
+          </div>
+
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Date & Time</label>
+            <input
+              type="datetime-local"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+          </div>
+
+          <div>
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Attendees (email, comma separated)</label>
+            <input
+              type="text"
+              value={attendees}
+              onChange={e => setAttendees(e.target.value)}
+              placeholder="ops@exodiagamedev.com, manager@exodiagamedev.com"
+              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+            />
+            <p className="text-xs text-[#3E4048] mt-1">Client will be automatically added</p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-3 mt-6 justify-end">
+          <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button
+            onClick={handleSchedule}
+            disabled={sending || !date}
+            className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? 'Creating...' : 'Create Google Meet'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function MarketingProjectList() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedProject, setSelectedProject] = useState(null)
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
     setProjects(stored)
     setLoading(false)
   }, [])
+
+  const handleScheduled = (event) => {
+    const updated = projects.map(p => {
+      if (p.id === selectedProject.id) {
+        return { ...p, status: 'discovery_scheduled', meetLink: event.hangoutLink, eventId: event.id }
+      }
+      return p
+    })
+    setProjects(updated)
+    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    setSelectedProject(null)
+  }
 
   if (loading) {
     return (
@@ -43,6 +190,13 @@ function MarketingProjectList() {
 
   return (
     <div className="flex flex-col gap-6">
+      {selectedProject && (
+        <ScheduleMeetingModal
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+          onScheduled={handleScheduled}
+        />
+      )}
       <div className="bg-white p-8 rounded-xl shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -73,20 +227,43 @@ function MarketingProjectList() {
                 </tr>
               </thead>
               <tbody>
-                {projects.map(p => (
-                  <tr key={p.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
-                    <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{formatDateTime(p.sent_at)}</td>
-                    <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${getFeasibilityStatus(p.createdAt).color}`}>
-                        {getFeasibilityStatus(p.createdAt).text}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {projects.map(p => {
+                  const status = p.status === 'discovery_scheduled'
+                    ? { text: 'Discovery Meeting with client', color: 'bg-green-100 text-green-700', key: 'scheduled' }
+                    : getFeasibilityStatus(p.createdAt)
+                  return (
+                    <tr key={p.id} className="border-b border-[#CACDD7]/50 hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
+                      <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{formatDateTime(p.sent_at)}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {status.key === 'waiting' ? (
+                          <button
+                            onClick={() => setSelectedProject(p)}
+                            className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors cursor-pointer"
+                          >
+                            {status.text}
+                          </button>
+                        ) : status.key === 'scheduled' ? (
+                          <a
+                            href={p.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                          >
+                            {status.text}
+                          </a>
+                        ) : (
+                          <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${status.color}`}>
+                            {status.text}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
