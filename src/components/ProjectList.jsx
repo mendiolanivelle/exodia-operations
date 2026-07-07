@@ -123,15 +123,72 @@ function FeasibilityDecisionModal({ project, onClose, onApprove }) {
   const [decision, setDecision] = useState(null)
   const [reasons, setReasons] = useState('')
   const [to, setTo] = useState('')
+  const [subject, setSubject] = useState('')
+  const [htmlBody, setHtmlBody] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
   const [successProject, setSuccessProject] = useState(null)
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
-  const template = decision === 'go'
-    ? { subject: `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will GO` }
-    : decision === 'decline'
-    ? { subject: `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will decline the project` }
-    : {}
+  useEffect(() => {
+    if (!decision) return
+    const pn = project.project_name || 'Untitled'
+    const cn = project.client_name || 'Client'
+    const tid = project.tracking_id || '-'
+    const header = `<table width="100%" cellpadding="0" cellspacing="0" style="background:#1B1A1C;padding:40px 20px;font-family:Arial,Helvetica,sans-serif">
+  <tr>
+    <td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden">
+        <tr>
+          <td style="background:#1B1A1C;padding:24px 32px">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+              <td style="color:#ffffff;font-size:18px;font-weight:700">Exodia Operations</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px">`
+    const footer = `</td>
+        </tr>
+        <tr>
+          <td style="background:#F9FAFB;padding:16px 32px">
+            <p style="color:#9CA3AF;font-size:11px;margin:0;text-align:center">Exodia Game Dev &middot; Operations Department</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`
+    if (decision === 'go') {
+      setSubject(`Feasibility Decision - Go for ${pn} / ${tid}`)
+      setHtmlBody(`${header}
+            <h2 style="color:#1B1A1C;font-size:20px;margin:0 0 8px">Feasibility Decision - Go</h2>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 20px">Good Day Marketing,</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Thank you for forwarding <strong style="color:#FF5900">"${pn}"</strong>, tracking ID <strong style="color:#1B1A1C">${tid}</strong> to review.</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Operations has reviewed the project and the decision is <strong style="color:#16A34A">GO</strong>.</p>
+            ${reasons ? `<p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px"><strong>Reasons:</strong><br/>${reasons.replace(/\n/g, '<br/>')}</p>` : ''}
+            <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin:0 0 20px">
+              <p style="color:#1B1A1C;font-size:13px;font-weight:600;margin:0 0 4px">Next Step</p>
+              <p style="color:#3E4048;font-size:13px;line-height:1.5;margin:0">Let us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING &amp; READINESS process.</p>
+            </div>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 4px">Best regards,</p>
+            <p style="color:#FF5900;font-size:14px;font-weight:600;margin:0">Exodia Operations Team</p>
+          ${footer}`)
+    } else if (decision === 'decline') {
+      setSubject(`Feasibility Decision - Decline for ${pn} / ${tid}`)
+      setHtmlBody(`${header}
+            <h2 style="color:#1B1A1C;font-size:20px;margin:0 0 8px">Feasibility Decision - Decline</h2>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 20px">Good Day Marketing,</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Thank you for forwarding <strong style="color:#FF5900">"${pn}"</strong>, tracking ID <strong style="color:#1B1A1C">${tid}</strong> to review.</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">After careful review, Operations has decided to <strong style="color:#DC2626">decline</strong> the project.</p>
+            ${reasons ? `<p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 20px"><strong>Reasons:</strong><br/>${reasons.replace(/\n/g, '<br/>')}</p>` : ''}
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 4px">Best regards,</p>
+            <p style="color:#FF5900;font-size:14px;font-weight:600;margin:0">Exodia Operations Team</p>
+          ${footer}`)
+    }
+  }, [decision, reasons, project])
 
   const handleSubmit = () => {
     if (!to) { setError('Enter recipient email'); return }
@@ -147,17 +204,14 @@ function FeasibilityDecisionModal({ project, onClose, onApprove }) {
           return
         }
         try {
-          const body = `Project ${project.project_name || 'Untitled'} under ${project.client_name || 'Client'} ${project.tracking_id} is reviewed by operations and the decision will ${decision === 'go' ? 'GO' : 'decline the project'}.\n\nFor the following reasons:\n${reasons}` + (decision === 'go'
-            ? `\n\nLet us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.`
-            : '')
           const email = [
             'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Type: text/html; charset=UTF-8',
             'Content-Transfer-Encoding: 7bit',
             `To: ${to}`,
-            `Subject: ${template.subject}`,
+            `Subject: ${subject}`,
             '',
-            body,
+            htmlBody,
           ].join('\r\n')
           const raw = btoa(unescape(encodeURIComponent(email)))
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -239,12 +293,17 @@ return (
                   className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
                 />
               </div>
-              <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-4">
-                <p className="text-xs text-[#3E4048] font-medium mb-1">Email Template</p>
-                <p className="text-sm text-[#1B1A1C]">{template.subject}</p>
+              <div>
+                <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Subject</label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={e => setSubject(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                />
               </div>
               <div>
-                <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">For the following reasons:</label>
+                <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Reasons</label>
                 <textarea
                   value={reasons}
                   onChange={e => setReasons(e.target.value)}
@@ -253,11 +312,12 @@ return (
                   className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none"
                 />
               </div>
-              {decision === 'go' && (
-                <p className="text-xs text-[#3E4048] bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                  Let us know if you emailed the client for our feasibility decision so that we can proceed on INTERNAL PLANNING & READINESS process.
-                </p>
-              )}
+              <div>
+                <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Email Preview</label>
+                <div className="border border-[#CACDD7] rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
+                  <div className="bg-white p-4" dangerouslySetInnerHTML={{ __html: htmlBody }} />
+                </div>
+              </div>
             </div>
           )}
 
