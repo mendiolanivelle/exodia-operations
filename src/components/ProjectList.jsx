@@ -246,7 +246,7 @@ function FeasibilityDecisionModal({ project, onClose, onApprove }) {
 return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+<div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-[#1B1A1C] text-lg font-bold">Feasibility Decision</h3>
             <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
