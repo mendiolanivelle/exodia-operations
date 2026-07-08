@@ -113,12 +113,12 @@ function MeetingNotesModal({ project, onClose, onSave }) {
 }
 
 function getFeasibilityDay(createdAt) {
-  if (!createdAt) return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
+  if (!createdAt) return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
   const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
-  if (diffDays >= 3) return { text: 'OverDue: Feasibility decision!', color: 'bg-red-100 text-red-700' }
-  if (diffDays >= 2) return { text: 'Feasibility Decision Day', color: 'bg-blue-100 text-blue-700' }
-  if (diffDays >= 1) return { text: 'Feasibility Checking Final Day', color: 'bg-orange-100 text-orange-700' }
-  return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
+  if (diffDays >= 3) return { text: 'Overdue - Feasibility Decision', color: 'bg-red-100 text-red-700' }
+  if (diffDays >= 2) return { text: 'Pending Feasibility Decision', color: 'bg-blue-100 text-blue-700' }
+  if (diffDays >= 1) return { text: 'Feasibility Review - Final Day', color: 'bg-orange-100 text-orange-700' }
+  return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
 }
 
 function FeasibilityDecisionModal({ project, onClose, onApprove, onDecline }) {
@@ -614,9 +614,12 @@ function ProjectList() {
                   .map(p => {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const day = getFeasibilityDay(p.createdAt)
+                    const diffDays = Math.floor((new Date() - new Date(p.createdAt)) / (1000 * 60 * 60 * 24))
                     const action = isScheduled
-                      ? { text: 'Scheduled Discovery meeting', color: 'bg-green-100 text-green-700' }
-                      : { text: 'Waiting for discovery meeting link', color: 'bg-purple-100 text-purple-700' }
+                      ? { text: 'Discovery Call \u2013 Scheduled', color: 'bg-green-100 text-green-700' }
+                      : diffDays >= 2
+                      ? { text: 'Discovery Call \u2013 Overdue (Not Scheduled)', color: 'bg-red-100 text-red-700' }
+                      : { text: 'Discovery Call \u2013 Not Scheduled', color: 'bg-purple-100 text-purple-700' }
                     return (
                     <tr
                       key={p.id}
