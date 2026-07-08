@@ -18,10 +18,12 @@ function formatDateInput(iso) {
 }
 
 function getFeasibilityDay(createdAt) {
-  if (!createdAt) return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
+  if (!createdAt) return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
   const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
-  if (diffDays >= 1) return { text: 'Feasibility Checking Final Day', color: 'bg-orange-100 text-orange-700' }
-  return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
+  if (diffDays >= 3) return { text: 'Overdue - Feasibility Decision', color: 'bg-red-100 text-red-700' }
+  if (diffDays >= 2) return { text: 'Pending Feasibility Decision', color: 'bg-blue-100 text-blue-700' }
+  if (diffDays >= 1) return { text: 'Feasibility Review - Final Day', color: 'bg-orange-100 text-orange-700' }
+  return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
 }
 
 function ScheduleMeetingModal({ project, onClose, onScheduled }) {
@@ -281,6 +283,7 @@ function MarketingProjectList() {
                   .map(p => {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const day = getFeasibilityDay(p.createdAt)
+                    const diffDays = Math.floor((new Date() - new Date(p.createdAt)) / (1000 * 60 * 60 * 24))
                     return (
                     <tr
                       key={p.id}
@@ -309,11 +312,15 @@ function MarketingProjectList() {
                               rel="noopener noreferrer"
                               className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
                             >
-                              Scheduled Discovery meeting
+Discovery Call – Scheduled
                             </a>
+                          ) : diffDays >= 2 ? (
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
+                              Discovery Call – Overdue (Not Scheduled)
+                            </span>
                           ) : (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white">
-                              Waiting for discovery meeting link
+                              Discovery Call – Not Scheduled
                             </span>
                           )}
                         </div>
