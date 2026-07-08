@@ -164,12 +164,12 @@ function FeasibilityDecisionModal({ project, onClose, onApprove, onDecline }) {
   </tr>
 </table>`
     if (decision === 'go') {
-      setSubject(`Feasibility Decision - Go for ${pn} / ${tid}`)
+      setSubject(`Feasibility Decision - Accepted for ${pn} / ${tid}`)
       setHtmlBody(`${header}
-            <h2 style="color:#1B1A1C;font-size:20px;margin:0 0 8px">Feasibility Decision - Go</h2>
+            <h2 style="color:#1B1A1C;font-size:20px;margin:0 0 8px">Feasibility Decision - Accepted</h2>
             <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 20px">Good Day Marketing,</p>
             <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Thank you for forwarding <strong style="color:#FF5900">"${pn}"</strong>, tracking ID <strong style="color:#1B1A1C">${tid}</strong> to review.</p>
-            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Operations has reviewed the project and the decision is <strong style="color:#16A34A">GO</strong>.</p>
+            <p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px">Operations has reviewed the project and the decision is <strong style="color:#16A34A">ACCEPTED</strong>.</p>
             ${reasons ? `<p style="color:#3E4048;font-size:14px;line-height:1.6;margin:0 0 12px"><strong>Reasons:</strong><br/>${reasons.replace(/\n/g, '<br/>')}</p>` : ''}
             <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin:0 0 20px">
               <p style="color:#1B1A1C;font-size:13px;font-weight:600;margin:0 0 4px">Next Step</p>
@@ -272,7 +272,7 @@ return (
               }`}
             >
               <Icon icon="lucide:check-circle" className="w-5 h-5 mx-auto mb-1" />
-              Go
+              Accepted
             </button>
             <button
               onClick={() => setDecision('decline')}
@@ -601,6 +601,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Feasibility Status</th>
                     <th className="w-10 px-2 py-3"></th>
                   </tr>
                 </thead>
@@ -642,6 +643,13 @@ function ProjectList() {
                             {action.text}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {p.decision === 'declined' ? (
+                          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                        ) : (
+                          <span className="text-[#CACDD7] text-xs">-</span>
+                        )}
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
