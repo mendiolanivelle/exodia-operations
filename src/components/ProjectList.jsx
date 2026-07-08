@@ -115,11 +115,13 @@ function MeetingNotesModal({ project, onClose, onSave }) {
 function getFeasibilityDay(createdAt) {
   if (!createdAt) return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
   const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
+  if (diffDays >= 3) return { text: 'OverDue: Feasibility decision!', color: 'bg-red-100 text-red-700' }
+  if (diffDays >= 2) return { text: 'Feasibility Decision Day', color: 'bg-blue-100 text-blue-700' }
   if (diffDays >= 1) return { text: 'Feasibility Checking Final Day', color: 'bg-orange-100 text-orange-700' }
   return { text: 'Feasibility Checking Day - 1', color: 'bg-yellow-100 text-yellow-700' }
 }
 
-function FeasibilityDecisionModal({ project, onClose, onApprove }) {
+function FeasibilityDecisionModal({ project, onClose, onApprove, onDecline }) {
   const [decision, setDecision] = useState(null)
   const [reasons, setReasons] = useState('')
   const [to, setTo] = useState('')
@@ -231,6 +233,8 @@ function FeasibilityDecisionModal({ project, onClose, onApprove }) {
           }
           if (decision === 'go') {
             await onApprove(project)
+          } else if (decision === 'decline' && onDecline) {
+            await onDecline(project)
           }
           setSuccessProject(project)
           setSending(false)
@@ -405,9 +409,10 @@ function ProjectList() {
   }
 
   const handleFeasibilityApprove = async (project) => {
+    const now = new Date().toISOString()
     const { error } = await supabase
       .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved' })
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
     if (error) return
     const updated = potentialProjects.filter(p => p.id !== project.id)
     setPotentialProjects(updated)
@@ -472,6 +477,7 @@ function ProjectList() {
 
   const handleApprove = async (project) => {
     try {
+      const now = new Date().toISOString()
       const { data, error } = await supabase
         .from('projects')
         .insert({
@@ -479,6 +485,7 @@ function ProjectList() {
           client_name: project.client_name,
           tracking_id: project.tracking_id,
           status: 'approved',
+          feasibility_decision_at: now,
         })
         .select()
       if (error) throw error
@@ -486,6 +493,32 @@ function ProjectList() {
       setPotentialProjects(updated)
       localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
       if (data) setApprovedProjects(prev => [data[0], ...prev])
+    } catch {}
+  }
+
+  const handleDecline = async (project) => {
+    const now = new Date().toISOString()
+    const updated = potentialProjects.map(p => {
+      if (p.id === project.id) {
+        return { ...p, feasibility_decision_at: now, decision: 'declined' }
+      }
+      return p
+    })
+    setPotentialProjects(updated)
+    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    try {
+      const ticketRes = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}&select=additional_attachments`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      })
+      if (ticketRes.ok) {
+        const rows = await ticketRes.json()
+        const existing = rows[0]?.additional_attachments || []
+        await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}`, {
+          method: 'PATCH',
+          headers: supabaseHeaders,
+          body: JSON.stringify({ additional_attachments: [...existing, { _type: 'feasibility_decision', decision: 'declined', decided_at: now }] }),
+        })
+      }
     } catch {}
   }
 
@@ -746,6 +779,7 @@ function ProjectList() {
           project={decisionProject}
           onClose={() => setDecisionProject(null)}
           onApprove={handleFeasibilityApprove}
+          onDecline={handleDecline}
         />
       )}
     </div>
