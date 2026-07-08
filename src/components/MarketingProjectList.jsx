@@ -319,7 +319,7 @@ Discovery Call – Scheduled
                               Discovery Call – Overdue (Not Scheduled)
                             </span>
                           ) : (
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white">
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
                               Discovery Call – Not Scheduled
                             </span>
                           )}

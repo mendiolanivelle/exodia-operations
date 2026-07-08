@@ -619,7 +619,7 @@ function ProjectList() {
                       ? { text: 'Discovery Call \u2013 Scheduled', color: 'bg-green-100 text-green-700' }
                       : diffDays >= 2
                       ? { text: 'Discovery Call \u2013 Overdue (Not Scheduled)', color: 'bg-red-100 text-red-700' }
-                      : { text: 'Discovery Call \u2013 Not Scheduled', color: 'bg-purple-100 text-purple-700' }
+                      : { text: 'Discovery Call \u2013 Not Scheduled', color: 'bg-gray-100 text-gray-700' }
                     return (
                     <tr
                       key={p.id}
