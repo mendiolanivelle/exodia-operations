@@ -412,7 +412,7 @@ function ProjectList() {
     const now = new Date().toISOString()
     const { error } = await supabase
       .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_status: 'accepted', feasibility_decision_at: now })
     if (error) return
     const updated = potentialProjects.filter(p => p.id !== project.id)
     setPotentialProjects(updated)
@@ -485,6 +485,7 @@ function ProjectList() {
           client_name: project.client_name,
           tracking_id: project.tracking_id,
           status: 'approved',
+          feasibility_status: 'accepted',
           feasibility_decision_at: now,
         })
         .select()
@@ -500,7 +501,7 @@ function ProjectList() {
     const now = new Date().toISOString()
     const updated = potentialProjects.map(p => {
       if (p.id === project.id) {
-        return { ...p, feasibility_decision_at: now, decision: 'declined' }
+        return { ...p, feasibility_decision_at: now, feasibility_status: 'declined', decision: 'declined' }
       }
       return p
     })
@@ -516,7 +517,7 @@ function ProjectList() {
         await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}`, {
           method: 'PATCH',
           headers: supabaseHeaders,
-          body: JSON.stringify({ additional_attachments: [...existing, { _type: 'feasibility_decision', decision: 'declined', decided_at: now }] }),
+          body: JSON.stringify({ additional_attachments: [...existing, { _type: 'feasibility_decision', decision: 'declined', decided_at: now }], feasibility_status: 'declined' }),
         })
       }
     } catch {}
@@ -645,7 +646,7 @@ function ProjectList() {
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {p.decision === 'declined' ? (
+                        {p.feasibility_status === 'declined' ? (
                           <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
                         ) : (
                           <span className="text-[#CACDD7] text-xs">-</span>
@@ -694,6 +695,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Tracking ID</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Date</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Feasibility Status</th>
                     <th className="text-right px-4 py-3 text-[#3E4048] font-medium">Status</th>
                   </tr>
                 </thead>
@@ -704,6 +706,9 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell text-xs font-mono">{p.tracking_id || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Accepted</span>
+                      </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Approved</span>
                       </td>
