@@ -112,9 +112,10 @@ function MeetingNotesModal({ project, onClose, onSave }) {
   )
 }
 
-function getFeasibilityDay(createdAt) {
+function getFeasibilityDay(createdAt, referenceDate) {
   if (!createdAt) return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
-  const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
+  const ref = referenceDate ? new Date(referenceDate) : new Date()
+  const diffDays = Math.floor((ref - new Date(createdAt)) / (1000 * 60 * 60 * 24))
   if (diffDays >= 3) return { text: 'Overdue: Feasibility Decision', color: 'bg-red-100 text-red-700' }
   if (diffDays >= 2) return { text: 'Pending Feasibility Decision', color: 'bg-blue-100 text-blue-700' }
   if (diffDays >= 1) return { text: 'Feasibility Review - Final Day', color: 'bg-orange-100 text-orange-700' }
@@ -822,7 +823,8 @@ function ProjectList() {
                 <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.sent_at ? formatDateTime(detailDecidedProject.sent_at) : '-'}</span>
               </div>
               {(() => {
-                const origDay = getFeasibilityDay(detailDecidedProject.createdAt)
+                const refDate = detailDecidedProject.feasibility_decision_at || new Date().toISOString()
+                const origDay = getFeasibilityDay(detailDecidedProject.createdAt, refDate)
                 return (
                   <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
                     <span className="text-sm text-[#3E4048]">Feasibility Started</span>
@@ -834,7 +836,9 @@ function ProjectList() {
                 )
               })()}
               {(() => {
-                const diffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
+                const refDate = detailDecidedProject.feasibility_decision_at || new Date().toISOString()
+                const ref = new Date(refDate)
+                const diffDays = Math.floor((ref - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
                 const isScheduled = detailDecidedProject.status === 'discovery_scheduled'
                 const isOverdue = !isScheduled && diffDays >= 2
                 const disLabel = isScheduled ? 'Discovery Call – Scheduled' : isOverdue ? 'Discovery Call – Overdue (Not Scheduled)' : 'Discovery Call – Not Scheduled'
@@ -843,7 +847,7 @@ function ProjectList() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-[#3E4048]">Discovery Call</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.meetLink ? 'Scheduled' : 'Not Scheduled'}</span>
+                      <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.discovery_scheduled_at ? formatDateTime(detailDecidedProject.discovery_scheduled_at) : detailDecidedProject.meetLink ? 'Scheduled' : 'Not Scheduled'}</span>
                       <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${disColor}`}>{disLabel}</span>
                     </div>
                   </div>
@@ -855,7 +859,8 @@ function ProjectList() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-[#1B1A1C] font-semibold">{formatDateTime(detailDecidedProject.feasibility_decision_at)}</span>
                     {(() => {
-                      const diffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
+                      const ref = new Date(detailDecidedProject.feasibility_decision_at)
+                      const diffDays = Math.floor((ref - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
                       if (diffDays >= 3) {
                         return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Overdue: Feasibility Decision</span>
                       }

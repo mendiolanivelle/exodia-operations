@@ -175,7 +175,7 @@ function MarketingProjectList() {
   const handleScheduled = (event) => {
     const updated = projects.map(p => {
       if (p.id === selectedProject.id) {
-        return { ...p, status: 'discovery_scheduled', meetLink: event.hangoutLink, eventId: event.id }
+        return { ...p, status: 'discovery_scheduled', meetLink: event.hangoutLink, eventId: event.id, discovery_scheduled_at: new Date().toISOString() }
       }
       return p
     })
