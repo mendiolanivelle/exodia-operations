@@ -394,6 +394,9 @@ function ProjectList() {
   const [notesProject, setNotesProject] = useState(null)
   const [decisionProject, setDecisionProject] = useState(null)
 
+  const qualifiedLeads = potentialProjects.filter(p => p.decision === 'accepted')
+  const activeLeads = potentialProjects.filter(p => p.decision !== 'accepted')
+
   const saveProjectNotes = (trackingId, data) => {
     const updated = potentialProjects.map(p => {
       if (p.tracking_id === trackingId) {
@@ -583,7 +586,16 @@ function ProjectList() {
             }`}
           >
             <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Leads</p>
-            <p className="text-amber-900 text-3xl font-bold mt-1">{potentialProjects.length}</p>
+            <p className="text-amber-900 text-3xl font-bold mt-1">{activeLeads.length}</p>
+          </button>
+          <button
+            onClick={() => setTab('qualified')}
+            className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
+              tab === 'qualified' ? 'bg-orange-50 border-2 border-orange-300' : 'bg-orange-50/50 border border-orange-200 hover:bg-orange-50'
+            }`}
+          >
+            <p className="text-orange-700 text-xs font-medium uppercase tracking-wider">Qualified Leads</p>
+            <p className="text-orange-900 text-3xl font-bold mt-1">{qualifiedLeads.length}</p>
           </button>
           <button
             onClick={() => setTab('projects')}
@@ -596,7 +608,7 @@ function ProjectList() {
           </button>
         </div>
 
-        {tab === 'leads' && potentialProjects.length > 0 && (
+        {tab === 'leads' && activeLeads.length > 0 && (
           <div>
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
               <Icon icon="lucide:clock" className="w-4 h-4 text-amber-600" />
@@ -688,10 +700,87 @@ function ProjectList() {
           </div>
         )}
 
-        {tab === 'leads' && potentialProjects.length === 0 && (
+        {tab === 'leads' && activeLeads.length === 0 && (
           <div className="text-center py-12">
             <Icon icon="lucide:clock" className="w-10 h-10 text-[#CACDD7] mx-auto mb-3" />
             <p className="text-[#3E4048] text-sm">No leads yet.</p>
+          </div>
+        )}
+
+        {tab === 'qualified' && qualifiedLeads.length > 0 && (
+          <div>
+            <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
+              <Icon icon="lucide:check-circle" className="w-4 h-4 text-orange-600" />
+              Qualified Leads
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#CACDD7]">
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Tracking ID</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Project</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
+                    <th className="w-10 px-2 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {qualifiedLeads
+                  .sort((a, b) => {
+                    if (a.status === 'discovery_scheduled' && b.status !== 'discovery_scheduled') return -1
+                    if (a.status !== 'discovery_scheduled' && b.status === 'discovery_scheduled') return 1
+                    return 0
+                  })
+                  .map(p => {
+                    const isScheduled = p.status === 'discovery_scheduled'
+                    const day = getFeasibilityDay(p.createdAt)
+                    const diffDays = Math.floor((new Date() - new Date(p.createdAt)) / (1000 * 60 * 60 * 24))
+                    return (
+                    <tr
+                      key={p.id}
+                      onClick={() => setDetailDecidedProject(p)}
+                      className="border-b border-[#CACDD7]/50 hover:bg-orange-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
+                      <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
+                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-[#CACDD7] text-xs">-</span>
+                      </td>
+                      <td className="px-2 py-3">
+                        {(() => {
+                          return (p.notes || p.videoLink) ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setNotesProject(p) }}
+                              className="text-[#FF5900] hover:text-[#e05000] transition-colors cursor-pointer"
+                              title="View documentation"
+                            >
+                              <Icon icon="lucide:file-text" className="w-4 h-4" />
+                            </button>
+                          ) : null
+                        })()}
+                      </td>
+                    </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {tab === 'qualified' && qualifiedLeads.length === 0 && (
+          <div className="text-center py-12">
+            <Icon icon="lucide:check-circle" className="w-10 h-10 text-[#CACDD7] mx-auto mb-3" />
+            <p className="text-[#3E4048] text-sm">No qualified leads yet.</p>
           </div>
         )}
 
