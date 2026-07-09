@@ -876,7 +876,6 @@ function ProjectList() {
                 )}
               </div>
             </div>
-            </div>
           </div>
         </div>
       )}
