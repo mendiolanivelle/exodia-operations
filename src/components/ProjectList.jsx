@@ -412,7 +412,7 @@ function ProjectList() {
     const now = new Date().toISOString()
     const { error } = await supabase
       .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_status: 'accepted', feasibility_decision_at: now })
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
     if (error) return
     const updated = potentialProjects.filter(p => p.id !== project.id)
     setPotentialProjects(updated)
@@ -485,7 +485,6 @@ function ProjectList() {
           client_name: project.client_name,
           tracking_id: project.tracking_id,
           status: 'approved',
-          feasibility_status: 'accepted',
           feasibility_decision_at: now,
         })
         .select()
@@ -501,7 +500,7 @@ function ProjectList() {
     const now = new Date().toISOString()
     const updated = potentialProjects.map(p => {
       if (p.id === project.id) {
-        return { ...p, feasibility_decision_at: now, feasibility_status: 'declined', decision: 'declined' }
+        return { ...p, feasibility_decision_at: now, decision: 'declined' }
       }
       return p
     })
@@ -602,7 +601,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
-                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Feasibility Status</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
                     <th className="w-10 px-2 py-3"></th>
                   </tr>
                 </thead>
@@ -637,21 +636,22 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
-                            {day.text}
-                          </span>
-                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${action.color}`}>
-                            {action.text}
-                          </span>
+                          {p.decision === 'declined' ? (
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                          ) : (
+                            <>
+                              <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
+                                {day.text}
+                              </span>
+                              <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${action.color}`}>
+                                {action.text}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {p.feasibility_status === 'declined' ? (
-                          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
-                        ) : (
-                          <span className="text-[#CACDD7] text-xs">-</span>
-                        )}
-                      </td>
+                        <span className="text-[#CACDD7] text-xs">-</span>
                       <td className="px-2 py-3">
                         {(() => {
                           return (p.notes || p.videoLink) ? (
@@ -695,7 +695,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Tracking ID</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Date</th>
-                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Feasibility Status</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
                     <th className="text-right px-4 py-3 text-[#3E4048] font-medium">Status</th>
                   </tr>
                 </thead>
@@ -707,7 +707,7 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell text-xs font-mono">{p.tracking_id || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Accepted</span>
+                        <span className="text-[#CACDD7] text-xs">-</span>
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Approved</span>
