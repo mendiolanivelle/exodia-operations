@@ -411,10 +411,6 @@ function ProjectList() {
 
   const handleFeasibilityApprove = async (project) => {
     const now = new Date().toISOString()
-    const { error } = await supabase
-      .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
-    if (error) return
     const updated = potentialProjects.map(p => {
       if (p.id === project.id) {
         return { ...p, feasibility_decision_at: now, decision: 'accepted' }
@@ -423,6 +419,10 @@ function ProjectList() {
     })
     setPotentialProjects(updated)
     localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    const { error } = await supabase
+      .from('projects')
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
+    if (error) return
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
   }
@@ -482,8 +482,16 @@ function ProjectList() {
   }
 
   const handleApprove = async (project) => {
+    const now = new Date().toISOString()
+    const updated = potentialProjects.map(p => {
+      if (p.id === project.id) {
+        return { ...p, feasibility_decision_at: now, decision: 'accepted' }
+      }
+      return p
+    })
+    setPotentialProjects(updated)
+    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
     try {
-      const now = new Date().toISOString()
       const { data, error } = await supabase
         .from('projects')
         .insert({
@@ -494,16 +502,7 @@ function ProjectList() {
           feasibility_decision_at: now,
         })
         .select()
-      if (error) throw error
-      const updated = potentialProjects.map(p => {
-        if (p.id === project.id) {
-          return { ...p, feasibility_decision_at: now, decision: 'accepted' }
-        }
-        return p
-      })
-      setPotentialProjects(updated)
-      localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
-      if (data) setApprovedProjects(prev => [data[0], ...prev])
+      if (!error && data) setApprovedProjects(prev => [data[0], ...prev])
     } catch {}
   }
 
