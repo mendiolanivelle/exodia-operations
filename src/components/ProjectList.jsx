@@ -648,7 +648,7 @@ function ProjectList() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           {p.decision === 'accepted' ? (
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility - Accepted</span>
+<span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Feasibility - Accepted</span>
                           ) : p.decision === 'declined' ? (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
                           ) : (
@@ -840,12 +840,34 @@ function ProjectList() {
               )}
               <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
                 <span className="text-sm text-[#3E4048]">Status</span>
-                {detailDecidedProject.decision === 'accepted' ? (
-                  <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility - Accepted</span>
-                ) : (
-                  <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
-                )}
+                <div className="flex items-center gap-1">
+                  {detailDecidedProject.decision === 'accepted' ? (
+                    <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Feasibility - Accepted</span>
+                  ) : (
+                    <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                  )}
+                </div>
               </div>
+              {(() => {
+                const origDay = getFeasibilityDay(detailDecidedProject.createdAt)
+                const origDiffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
+                const isScheduled = detailDecidedProject.status === 'discovery_scheduled'
+                const origAction = isScheduled
+                  ? { text: 'Discovery Call \u2013 Scheduled', color: 'bg-green-100 text-green-700' }
+                  : origDiffDays >= 2
+                  ? { text: 'Discovery Call \u2013 Overdue (Not Scheduled)', color: 'bg-red-100 text-red-700' }
+                  : { text: 'Discovery Call \u2013 Not Scheduled', color: 'bg-gray-100 text-gray-700' }
+                return (
+                  <div className="flex flex-wrap gap-1 pt-2">
+                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origDay.color}`}>
+                      {origDay.text}
+                    </span>
+                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origAction.color}`}>
+                      {origAction.text}
+                    </span>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         </div>
