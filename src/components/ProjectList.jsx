@@ -652,6 +652,7 @@ function ProjectList() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="text-[#CACDD7] text-xs">-</span>
+                      </td>
                       <td className="px-2 py-3">
                         {(() => {
                           return (p.notes || p.videoLink) ? (
