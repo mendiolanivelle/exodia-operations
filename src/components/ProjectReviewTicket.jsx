@@ -239,26 +239,26 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
           project_name: selectedTicket.project_name,
           client_name: selectedTicket.client_name,
           tracking_id: selectedTicket.tracking_id,
-          status: 'potential',
+          status: 'leads',
         }),
       })
       await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?id=eq.${selectedTicket.id}`, {
         method: 'PATCH',
         headers,
-        body: JSON.stringify({ status: 'potential' }),
+        body: JSON.stringify({ status: 'leads' }),
       })
-      const potentialKey = 'prt_potential_projects'
-      const existing = JSON.parse(localStorage.getItem(potentialKey) || '[]')
+      const leadsKey = 'prt_leads'
+      const existing = JSON.parse(localStorage.getItem(leadsKey) || '[]')
       const newEntry = {
         id: selectedTicket.id,
         project_name: selectedTicket.project_name,
         client_name: selectedTicket.client_name,
         tracking_id: selectedTicket.tracking_id,
         sent_at: selectedTicket.sent_at,
-        status: 'potential',
+        status: 'leads',
         createdAt: new Date().toISOString(),
       }
-      localStorage.setItem(potentialKey, JSON.stringify([newEntry, ...existing]))
+      localStorage.setItem(leadsKey, JSON.stringify([newEntry, ...existing]))
       const id = selectedTicket.id
       const updated = [...proceededIds, id]
       setProceededIds(updated)

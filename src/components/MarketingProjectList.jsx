@@ -167,7 +167,7 @@ function MarketingProjectList() {
   const [successProject, setSuccessProject] = useState(null)
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
+    const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
     setProjects(stored)
     setLoading(false)
   }, [])
@@ -180,7 +180,7 @@ function MarketingProjectList() {
       return p
     })
     setProjects(updated)
-    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    localStorage.setItem('prt_leads', JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
@@ -247,7 +247,7 @@ function MarketingProjectList() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">Project List - Marketing View</h2>
-            <p className="text-[#3E4048] text-sm">View all potential projects in the feasibility pipeline</p>
+            <p className="text-[#3E4048] text-sm">View all leads in the feasibility pipeline</p>
           </div>
           <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">
             {projects.length} projects
@@ -257,7 +257,7 @@ function MarketingProjectList() {
         {projects.length === 0 ? (
           <div className="text-center py-16">
             <Icon icon="lucide:folder-kanban" className="w-12 h-12 text-[#CACDD7] mx-auto mb-4" />
-            <p className="text-[#3E4048] text-sm">No potential projects yet.</p>
+            <p className="text-[#3E4048] text-sm">No leads yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

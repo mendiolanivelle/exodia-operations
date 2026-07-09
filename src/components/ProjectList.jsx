@@ -388,7 +388,7 @@ function ProjectList() {
   const [approvedProjects, setApprovedProjects] = useState([])
   const [allProjects, setAllProjects] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('potential')
+  const [tab, setTab] = useState('leads')
   const [detailProject, setDetailProject] = useState(null)
   const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [notesProject, setNotesProject] = useState(null)
@@ -402,7 +402,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    localStorage.setItem('prt_leads', JSON.stringify(updated))
     fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(trackingId)}`, {
       method: 'PATCH',
       headers: supabaseHeaders,
@@ -419,7 +419,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    localStorage.setItem('prt_leads', JSON.stringify(updated))
     const { error } = await supabase
       .from('projects')
       .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
@@ -432,7 +432,7 @@ function ProjectList() {
     fetchAll()
     fetchAllProjects()
     const handler = () => {
-      const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
+      const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
       setPotentialProjects(stored)
     }
     window.addEventListener('storage', handler)
@@ -444,7 +444,7 @@ function ProjectList() {
   }, [])
 
   const fetchAll = async () => {
-    const stored = JSON.parse(localStorage.getItem('prt_potential_projects') || '[]')
+    const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
     setPotentialProjects(stored)
     try {
       const { data, error } = await supabase
@@ -491,7 +491,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    localStorage.setItem('prt_leads', JSON.stringify(updated))
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -516,7 +516,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
+    localStorage.setItem('prt_leads', JSON.stringify(updated))
     try {
       const ticketRes = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}&select=additional_attachments`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
@@ -577,12 +577,12 @@ function ProjectList() {
 
         <div className="flex gap-4 mb-6">
           <button
-            onClick={() => setTab('potential')}
+            onClick={() => setTab('leads')}
             className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
-              tab === 'potential' ? 'bg-amber-50 border-2 border-amber-300' : 'bg-amber-50/50 border border-amber-200 hover:bg-amber-50'
+              tab === 'leads' ? 'bg-amber-50 border-2 border-amber-300' : 'bg-amber-50/50 border border-amber-200 hover:bg-amber-50'
             }`}
           >
-            <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Potential Projects</p>
+            <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Leads</p>
             <p className="text-amber-900 text-3xl font-bold mt-1">{potentialProjects.length}</p>
           </button>
           <button
@@ -596,11 +596,11 @@ function ProjectList() {
           </button>
         </div>
 
-        {tab === 'potential' && potentialProjects.length > 0 && (
+        {tab === 'leads' && potentialProjects.length > 0 && (
           <div>
             <h3 className="text-[#1B1A1C] text-base font-semibold mb-3 flex items-center gap-2">
               <Icon icon="lucide:clock" className="w-4 h-4 text-amber-600" />
-              Potential Projects
+              Leads
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -688,10 +688,10 @@ function ProjectList() {
           </div>
         )}
 
-        {tab === 'potential' && potentialProjects.length === 0 && (
+        {tab === 'leads' && potentialProjects.length === 0 && (
           <div className="text-center py-12">
             <Icon icon="lucide:clock" className="w-10 h-10 text-[#CACDD7] mx-auto mb-3" />
-            <p className="text-[#3E4048] text-sm">No potential projects yet.</p>
+            <p className="text-[#3E4048] text-sm">No leads yet.</p>
           </div>
         )}
 
