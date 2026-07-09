@@ -389,6 +389,7 @@ function ProjectList() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('potential')
   const [detailProject, setDetailProject] = useState(null)
+  const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [notesProject, setNotesProject] = useState(null)
   const [decisionProject, setDecisionProject] = useState(null)
 
@@ -624,9 +625,9 @@ function ProjectList() {
                     return (
                     <tr
                       key={p.id}
-                      onClick={isScheduled ? () => setDetailProject(p) : undefined}
+                      onClick={isScheduled ? () => setDetailProject(p) : p.decision === 'declined' ? () => setDetailDecidedProject(p) : undefined}
                       className={`border-b border-[#CACDD7]/50 transition-colors ${
-                        isScheduled ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
+                        isScheduled || p.decision === 'declined' ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
                       }`}
                     >
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
@@ -778,6 +779,57 @@ function ProjectList() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {detailDecidedProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDetailDecidedProject(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[#1B1A1C] text-lg font-bold">Project Details</h3>
+              <button onClick={() => setDetailDecidedProject(null)} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+                <Icon icon="lucide:x" className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-5 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Tracking ID</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.tracking_id || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Project</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.project_name || 'Untitled'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Client</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.client_name || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Received</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.sent_at ? formatDateTime(detailDecidedProject.sent_at) : '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Feasibility Started</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.createdAt ? formatDateTime(detailDecidedProject.createdAt) : 'Today'}</span>
+              </div>
+              {detailDecidedProject.meetLink && (
+                <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
+                  <span className="text-sm text-[#3E4048]">Meeting Scheduled</span>
+                  <span className="text-sm text-green-700 font-semibold">Yes</span>
+                </div>
+              )}
+              {detailDecidedProject.feasibility_decision_at && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-[#3E4048]">Feasibility Decision</span>
+                  <span className="text-sm text-[#1B1A1C] font-semibold">{formatDateTime(detailDecidedProject.feasibility_decision_at)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
+                <span className="text-sm text-[#3E4048]">Status</span>
+                <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+              </div>
             </div>
           </div>
         </div>
