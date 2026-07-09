@@ -415,7 +415,12 @@ function ProjectList() {
       .from('projects')
       .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
     if (error) return
-    const updated = potentialProjects.filter(p => p.id !== project.id)
+    const updated = potentialProjects.map(p => {
+      if (p.id === project.id) {
+        return { ...p, feasibility_decision_at: now, decision: 'accepted' }
+      }
+      return p
+    })
     setPotentialProjects(updated)
     localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
@@ -490,7 +495,12 @@ function ProjectList() {
         })
         .select()
       if (error) throw error
-      const updated = potentialProjects.filter(p => p.id !== project.id)
+      const updated = potentialProjects.map(p => {
+        if (p.id === project.id) {
+          return { ...p, feasibility_decision_at: now, decision: 'accepted' }
+        }
+        return p
+      })
       setPotentialProjects(updated)
       localStorage.setItem('prt_potential_projects', JSON.stringify(updated))
       if (data) setApprovedProjects(prev => [data[0], ...prev])
@@ -625,9 +635,9 @@ function ProjectList() {
                     return (
                     <tr
                       key={p.id}
-                      onClick={isScheduled ? () => setDetailProject(p) : p.decision === 'declined' ? () => setDetailDecidedProject(p) : undefined}
+                      onClick={isScheduled ? () => setDetailProject(p) : p.decision === 'declined' || p.decision === 'accepted' ? () => setDetailDecidedProject(p) : undefined}
                       className={`border-b border-[#CACDD7]/50 transition-colors ${
-                        isScheduled || p.decision === 'declined' ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
+                        isScheduled || p.decision === 'declined' || p.decision === 'accepted' ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
                       }`}
                     >
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
@@ -637,7 +647,9 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          {p.decision === 'declined' ? (
+                          {p.decision === 'accepted' ? (
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility - Accepted</span>
+                          ) : p.decision === 'declined' ? (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
                           ) : (
                             <>
@@ -828,7 +840,11 @@ function ProjectList() {
               )}
               <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
                 <span className="text-sm text-[#3E4048]">Status</span>
-                <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                {detailDecidedProject.decision === 'accepted' ? (
+                  <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility - Accepted</span>
+                ) : (
+                  <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                )}
               </div>
             </div>
           </div>
