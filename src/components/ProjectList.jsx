@@ -634,7 +634,7 @@ function ProjectList() {
                     return (
                     <tr
                       key={p.id}
-                      onClick={isScheduled ? () => setDetailProject(p) : p.decision === 'declined' || p.decision === 'accepted' ? () => setDetailDecidedProject(p) : undefined}
+                      onClick={p.decision === 'accepted' || p.decision === 'declined' ? () => setDetailDecidedProject(p) : isScheduled ? () => setDetailProject(p) : undefined}
                       className={`border-b border-[#CACDD7]/50 transition-colors ${
                         isScheduled || p.decision === 'declined' || p.decision === 'accepted' ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
                       }`}
