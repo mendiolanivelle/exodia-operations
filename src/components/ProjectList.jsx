@@ -647,7 +647,7 @@ function ProjectList() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           {p.decision === 'accepted' ? (
-<span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Feasibility - Accepted</span>
+<span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
                           ) : p.decision === 'declined' ? (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
                           ) : (
@@ -810,63 +810,72 @@ function ProjectList() {
                 <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.tracking_id || '-'}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[#3E4048]">Project</span>
-                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.project_name || 'Untitled'}</span>
-              </div>
-              <div className="flex justify-between items-center">
                 <span className="text-sm text-[#3E4048]">Client</span>
                 <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.client_name || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[#3E4048]">Project</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.project_name || 'Untitled'}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-[#3E4048]">Received</span>
                 <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.sent_at ? formatDateTime(detailDecidedProject.sent_at) : '-'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-[#3E4048]">Feasibility Started</span>
-                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.createdAt ? formatDateTime(detailDecidedProject.createdAt) : 'Today'}</span>
-              </div>
-              {detailDecidedProject.meetLink && (
-                <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
-                  <span className="text-sm text-[#3E4048]">Meeting Scheduled</span>
-                  <span className="text-sm text-green-700 font-semibold">Yes</span>
-                </div>
-              )}
+              {(() => {
+                const origDay = getFeasibilityDay(detailDecidedProject.createdAt)
+                return (
+                  <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
+                    <span className="text-sm text-[#3E4048]">Feasibility Started</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.createdAt ? formatDateTime(detailDecidedProject.createdAt) : 'Today'}</span>
+                      <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origDay.color}`}>{origDay.text}</span>
+                    </div>
+                  </div>
+                )
+              })()}
+              {(() => {
+                const diffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
+                const isScheduled = detailDecidedProject.status === 'discovery_scheduled'
+                const isOverdue = !isScheduled && diffDays >= 2
+                const disLabel = isScheduled ? 'Discovery Call – Scheduled' : isOverdue ? 'Discovery Call – Overdue (Not Scheduled)' : 'Discovery Call – Not Scheduled'
+                const disColor = isScheduled ? 'bg-green-100 text-green-700' : isOverdue ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                return (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-[#3E4048]">Discovery Call</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.meetLink ? 'Scheduled' : 'Not Scheduled'}</span>
+                      <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${disColor}`}>{disLabel}</span>
+                    </div>
+                  </div>
+                )
+              })()}
               {detailDecidedProject.feasibility_decision_at && (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
                   <span className="text-sm text-[#3E4048]">Feasibility Decision</span>
-                  <span className="text-sm text-[#1B1A1C] font-semibold">{formatDateTime(detailDecidedProject.feasibility_decision_at)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-[#1B1A1C] font-semibold">{formatDateTime(detailDecidedProject.feasibility_decision_at)}</span>
+                    {(() => {
+                      const diffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
+                      if (diffDays >= 2) {
+                        return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Overdue - Feasibility Decision</span>
+                      }
+                      if (detailDecidedProject.decision === 'accepted') {
+                        return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility Decision - Accepted</span>
+                      }
+                      return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Feasibility Decision - Decline</span>
+                    })()}
+                  </div>
                 </div>
               )}
               <div className="flex justify-between items-center pt-3 border-t border-[#CACDD7]/30">
                 <span className="text-sm text-[#3E4048]">Status</span>
-                <div className="flex items-center gap-1">
-                  {detailDecidedProject.decision === 'accepted' ? (
-                    <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Feasibility - Accepted</span>
-                  ) : (
-                    <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
-                  )}
-                </div>
+                {detailDecidedProject.decision === 'accepted' ? (
+                  <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                ) : (
+                  <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                )}
               </div>
-              {(() => {
-                const origDay = getFeasibilityDay(detailDecidedProject.createdAt)
-                const origDiffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
-                const isScheduled = detailDecidedProject.status === 'discovery_scheduled'
-                const origAction = isScheduled
-                  ? { text: 'Discovery Call \u2013 Scheduled', color: 'bg-green-100 text-green-700' }
-                  : origDiffDays >= 2
-                  ? { text: 'Discovery Call \u2013 Overdue (Not Scheduled)', color: 'bg-red-100 text-red-700' }
-                  : { text: 'Discovery Call \u2013 Not Scheduled', color: 'bg-gray-100 text-gray-700' }
-                return (
-                  <div className="flex flex-wrap gap-1 pt-2">
-                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origDay.color}`}>
-                      {origDay.text}
-                    </span>
-                    <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origAction.color}`}>
-                      {origAction.text}
-                    </span>
-                  </div>
-                )
-              })()}
+            </div>
             </div>
           </div>
         </div>
