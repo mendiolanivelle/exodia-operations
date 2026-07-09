@@ -115,7 +115,7 @@ function MeetingNotesModal({ project, onClose, onSave }) {
 function getFeasibilityDay(createdAt) {
   if (!createdAt) return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
   const diffDays = Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
-  if (diffDays >= 3) return { text: 'Overdue - Feasibility Decision', color: 'bg-red-100 text-red-700' }
+  if (diffDays >= 3) return { text: 'Overdue: Feasibility Decision', color: 'bg-red-100 text-red-700' }
   if (diffDays >= 2) return { text: 'Pending Feasibility Decision', color: 'bg-blue-100 text-blue-700' }
   if (diffDays >= 1) return { text: 'Feasibility Review - Final Day', color: 'bg-orange-100 text-orange-700' }
   return { text: 'Feasibility Review - Day 1', color: 'bg-yellow-100 text-yellow-700' }
@@ -856,8 +856,8 @@ function ProjectList() {
                     <span className="text-sm text-[#1B1A1C] font-semibold">{formatDateTime(detailDecidedProject.feasibility_decision_at)}</span>
                     {(() => {
                       const diffDays = Math.floor((new Date() - new Date(detailDecidedProject.createdAt)) / (1000 * 60 * 60 * 24))
-                      if (diffDays >= 2) {
-                        return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Overdue - Feasibility Decision</span>
+                      if (diffDays >= 3) {
+                        return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Overdue: Feasibility Decision</span>
                       }
                       if (detailDecidedProject.decision === 'accepted') {
                         return <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility Decision - Accepted</span>
