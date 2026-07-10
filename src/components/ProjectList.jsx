@@ -579,8 +579,19 @@ function ProjectList() {
       </div>
 
       <div className="bg-white p-8 rounded-xl shadow-sm">
-        <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">Project List</h2>
-        <p className="text-[#3E4048] text-sm mb-6">Manage potential and approved projects</p>
+        <div className="flex items-start justify-between mb-1">
+          <div>
+            <h2 className="text-[#1B1A1C] text-xl font-semibold">Project List</h2>
+            <p className="text-[#3E4048] text-sm">Manage potential and approved projects</p>
+          </div>
+          <button
+            onClick={() => setTab('archived')}
+            className="text-[#3E4048] hover:text-[#1B1A1C] transition-colors cursor-pointer"
+            title="View Archived"
+          >
+            <Icon icon="lucide:archive" className="w-5 h-5" />
+          </button>
+        </div>
 
         <div className="flex gap-4 mb-6">
           <button
