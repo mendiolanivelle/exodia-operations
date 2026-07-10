@@ -917,10 +917,9 @@ function ProjectList() {
                     return (
                       <>
                         <span className="text-sm text-[#3E4048] font-medium">Feasibility Started</span>
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.createdAt ? formatDateTime(detailDecidedProject.createdAt) : 'Today'}</span>
-                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origDay.color}`}>{origDay.text}</span>
-                        </div>
+                        <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.createdAt ? formatDateTime(detailDecidedProject.createdAt) : 'Today'}</span>
+                        <span className="text-sm text-[#3E4048] font-medium">Feasibility Status</span>
+                        <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${origDay.color} w-fit`}>{origDay.text}</span>
                       </>
                     )
                   })()}
