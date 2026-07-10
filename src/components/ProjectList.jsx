@@ -393,7 +393,6 @@ function ProjectList() {
   const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [notesProject, setNotesProject] = useState(null)
   const [decisionProject, setDecisionProject] = useState(null)
-  const [viewedScheduled, setViewedScheduled] = useState(false)
 
   const qualifiedLeads = potentialProjects.filter(p => p.decision === 'accepted')
   const archivedLeads = potentialProjects.filter(p => p.decision === 'declined')
@@ -440,7 +439,6 @@ function ProjectList() {
     const handler = () => {
       const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
       setPotentialProjects(stored)
-      setViewedScheduled(false)
     }
     window.addEventListener('storage', handler)
     window.addEventListener('prt-projects-updated', handler)
@@ -586,15 +584,15 @@ function ProjectList() {
         <p className="text-[#3E4048] text-sm mb-6">Manage potential and approved projects</p>
 
         <div className="flex gap-4 mb-6">
-<button
-            onClick={() => { setTab('leads'); setViewedScheduled(true) }}
+          <button
+            onClick={() => setTab('leads')}
             className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
               tab === 'leads' ? 'bg-amber-50 border-2 border-amber-300' : 'bg-amber-50/50 border border-amber-200 hover:bg-amber-50'
             }`}
           >
             <div className="flex items-center justify-between">
               <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Leads</p>
-              {!viewedScheduled && scheduledCount > 0 && (
+              {scheduledCount > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">{scheduledCount}</span>
               )}
             </div>
@@ -639,7 +637,6 @@ function ProjectList() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[#CACDD7]">
-                    <th className="w-6 px-1 py-3"></th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Tracking ID</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden md:table-cell">Client</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Project</th>
