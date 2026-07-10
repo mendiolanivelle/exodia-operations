@@ -612,15 +612,7 @@ function ProjectList() {
             <p className="text-orange-700 text-xs font-medium uppercase tracking-wider">Qualified Leads</p>
             <p className="text-orange-900 text-3xl font-bold mt-1">{qualifiedLeads.length}</p>
           </button>
-          <button
-            onClick={() => setTab('archived')}
-            className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
-              tab === 'archived' ? 'bg-gray-50 border-2 border-gray-300' : 'bg-gray-50/50 border border-gray-200 hover:bg-gray-50'
-            }`}
-          >
-            <p className="text-gray-700 text-xs font-medium uppercase tracking-wider">Archived</p>
-            <p className="text-gray-900 text-3xl font-bold mt-1">{archivedLeads.length}</p>
-          </button>
+          
           <button
             onClick={() => setTab('projects')}
             className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
