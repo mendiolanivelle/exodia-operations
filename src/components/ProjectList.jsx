@@ -678,7 +678,7 @@ function ProjectList() {
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">-</span>
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 capitalize">{p.phase || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -755,7 +755,7 @@ function ProjectList() {
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">-</span>
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 capitalize">{p.phase || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -812,7 +812,7 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell text-xs font-mono">{p.tracking_id || '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">-</span>
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 capitalize">{p.phase || '-'}</span>
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Approved</span>
