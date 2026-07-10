@@ -579,7 +579,21 @@ function ProjectList() {
       </div>
 
       <div className="bg-white p-8 rounded-xl shadow-sm">
-        <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">Project List</h2>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-[#1B1A1C] text-xl font-semibold">Project List</h2>
+          <button
+            onClick={() => setTab(tab === 'archived' ? 'leads' : 'archived')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              tab === 'archived' ? 'bg-gray-100 text-gray-700' : 'text-[#3E4048] hover:bg-gray-100'
+            }`}
+            title="Archived projects"
+          >
+            <Icon icon="lucide:archive" className="w-4 h-4" />
+            {archivedLeads.length > 0 && (
+              <span className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{archivedLeads.length}</span>
+            )}
+          </button>
+        </div>
         <p className="text-[#3E4048] text-sm mb-6">Manage potential and approved projects</p>
 
         <div className="flex gap-4 mb-6">
@@ -600,15 +614,6 @@ function ProjectList() {
           >
             <p className="text-orange-700 text-xs font-medium uppercase tracking-wider">Qualified Leads</p>
             <p className="text-orange-900 text-3xl font-bold mt-1">{qualifiedLeads.length}</p>
-          </button>
-          <button
-            onClick={() => setTab('archived')}
-            className={`flex-1 rounded-xl px-5 py-4 text-left transition-all cursor-pointer ${
-              tab === 'archived' ? 'bg-gray-50 border-2 border-gray-300' : 'bg-gray-50/50 border border-gray-200 hover:bg-gray-50'
-            }`}
-          >
-            <p className="text-gray-700 text-xs font-medium uppercase tracking-wider">Archived</p>
-            <p className="text-gray-900 text-3xl font-bold mt-1">{archivedLeads.length}</p>
           </button>
           <button
             onClick={() => setTab('projects')}
