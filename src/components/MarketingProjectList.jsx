@@ -168,6 +168,8 @@ function MarketingProjectList() {
   const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [successProject, setSuccessProject] = useState(null)
 
+  const scheduledCount = projects.filter(p => p.status === 'discovery_scheduled').length
+
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
     setProjects(stored)
@@ -190,6 +192,9 @@ function MarketingProjectList() {
     setProjects(updated)
     localStorage.setItem('prt_leads', JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
+    const notif = { id: Date.now(), msg: `Project Discovery Call Scheduled: ${selectedProject.project_name || 'Untitled'} (${selectedProject.tracking_id || '-'})`, time: new Date().toLocaleString() }
+    const existing = JSON.parse(localStorage.getItem('op_notifications') || '[]')
+    localStorage.setItem('op_notifications', JSON.stringify([notif, ...existing]))
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }
@@ -257,9 +262,17 @@ function MarketingProjectList() {
             <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">Project List - Marketing View</h2>
             <p className="text-[#3E4048] text-sm">View all leads in the feasibility pipeline</p>
           </div>
-          <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">
-            {projects.length} projects
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-[#3E4048] bg-[#CACDD7]/30 px-3 py-1 rounded-full">
+              {projects.length} projects
+            </span>
+            {scheduledCount > 0 && (
+              <span className="text-sm font-semibold bg-green-100 text-green-700 px-3 py-1 rounded-full flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full" />
+                {scheduledCount} Discovery Call{scheduledCount > 1 ? 's' : ''} Scheduled
+              </span>
+            )}
+          </div>
         </div>
 
         {projects.length === 0 ? (
