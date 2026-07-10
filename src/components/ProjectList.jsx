@@ -397,6 +397,7 @@ function ProjectList() {
   const qualifiedLeads = potentialProjects.filter(p => p.decision === 'accepted')
   const archivedLeads = potentialProjects.filter(p => p.decision === 'declined')
   const activeLeads = potentialProjects.filter(p => p.decision !== 'accepted' && p.decision !== 'declined')
+  const scheduledCount = potentialProjects.filter(p => p.status === 'discovery_scheduled').length
 
   const saveProjectNotes = (trackingId, data) => {
     const updated = potentialProjects.map(p => {
@@ -603,7 +604,12 @@ function ProjectList() {
               tab === 'leads' ? 'bg-amber-50 border-2 border-amber-300' : 'bg-amber-50/50 border border-amber-200 hover:bg-amber-50'
             }`}
           >
-            <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Leads</p>
+            <div className="flex items-center justify-between">
+              <p className="text-amber-700 text-xs font-medium uppercase tracking-wider">Leads</p>
+              {scheduledCount > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">{scheduledCount}</span>
+              )}
+            </div>
             <p className="text-amber-900 text-3xl font-bold mt-1">{activeLeads.length}</p>
           </button>
           <button
@@ -667,19 +673,22 @@ function ProjectList() {
                     <tr
                       key={p.id}
                       onClick={p.decision === 'accepted' || p.decision === 'declined' ? () => setDetailDecidedProject(p) : isScheduled ? () => setDetailProject(p) : undefined}
-                      className={`border-b border-[#CACDD7]/50 transition-colors ${
-                        isScheduled || p.decision === 'declined' || p.decision === 'accepted' ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
-                      }`}
+                      className={`border-b transition-colors ${
+                        isScheduled
+                          ? 'hover:bg-gray-50 border-[#CACDD7]/50'
+                          : 'bg-[#1B1A1C] hover:bg-[#2a292c] border-[#3E4048]/50 cursor-pointer'
+}`}
                     >
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap text-xs font-mono">{p.tracking_id || '-'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden md:table-cell">{p.client_name || '-'}</td>
-                      <td className="px-4 py-3 text-[#1B1A1C] font-medium whitespace-nowrap">{p.project_name || 'Untitled'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
-                      <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
+                      <td className="px-1 py-3">{!isScheduled && <span className="inline-block w-2 h-2 bg-red-500 rounded-full" />}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap text-xs font-mono ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.tracking_id || '-'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden md:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.client_name || '-'}</td>
+                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isScheduled ? 'text-[#1B1A1C]' : 'text-white'}`}>{p.project_name || 'Untitled'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           {p.decision === 'accepted' ? (
-<span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
                           ) : p.decision === 'declined' ? (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
                           ) : (
