@@ -279,6 +279,7 @@ function MarketingProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Received</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Pillar</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
                   </tr>
               </thead>
@@ -314,6 +315,9 @@ function MarketingProjectList() {
                       <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled || isDecided ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">

@@ -425,7 +425,7 @@ function ProjectList() {
     localStorage.setItem('prt_leads', JSON.stringify(updated))
     const { error } = await supabase
       .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now, phase: 'initiation' })
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', phase: 'initiation', pillar: '', feasibility_decision_at: now })
     if (error) return
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
@@ -505,6 +505,7 @@ function ProjectList() {
           tracking_id: project.tracking_id,
           status: 'approved',
           phase: 'initiation',
+          pillar: '',
           feasibility_decision_at: now,
         })
         .select()
@@ -627,6 +628,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Pillar</th>
                     <th className="w-10 px-2 py-3"></th>
                   </tr>
                 </thead>
@@ -680,6 +682,9 @@ function ProjectList() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
+                      </td>
                       <td className="px-2 py-3">
                         {(() => {
                           return (p.notes || p.videoLink) ? (
@@ -726,6 +731,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Feasibility Started</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Status</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Pillar</th>
                     <th className="w-10 px-2 py-3"></th>
                   </tr>
                 </thead>
@@ -756,6 +762,9 @@ function ProjectList() {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -801,6 +810,7 @@ function ProjectList() {
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Tracking ID</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium hidden lg:table-cell">Date</th>
                     <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Phase</th>
+                    <th className="text-left px-4 py-3 text-[#3E4048] font-medium">Pillar</th>
                     <th className="text-right px-4 py-3 text-[#3E4048] font-medium">Status</th>
                   </tr>
                 </thead>
@@ -813,6 +823,9 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Approved</span>
