@@ -324,7 +324,7 @@ function MarketingProjectList() {
                           {p.decision === 'accepted' ? (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
                           ) : p.decision === 'declined' ? (
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-600 text-white">Feasibility - Decline</span>
                           ) : (
                             <>
                               <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
@@ -442,7 +442,7 @@ function MarketingProjectList() {
                   {detailDecidedProject.decision === 'accepted' ? (
                     <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-[#FF5900] text-white w-fit">Feasibility - Accepted</span>
                   ) : (
-                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-700 w-fit">Declined</span>
+                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-red-600 text-white w-fit">Feasibility - Decline</span>
                   )}
                 </div>
               </div>
