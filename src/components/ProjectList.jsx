@@ -425,7 +425,7 @@ function ProjectList() {
     localStorage.setItem('prt_leads', JSON.stringify(updated))
     const { error } = await supabase
       .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now })
+      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', feasibility_decision_at: now, phase: 'initiation' })
     if (error) return
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
@@ -473,9 +473,10 @@ function ProjectList() {
   }
 
   const getStageCount = (stageKey) => {
-    return allProjects.filter(p => {
+    const all = [...allProjects, ...potentialProjects]
+    return all.filter(p => {
       const s = (p.stage || p.current_stage || p.status || p.phase || '').toLowerCase()
-      if (stageKey === 'initiation') return s.includes('initiation') || s.includes('concept')
+      if (stageKey === 'initiation') return s.includes('initiation') || s.includes('concept') || p.decision === 'accepted'
       if (stageKey === 'pre-production') return s.includes('pre') || s.includes('preproduction')
       if (stageKey === 'production') return s === 'production' || s.includes('production')
       if (stageKey === 'post-production') return s.includes('post') || s.includes('qa') || s.includes('final')
@@ -503,6 +504,7 @@ function ProjectList() {
           client_name: project.client_name,
           tracking_id: project.tracking_id,
           status: 'approved',
+          phase: 'initiation',
           feasibility_decision_at: now,
         })
         .select()
