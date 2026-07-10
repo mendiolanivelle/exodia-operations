@@ -477,7 +477,7 @@ function ProjectList() {
     const all = [...allProjects, ...potentialProjects]
     return all.filter(p => {
       const s = (p.stage || p.current_stage || p.status || p.phase || '').toLowerCase()
-      if (stageKey === 'initiation') return p.decision !== 'declined' && (s.includes('initiation') || s.includes('concept') || p.decision === 'accepted')
+      if (stageKey === 'initiation') return p.decision !== 'declined' && (s.includes('initiation') || s.includes('concept') || p.decision === 'accepted' || (p.decision === undefined && p.createdAt !== undefined))
       if (stageKey === 'pre-production') return s.includes('pre') || s.includes('preproduction')
       if (stageKey === 'production') return s === 'production' || s.includes('production')
       if (stageKey === 'post-production') return s.includes('post') || s.includes('qa') || s.includes('final')
