@@ -240,12 +240,13 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
           client_name: selectedTicket.client_name,
           tracking_id: selectedTicket.tracking_id,
           status: 'leads',
+          phase: 'initiation',
         }),
       })
       await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?id=eq.${selectedTicket.id}`, {
         method: 'PATCH',
         headers,
-        body: JSON.stringify({ status: 'leads' }),
+        body: JSON.stringify({ status: 'leads', phase: 'initiation' }),
       })
       const leadsKey = 'prt_leads'
       const existing = JSON.parse(localStorage.getItem(leadsKey) || '[]')
@@ -256,6 +257,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         tracking_id: selectedTicket.tracking_id,
         sent_at: selectedTicket.sent_at,
         status: 'leads',
+        phase: 'initiation',
         createdAt: new Date().toISOString(),
       }
       localStorage.setItem(leadsKey, JSON.stringify([newEntry, ...existing]))
