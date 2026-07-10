@@ -164,12 +164,19 @@ function MarketingProjectList() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedProject, setSelectedProject] = useState(null)
+  const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [successProject, setSuccessProject] = useState(null)
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
     setProjects(stored)
     setLoading(false)
+    const handler = () => {
+      const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
+      setProjects(stored)
+    }
+    window.addEventListener('prt-projects-updated', handler)
+    return () => window.removeEventListener('prt-projects-updated', handler)
   }, [])
 
   const handleScheduled = (event) => {
@@ -280,48 +287,59 @@ function MarketingProjectList() {
                     if (a.status !== 'discovery_scheduled' && b.status === 'discovery_scheduled') return 1
                     return 0
                   })
-                  .map(p => {
+.map(p => {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const day = getFeasibilityDay(p.createdAt)
                     const diffDays = Math.floor((new Date() - new Date(p.createdAt)) / (1000 * 60 * 60 * 24))
+                    const isDecided = p.decision === 'accepted' || p.decision === 'declined'
                     return (
                     <tr
                       key={p.id}
-                      onClick={!isScheduled ? () => setSelectedProject(p) : undefined}
+                      onClick={isDecided ? () => setDetailDecidedProject(p) : !isScheduled ? () => setSelectedProject(p) : undefined}
                       className={`border-b transition-colors ${
-                        isScheduled
+                        isDecided
+                          ? 'hover:bg-orange-50 cursor-pointer border-[#CACDD7]/50'
+                          : isScheduled
                           ? 'hover:bg-gray-50 border-[#CACDD7]/50'
                           : 'bg-[#1B1A1C] hover:bg-[#2a292c] border-[#3E4048]/50 cursor-pointer'
                       }`}
                     >
-                      <td className="px-1 py-3">{!isScheduled && <span className="inline-block w-2 h-2 bg-red-500 rounded-full" />}</td>
-                      <td className={`px-4 py-3 whitespace-nowrap text-xs font-mono ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.tracking_id || '-'}</td>
-                      <td className={`px-4 py-3 whitespace-nowrap hidden md:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.client_name || '-'}</td>
-                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isScheduled ? 'text-[#1B1A1C]' : 'text-white'}`}>{p.project_name || 'Untitled'}</td>
-                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{formatDateTime(p.sent_at)}</td>
-                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
+                      <td className="px-1 py-3">{!isScheduled && !isDecided && <span className="inline-block w-2 h-2 bg-red-500 rounded-full" />}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap text-xs font-mono ${isScheduled || isDecided ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.tracking_id || '-'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden md:table-cell ${isScheduled || isDecided ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.client_name || '-'}</td>
+                      <td className={`px-4 py-3 font-medium whitespace-nowrap ${isScheduled || isDecided ? 'text-[#1B1A1C]' : 'text-white'}`}>{p.project_name || 'Untitled'}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled || isDecided ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{formatDateTime(p.sent_at)}</td>
+                      <td className={`px-4 py-3 whitespace-nowrap hidden lg:table-cell ${isScheduled || isDecided ? 'text-[#3E4048]' : 'text-[#CACDD7]'}`}>{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
-                            {day.text}
-                          </span>
-                          {isScheduled ? (
-                            <a
-                              href={p.meetLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
-                            >
-Discovery Call – Scheduled
-                            </a>
-                          ) : diffDays >= 2 ? (
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
-                              Discovery Call – Overdue (Not Scheduled)
-                            </span>
+                          {p.decision === 'accepted' ? (
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                          ) : p.decision === 'declined' ? (
+                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>
                           ) : (
-                            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                              Discovery Call – Not Scheduled
-                            </span>
+                            <>
+                              <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
+                                {day.text}
+                              </span>
+                              {isScheduled ? (
+                                <a
+                                  href={p.meetLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                                >
+                                  Discovery Call – Scheduled
+                                </a>
+                              ) : diffDays >= 2 ? (
+                                <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
+                                  Discovery Call – Overdue (Not Scheduled)
+                                </span>
+                              ) : (
+                                <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                                  Discovery Call – Not Scheduled
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </td>
@@ -333,6 +351,65 @@ Discovery Call – Scheduled
           </div>
         )}
       </div>
+
+      {detailDecidedProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDetailDecidedProject(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[#1B1A1C] text-lg font-bold">Project Details</h3>
+              <button onClick={() => setDetailDecidedProject(null)} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+                <Icon icon="lucide:x" className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-xl p-6 space-y-4">
+              <div className="flex justify-between items-center py-1">
+                <span className="text-sm text-[#3E4048] font-medium">Tracking ID</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold font-mono">{detailDecidedProject.tracking_id || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-sm text-[#3E4048] font-medium">Client</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.client_name || '-'}</span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-sm text-[#3E4048] font-medium">Project</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.project_name || 'Untitled'}</span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-sm text-[#3E4048] font-medium">Received</span>
+                <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.sent_at ? formatDateTime(detailDecidedProject.sent_at) : '-'}</span>
+              </div>
+              <div className="border-t border-[#CACDD7]/30 pt-4">
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-sm text-[#3E4048] font-medium">Feasibility Started</span>
+                  <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.createdAt ? formatDateTime(detailDecidedProject.createdAt) : 'Today'}</span>
+                </div>
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-sm text-[#3E4048] font-medium">Feasibility Decision</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.feasibility_decision_at ? formatDateTime(detailDecidedProject.feasibility_decision_at) : '-'}</span>
+                    {detailDecidedProject.decision === 'accepted' ? (
+                      <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">Feasibility Decision - Accepted</span>
+                    ) : (
+                      <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">Feasibility Decision - Decline</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-[#CACDD7]/30 pt-4">
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-sm text-[#3E4048] font-medium">Status</span>
+                  {detailDecidedProject.decision === 'accepted' ? (
+                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                  ) : (
+                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-700">Declined</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
