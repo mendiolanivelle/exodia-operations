@@ -633,7 +633,7 @@ function ProjectList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {potentialProjects
+                  {activeLeads
                   .sort((a, b) => {
                     if (a.status === 'discovery_scheduled' && b.status !== 'discovery_scheduled') return -1
                     if (a.status !== 'discovery_scheduled' && b.status === 'discovery_scheduled') return 1
