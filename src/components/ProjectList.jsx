@@ -14,6 +14,7 @@ const stages = [
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabaseHeaders = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
+const DISCOVERY_VIEWED_IDS_KEY = 'prt_discovery_viewed_ids'
 
 function formatDateTime(iso) {
   if (!iso) return '-'
@@ -393,6 +394,7 @@ function ProjectList() {
   const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [notesProject, setNotesProject] = useState(null)
   const [decisionProject, setDecisionProject] = useState(null)
+  const [discoveryViewedIds, setDiscoveryViewedIds] = useState(() => JSON.parse(localStorage.getItem(DISCOVERY_VIEWED_IDS_KEY) || '[]'))
 
   const qualifiedLeads = potentialProjects.filter(p => p.decision === 'accepted')
   const archivedLeads = potentialProjects.filter(p => p.decision === 'declined')
@@ -412,6 +414,13 @@ function ProjectList() {
       headers: supabaseHeaders,
       body: JSON.stringify({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }),
     })
+  }
+
+  const markDiscoveryViewed = (id) => {
+    if (discoveryViewedIds.includes(id)) return
+    const updated = [...discoveryViewedIds, id]
+    setDiscoveryViewedIds(updated)
+    localStorage.setItem(DISCOVERY_VIEWED_IDS_KEY, JSON.stringify(updated))
   }
 
   const handleFeasibilityApprove = async (project) => {
@@ -656,6 +665,7 @@ function ProjectList() {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const day = getFeasibilityDay(p.createdAt)
                     const diffDays = Math.floor((new Date() - new Date(p.createdAt)) / (1000 * 60 * 60 * 24))
+                    const isUnreadDiscovery = isScheduled && !discoveryViewedIds.includes(p.id)
                     const action = isScheduled
                       ? { text: 'Discovery Call \u2013 Scheduled', color: 'bg-green-100 text-green-700' }
                       : diffDays >= 2
@@ -664,7 +674,14 @@ function ProjectList() {
                     return (
                     <tr
                       key={p.id}
-                      onClick={p.decision === 'accepted' || p.decision === 'declined' ? () => setDetailDecidedProject(p) : isScheduled ? () => setDetailProject(p) : undefined}
+                      onClick={() => {
+                        if (isScheduled) {
+                          markDiscoveryViewed(p.id)
+                          setDetailProject(p)
+                        } else if (p.decision === 'accepted' || p.decision === 'declined') {
+                          setDetailDecidedProject(p)
+                        }
+                      }}
                       className={`border-b border-[#CACDD7]/50 transition-colors ${
                         isScheduled || p.decision === 'declined' || p.decision === 'accepted' ? 'hover:bg-green-50 cursor-pointer' : 'hover:bg-amber-50/50'
                       }`}
@@ -685,8 +702,9 @@ function ProjectList() {
                               <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${day.color}`}>
                                 {day.text}
                               </span>
-                              <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${action.color}`}>
+                              <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${action.color} relative`}>
                                 {action.text}
+                                {isUnreadDiscovery && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />}
                               </span>
                             </>
                           )}
