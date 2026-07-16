@@ -173,13 +173,10 @@ const handleSend = () => {
             />
           </div>
           <div>
-            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Body</label>
-            <textarea
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              rows={10}
-              className="w-full px-4 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none"
-            />
+            <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Email Preview</label>
+            <div className="border border-[#CACDD7] rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
+              <div className="bg-white p-4" dangerouslySetInnerHTML={{ __html: body }} />
+            </div>
           </div>
         </div>
 
