@@ -485,8 +485,16 @@ function ProjectList() {
   const getStageCount = (stageKey) => {
     const all = [...allProjects, ...potentialProjects]
     return all.filter(p => {
-      const s = (p.stage || p.current_stage || p.status || p.phase || '').toLowerCase()
-      if (stageKey === 'initiation') return p.decision !== 'declined' && (s.includes('initiation') || s.includes('concept') || p.decision === 'accepted' || (p.decision === undefined && p.createdAt !== undefined))
+      const phase = (p.phase || '').toLowerCase()
+      const stage = (p.stage || p.current_stage || '').toLowerCase()
+      const status = (p.status || '').toLowerCase()
+      if (stageKey === 'initiation') {
+        if (p.decision === 'declined') return false
+        if (p.decision === 'accepted') return phase === 'initiation' || phase === ''
+        if (p.decision === undefined && p.createdAt !== undefined) return true
+        return phase === 'initiation' || stage === 'initiation' || stage === 'concept'
+      }
+      const s = stage || status || phase
       if (stageKey === 'pre-production') return s.includes('pre') || s.includes('preproduction')
       if (stageKey === 'production') return s === 'production' || s.includes('production')
       if (stageKey === 'post-production') return s.includes('post') || s.includes('qa') || s.includes('final')
