@@ -174,12 +174,12 @@ function MarketingProjectList() {
   useEffect(() => {
     const fetchFromSupabase = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=*&order=created_at.desc`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         })
         if (res.ok) {
           const data = await res.json()
-          setProjects(data.filter(p => p.status !== 'Sent'))
+          setProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
         }
       } catch {}
       setLoading(false)
@@ -199,7 +199,7 @@ function MarketingProjectList() {
     })
     setProjects(updated)
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
-    supabase.from('project_review_tickets').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
+    supabase.from('projects').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }

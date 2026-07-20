@@ -237,12 +237,13 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
           status: 'leads',
           phase: 'initiation',
           pillar: '',
+          sent_at: selectedTicket.sent_at,
         }),
       })
       await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?id=eq.${selectedTicket.id}`, {
         method: 'PATCH',
         headers,
-        body: JSON.stringify({ status: 'leads', phase: 'initiation', pillar: '' }),
+        body: JSON.stringify({ status: 'proceeded' }),
       })
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)

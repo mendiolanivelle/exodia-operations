@@ -408,11 +408,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(trackingId)}`, {
-      method: 'PATCH',
-      headers: supabaseHeaders,
-      body: JSON.stringify({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }),
-    })
+    supabase.from('projects').update({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }).eq('tracking_id', trackingId)
   }
 
   const markDiscoveryViewed = (id) => {
@@ -431,11 +427,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    const { error } = await supabase
-      .from('projects')
-      .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', phase: 'initiation', pillar: '', feasibility_decision_at: now })
-    if (error) return
-    await supabase.from('project_review_tickets').update({ decision: 'accepted', feasibility_decision_at: now }).eq('id', project.id)
+    await supabase.from('projects').update({ status: 'approved', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now }).eq('id', project.id)
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
   }
@@ -445,12 +437,13 @@ function ProjectList() {
     fetchAllProjects()
     const handler = async () => {
       try {
-        const res = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+        const res = await fetch(`${supabaseUrl}/rest/v1/projects?select=*&order=created_at.desc`, {
           headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
         })
         if (res.ok) {
           const data = await res.json()
-          setPotentialProjects(data.filter(p => p.status !== 'Sent'))
+          setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
+          setApprovedProjects(data.filter(p => p.status === 'approved'))
         }
       } catch {}
     }
@@ -462,24 +455,15 @@ function ProjectList() {
 
   const fetchAll = async () => {
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+      const res = await fetch(`${supabaseUrl}/rest/v1/projects?select=*&order=created_at.desc`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
       })
       if (res.ok) {
         const data = await res.json()
-        setPotentialProjects(data.filter(p => p.status !== 'Sent'))
+        setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
+        setApprovedProjects(data.filter(p => p.status === 'approved'))
       }
-    } catch {}
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-      if (!error) setApprovedProjects(data || [])
-    } catch {
-      setApprovedProjects([])
-    } finally {
+    } catch {} finally {
       setLoading(false)
     }
   }
@@ -524,21 +508,12 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert({
-          project_name: project.project_name,
-          client_name: project.client_name,
-          tracking_id: project.tracking_id,
-          status: 'approved',
-          phase: 'initiation',
-          pillar: '',
-          feasibility_decision_at: now,
-        })
-        .select()
-      if (!error && data) setApprovedProjects(prev => [data[0], ...prev])
-    } catch {}
+    const { data, error } = await supabase
+      .from('projects')
+      .update({ status: 'approved', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now })
+      .eq('id', project.id)
+      .select()
+    if (!error && data) setApprovedProjects(prev => [data[0], ...prev])
   }
 
   const handleDecline = async (project) => {
@@ -550,20 +525,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    try {
-      const ticketRes = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?id=eq.${project.id}&select=additional_attachments`, {
-        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
-      })
-      if (ticketRes.ok) {
-        const rows = await ticketRes.json()
-        const existing = rows[0]?.additional_attachments || []
-        await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?id=eq.${project.id}`, {
-          method: 'PATCH',
-          headers: supabaseHeaders,
-          body: JSON.stringify({ additional_attachments: [...existing, { _type: 'feasibility_decision', decision: 'declined', decided_at: now }], feasibility_status: 'declined', decision: 'declined', feasibility_decision_at: now }),
-        })
-      }
-    } catch {}
+    await supabase.from('projects').update({ status: 'declined', decision: 'declined', feasibility_decision_at: now, feasibility_status: 'declined' }).eq('id', project.id)
   }
 
   if (loading) {
