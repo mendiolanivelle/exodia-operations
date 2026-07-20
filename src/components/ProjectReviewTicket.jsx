@@ -4,7 +4,6 @@ import { Icon } from '@iconify/react'
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const VIEWED_IDS_KEY = 'prt_viewed_ids'
-const PROCEEDED_IDS_KEY = 'prt_proceeded_ids'
 
 const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
 
@@ -245,20 +244,6 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         headers,
         body: JSON.stringify({ status: 'leads', phase: 'initiation', pillar: '' }),
       })
-      const leadsKey = 'prt_leads'
-      const existing = JSON.parse(localStorage.getItem(leadsKey) || '[]')
-      const newEntry = {
-        id: selectedTicket.id,
-        project_name: selectedTicket.project_name,
-        client_name: selectedTicket.client_name,
-        tracking_id: selectedTicket.tracking_id,
-        sent_at: selectedTicket.sent_at,
-        status: 'leads',
-        phase: 'initiation',
-        pillar: '',
-        createdAt: new Date().toISOString(),
-      }
-      localStorage.setItem(leadsKey, JSON.stringify([newEntry, ...existing]))
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)
     } catch {} finally {

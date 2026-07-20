@@ -179,20 +179,14 @@ function MarketingProjectList() {
         })
         if (res.ok) {
           const data = await res.json()
-          const proceeded = data.filter(p => p.status !== 'Sent')
-          setProjects(proceeded)
-          localStorage.setItem('prt_leads', JSON.stringify(proceeded))
+          setProjects(data.filter(p => p.status !== 'Sent'))
         }
       } catch {}
       setLoading(false)
     }
     fetchFromSupabase()
-    const handler = () => {
-      const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
-      if (stored.length > 0) setProjects(stored)
-    }
-    window.addEventListener('prt-projects-updated', handler)
-    return () => window.removeEventListener('prt-projects-updated', handler)
+    window.addEventListener('prt-projects-updated', fetchFromSupabase)
+    return () => window.removeEventListener('prt-projects-updated', fetchFromSupabase)
   }, [])
 
   const handleScheduled = (event) => {
@@ -204,7 +198,6 @@ function MarketingProjectList() {
       return p
     })
     setProjects(updated)
-    localStorage.setItem('prt_leads', JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
     supabase.from('project_review_tickets').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
     setSelectedProject(null)
