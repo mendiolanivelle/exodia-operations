@@ -437,11 +437,8 @@ function ProjectList() {
     fetchAllProjects()
     const handler = async () => {
       try {
-        const res = await fetch(`${supabaseUrl}/rest/v1/projects?select=*&order=created_at.desc`, {
-          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
+        const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+        if (!error && data) {
           setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
           setApprovedProjects(data.filter(p => p.status === 'approved'))
         }
@@ -455,11 +452,8 @@ function ProjectList() {
 
   const fetchAll = async () => {
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/projects?select=*&order=created_at.desc`, {
-        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
+      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      if (!error && data) {
         setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
         setApprovedProjects(data.filter(p => p.status === 'approved'))
       }

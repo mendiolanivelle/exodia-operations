@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -227,24 +228,17 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     if (!selectedTicket || creating) return
     setCreating(true)
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/projects`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          project_name: selectedTicket.project_name,
-          client_name: selectedTicket.client_name,
-          tracking_id: selectedTicket.tracking_id,
-          status: 'leads',
-          phase: 'initiation',
-          pillar: '',
-          sent_at: selectedTicket.sent_at,
-        }),
+      await supabase.from('projects').insert({
+        project_name: selectedTicket.project_name,
+        client_name: selectedTicket.client_name,
+        tracking_id: selectedTicket.tracking_id,
+        status: 'leads',
+        phase: 'initiation',
+        pillar: '',
+        sent_at: selectedTicket.sent_at,
       })
-      await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?id=eq.${selectedTicket.id}`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ status: 'proceeded' }),
-      })
+      await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('id', selectedTicket.id)
+      window.dispatchEvent(new CustomEvent('prt-projects-updated'))
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)
     } catch {} finally {

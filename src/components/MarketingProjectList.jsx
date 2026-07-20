@@ -174,11 +174,11 @@ function MarketingProjectList() {
   useEffect(() => {
     const fetchFromSupabase = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=*&order=created_at.desc`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .order('created_at', { ascending: false })
+        if (!error && data) {
           setProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
         }
       } catch {}
