@@ -228,7 +228,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     if (!selectedTicket || creating) return
     setCreating(true)
     try {
-      await supabase.from('projects').insert({
+      const { error: insertError } = await supabase.from('projects').insert({
         project_name: selectedTicket.project_name,
         client_name: selectedTicket.client_name,
         tracking_id: selectedTicket.tracking_id,
@@ -237,11 +237,15 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         pillar: '',
         sent_at: selectedTicket.sent_at,
       })
-      await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('id', selectedTicket.id)
+      if (insertError) throw insertError
+      const { error: updateError } = await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('id', selectedTicket.id)
+      if (updateError) throw updateError
       window.dispatchEvent(new CustomEvent('prt-projects-updated'))
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)
-    } catch {} finally {
+    } catch (err) {
+      console.error('Proceed failed:', err)
+    } finally {
       setCreating(false)
     }
   }
