@@ -437,6 +437,7 @@ function ProjectList() {
       .from('projects')
       .insert({ project_name: project.project_name, client_name: project.client_name, tracking_id: project.tracking_id, status: 'approved', phase: 'initiation', pillar: '', feasibility_decision_at: now })
     if (error) return
+    await supabase.from('project_review_tickets').update({ decision: 'accepted', feasibility_decision_at: now }).eq('id', project.id)
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
   }
@@ -444,11 +445,22 @@ function ProjectList() {
   useEffect(() => {
     fetchAll()
     fetchAllProjects()
-    const handler = () => {
-      const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
-      setPotentialProjects(stored)
+    const handler = async () => {
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const proceeded = data.filter(p => p.status !== 'Sent')
+          setPotentialProjects(proceeded)
+          localStorage.setItem('prt_leads', JSON.stringify(proceeded))
+        }
+      } catch {
+        const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
+        setPotentialProjects(stored)
+      }
     }
-    window.addEventListener('storage', handler)
     window.addEventListener('prt-projects-updated', handler)
     return () => {
       window.removeEventListener('storage', handler)
@@ -457,8 +469,20 @@ function ProjectList() {
   }, [])
 
   const fetchAll = async () => {
-    const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
-    setPotentialProjects(stored)
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const proceeded = data.filter(p => p.status !== 'Sent')
+        setPotentialProjects(proceeded)
+        localStorage.setItem('prt_leads', JSON.stringify(proceeded))
+      }
+    } catch {
+      const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
+      setPotentialProjects(stored)
+    }
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -542,16 +566,16 @@ function ProjectList() {
     setPotentialProjects(updated)
     localStorage.setItem('prt_leads', JSON.stringify(updated))
     try {
-      const ticketRes = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}&select=additional_attachments`, {
+      const ticketRes = await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?id=eq.${project.id}&select=additional_attachments`, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
       })
       if (ticketRes.ok) {
         const rows = await ticketRes.json()
         const existing = rows[0]?.additional_attachments || []
-        await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?tracking_id=eq.${encodeURIComponent(project.tracking_id)}`, {
+        await fetch(`${supabaseUrl}/rest/v1/project_review_tickets?id=eq.${project.id}`, {
           method: 'PATCH',
           headers: supabaseHeaders,
-          body: JSON.stringify({ additional_attachments: [...existing, { _type: 'feasibility_decision', decision: 'declined', decided_at: now }], feasibility_status: 'declined' }),
+          body: JSON.stringify({ additional_attachments: [...existing, { _type: 'feasibility_decision', decision: 'declined', decided_at: now }], feasibility_status: 'declined', decision: 'declined', feasibility_decision_at: now }),
         })
       }
     } catch {}

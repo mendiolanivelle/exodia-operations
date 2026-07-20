@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+
 function formatDateTime(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
@@ -169,27 +172,41 @@ function MarketingProjectList() {
   const [successProject, setSuccessProject] = useState(null)
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
-    setProjects(stored)
-    setLoading(false)
+    const fetchFromSupabase = async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=*&order=sent_at.desc`, {
+          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const proceeded = data.filter(p => p.status !== 'Sent')
+          setProjects(proceeded)
+          localStorage.setItem('prt_leads', JSON.stringify(proceeded))
+        }
+      } catch {}
+      setLoading(false)
+    }
+    fetchFromSupabase()
     const handler = () => {
       const stored = JSON.parse(localStorage.getItem('prt_leads') || '[]')
-      setProjects(stored)
+      if (stored.length > 0) setProjects(stored)
     }
     window.addEventListener('prt-projects-updated', handler)
     return () => window.removeEventListener('prt-projects-updated', handler)
   }, [])
 
   const handleScheduled = (event) => {
+    const now = new Date().toISOString()
     const updated = projects.map(p => {
       if (p.id === selectedProject.id) {
-        return { ...p, status: 'discovery_scheduled', meetLink: event.hangoutLink, eventId: event.id, discovery_scheduled_at: new Date().toISOString() }
+        return { ...p, status: 'discovery_scheduled', meetLink: event.hangoutLink, eventId: event.id, discovery_scheduled_at: now }
       }
       return p
     })
     setProjects(updated)
     localStorage.setItem('prt_leads', JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
+    supabase.from('project_review_tickets').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }

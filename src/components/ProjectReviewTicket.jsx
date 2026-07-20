@@ -212,7 +212,6 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [fetchError, setFetchError] = useState(null)
   const [viewedIds, setViewedIds] = useState(() => JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]'))
-  const [proceededIds, setProceededIds] = useState(() => JSON.parse(localStorage.getItem(PROCEEDED_IDS_KEY) || '[]'))
   const [toastTracking, setToastTracking] = useState(null)
   const [creating, setCreating] = useState(false)
   const [showEmailCompose, setShowEmailCompose] = useState(false)
@@ -260,10 +259,6 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         createdAt: new Date().toISOString(),
       }
       localStorage.setItem(leadsKey, JSON.stringify([newEntry, ...existing]))
-      const id = selectedTicket.id
-      const updated = [...proceededIds, id]
-      setProceededIds(updated)
-      localStorage.setItem(PROCEEDED_IDS_KEY, JSON.stringify(updated))
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)
     } catch {} finally {
@@ -309,7 +304,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     return () => clearInterval(interval)
   }, [])
 
-  const visibleTickets = tickets.filter(t => !proceededIds.includes(t.id))
+  const visibleTickets = tickets.filter(t => t.status === 'Sent')
 
   if (loading) {
     return (
