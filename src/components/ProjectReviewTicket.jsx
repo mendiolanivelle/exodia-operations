@@ -228,13 +228,10 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     if (!selectedTicket || creating) return
     setCreating(true)
     try {
-      const { error: insertError } = await supabase.from('project_review_tickets').insert({
+      const { error: insertError } = await supabase.from('potential_projects').insert({
         project_name: selectedTicket.project_name,
         client_name: selectedTicket.client_name,
         tracking_id: selectedTicket.tracking_id,
-        email_to: selectedTicket.email_to,
-        email_subject: selectedTicket.email_subject,
-        email_body: selectedTicket.email_body,
         status: 'leads',
         phase: 'initiation',
         pillar: '',
