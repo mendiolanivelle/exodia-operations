@@ -59,12 +59,13 @@ function Dashboard() {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=id`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=tracking_id&status=eq.Sent`, {
           headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         })
         if (res.ok) {
           const data = await res.json()
-          const count = data.length
+          const unique = new Set((data || []).map(t => t.tracking_id).filter(Boolean))
+          const count = unique.size
           if (prevCountRef.current > 0 && count > prevCountRef.current) {
             const entry = { id: Date.now(), msg: 'New project review ticket added', time: new Date().toLocaleString(), read: false }
             const updated = [entry, ...notifRef.current].slice(0, 50)

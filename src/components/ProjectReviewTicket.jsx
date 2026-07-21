@@ -216,9 +216,9 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
   const [creating, setCreating] = useState(false)
   const [showEmailCompose, setShowEmailCompose] = useState(false)
 
-  const markViewed = (id) => {
-    if (viewedIds.includes(id)) return
-    const updated = [...viewedIds, id]
+  const markViewed = (trackingId) => {
+    if (viewedIds.includes(trackingId)) return
+    const updated = [...viewedIds, trackingId]
     setViewedIds(updated)
     localStorage.setItem(VIEWED_IDS_KEY, JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent('prt-viewed'))
@@ -240,7 +240,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
       if (checkError) throw checkError
       if (existing && existing.length > 0) {
         console.warn('Duplicate: potential_project already exists for', selectedTicket.tracking_id)
-        await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('id', selectedTicket.id)
+        await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('tracking_id', selectedTicket.tracking_id)
         window.dispatchEvent(new CustomEvent('prt-projects-updated'))
         setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
         setSelectedTicket(null)
@@ -256,8 +256,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         sent_at: selectedTicket.sent_at,
       })
       if (insertError) throw insertError
-      const { error: updateError } = await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('id', selectedTicket.id)
-      if (updateError) throw updateError
+      await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('tracking_id', selectedTicket.tracking_id)
       window.dispatchEvent(new CustomEvent('prt-projects-updated'))
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)
@@ -287,7 +286,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         if (isInitial && trackingId && data) {
           const match = data.find(t => t.tracking_id === trackingId)
           if (match) {
-            markViewed(match.id)
+            markViewed(match.tracking_id)
             setSelectedTicket(match)
           }
         }
@@ -315,6 +314,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     }
   })
   const visibleTickets = Array.from(seen.values())
+  const allSentIds = new Set(sentTickets.map(t => t.id))
 
   if (loading) {
     return (
@@ -342,7 +342,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
             <div>
               <h2 className="text-[#1B1A1C] text-xl font-semibold mb-1">
                 {selectedTicket.project_name || 'Untitled Project'}
-                {!viewedIds.includes(selectedTicket.id) && <span className="inline-block w-2 h-2 bg-[#FF5900] rounded-full ml-2 align-middle" />}
+                {!viewedIds.includes(selectedTicket.tracking_id) && <span className="inline-block w-2 h-2 bg-[#FF5900] rounded-full ml-2 align-middle" />}
               </h2>
               <p className="text-[#3E4048] text-sm">Client: {selectedTicket.client_name || 'N/A'}</p>
             </div>
@@ -437,27 +437,27 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {visibleTickets.map((ticket) => (
               <div
-                key={ticket.id}
-                onClick={() => { markViewed(ticket.id); setSelectedTicket(ticket) }}
+                key={ticket.tracking_id}
+                onClick={() => { markViewed(ticket.tracking_id); setSelectedTicket(ticket) }}
                 className={`rounded-xl p-5 hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-3 ${
-                  !viewedIds.includes(ticket.id)
+                  !viewedIds.includes(ticket.tracking_id)
                     ? 'bg-[#1B1A1C] border border-[#3E4048]'
                     : 'bg-white border border-[#CACDD7]/30'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0">
-                    {!viewedIds.includes(ticket.id) && <span className="w-2.5 h-2.5 bg-[#FF5900] rounded-full flex-shrink-0 mt-0.5" />}
-                    <h3 className={`text-sm font-semibold truncate ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>{ticket.project_name || 'Untitled'}</h3>
+                    {!viewedIds.includes(ticket.tracking_id) && <span className="w-2.5 h-2.5 bg-[#FF5900] rounded-full flex-shrink-0 mt-0.5" />}
+                    <h3 className={`text-sm font-semibold truncate ${!viewedIds.includes(ticket.tracking_id) ? 'text-white' : 'text-[#1B1A1C]'}`}>{ticket.project_name || 'Untitled'}</h3>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-  !viewedIds.includes(ticket.id) ? 'bg-white/20 text-white' : 'bg-[#1B1A1C] text-white'
+  !viewedIds.includes(ticket.tracking_id) ? 'bg-white/20 text-white' : 'bg-[#1B1A1C] text-white'
 }`}>{ticket.tracking_id || ''}</span>
                 </div>
 
-                <div className={`flex flex-col gap-1 text-xs ${!viewedIds.includes(ticket.id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>
-                  <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Client:</span> {ticket.client_name || '-'}</p>
-                  <p><span className={`font-medium ${!viewedIds.includes(ticket.id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Date:</span> {formatDateTime(ticket.sent_at)}</p>
+                <div className={`flex flex-col gap-1 text-xs ${!viewedIds.includes(ticket.tracking_id) ? 'text-[#CACDD7]' : 'text-[#3E4048]'}`}>
+                  <p><span className={`font-medium ${!viewedIds.includes(ticket.tracking_id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Client:</span> {ticket.client_name || '-'}</p>
+                  <p><span className={`font-medium ${!viewedIds.includes(ticket.tracking_id) ? 'text-white' : 'text-[#1B1A1C]'}`}>Date:</span> {formatDateTime(ticket.sent_at)}</p>
                 </div>
 
                 <div className="pt-1">
