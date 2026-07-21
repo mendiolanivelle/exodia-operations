@@ -440,7 +440,7 @@ function ProjectList() {
         const { data, error } = await supabase.from('potential_projects').select('*').order('created_at', { ascending: false })
         const { data: approvedData } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
         if (!error && data) {
-          setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled' || p.status === 'feasibility_accepted'))
+          setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled' || p.status === 'feasibility_accepted' || p.status === 'feasibility_declined'))
           if (approvedData) setApprovedProjects(approvedData)
         }
       } catch {}
@@ -456,7 +456,7 @@ function ProjectList() {
       const { data, error } = await supabase.from('potential_projects').select('*').order('created_at', { ascending: false })
       const { data: approvedData } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
       if (!error && data) {
-        setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled' || p.status === 'feasibility_accepted'))
+        setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled' || p.status === 'feasibility_accepted' || p.status === 'feasibility_declined'))
         if (approvedData) setApprovedProjects(approvedData)
       }
     } catch {} finally {
