@@ -958,10 +958,10 @@ function ProjectList() {
                 <span className="text-sm text-[#3E4048]">Client</span>
                 <span className="text-sm text-[#1B1A1C] font-semibold">{detailProject.client_name || '-'}</span>
               </div>
-              {detailProject.meetLink && (
+              {detailProject.meet_link && (
                 <div className="pt-3 border-t border-[#CACDD7]/30 space-y-2">
                   <a
-                    href={detailProject.meetLink}
+                    href={detailProject.meet_link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-white text-[#1B1A1C] border-2 border-[#1B1A1C] w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-opacity"
@@ -1040,7 +1040,7 @@ function ProjectList() {
                       <>
                         <span className="text-sm text-[#3E4048] font-medium">Discovery Call</span>
                         <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.discovery_scheduled_at ? formatDateTime(detailDecidedProject.discovery_scheduled_at) : detailDecidedProject.meetLink ? 'Scheduled' : 'Not Scheduled'}</span>
+                          <span className="text-sm text-[#1B1A1C] font-semibold">{detailDecidedProject.discovery_scheduled_at ? formatDateTime(detailDecidedProject.discovery_scheduled_at) : detailDecidedProject.meet_link ? 'Scheduled' : 'Not Scheduled'}</span>
                           <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${disColor}`}>{disLabel}</span>
                         </div>
                       </>
