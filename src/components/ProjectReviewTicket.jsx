@@ -226,8 +226,26 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
 
   const handleProceed = async () => {
     if (!selectedTicket || creating) return
+    if (selectedTicket.status !== 'Sent') {
+      console.warn('Ticket already processed:', selectedTicket.tracking_id)
+      return
+    }
     setCreating(true)
     try {
+      const { data: existing, error: checkError } = await supabase
+        .from('potential_projects')
+        .select('id')
+        .eq('tracking_id', selectedTicket.tracking_id)
+        .limit(1)
+      if (checkError) throw checkError
+      if (existing && existing.length > 0) {
+        console.warn('Duplicate: potential_project already exists for', selectedTicket.tracking_id)
+        await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('id', selectedTicket.id)
+        window.dispatchEvent(new CustomEvent('prt-projects-updated'))
+        setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
+        setSelectedTicket(null)
+        return
+      }
       const { error: insertError } = await supabase.from('potential_projects').insert({
         project_name: selectedTicket.project_name,
         client_name: selectedTicket.client_name,
@@ -267,7 +285,15 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
         const data = await res.json()
-        setTickets(data || [])
+        const seen = new Map()
+        ;(data || []).forEach(t => {
+          const key = t.tracking_id || t.id
+          if (!seen.has(key) || new Date(t.sent_at) > new Date(seen.get(key).sent_at)) {
+            seen.set(key, t)
+          }
+        })
+        const unique = Array.from(seen.values())
+        setTickets(unique)
         setFetchError(null)
         if (isInitial && trackingId && data && data.length > 0) {
           markViewed(data[0].id)
