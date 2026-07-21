@@ -303,7 +303,12 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     fetchTickets(true)
 
     const interval = setInterval(() => fetchTickets(false), 10000)
-    return () => clearInterval(interval)
+    const onProjectUpdated = () => fetchTickets(false)
+    window.addEventListener('prt-projects-updated', onProjectUpdated)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('prt-projects-updated', onProjectUpdated)
+    }
   }, [])
 
   const sentTickets = tickets.filter(t => t.status === 'Sent')
