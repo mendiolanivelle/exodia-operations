@@ -189,7 +189,7 @@ function MarketingProjectList() {
     return () => window.removeEventListener('prt-projects-updated', fetchFromSupabase)
   }, [])
 
-  const handleScheduled = (event) => {
+  const handleScheduled = async (event) => {
     const now = new Date().toISOString()
     const updated = projects.map(p => {
       if (p.id === selectedProject.id) {
@@ -198,8 +198,8 @@ function MarketingProjectList() {
       return p
     })
     setProjects(updated)
+    await supabase.from('potential_projects').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
-    supabase.from('potential_projects').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }
