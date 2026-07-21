@@ -62,14 +62,6 @@ function ScheduleMeetingModal({ project, onClose, onScheduled }) {
           setSending(false)
           return
         }
-      client_id: '771932544725-5trevl51v4i49g8j0a0vnqkh7hnikd12.apps.googleusercontent.com',
-      scope: 'https://www.googleapis.com/auth/calendar.events',
-      callback: async (response) => {
-        if (response.error) {
-          setError('Access denied — please allow Calendar access')
-          setSending(false)
-          return
-        }
         try {
           const startDate = new Date(date)
           const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
