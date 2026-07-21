@@ -8,7 +8,6 @@ import ManpowerPricing from '../components/ManpowerPricing'
 import RoleInventory from '../components/RoleInventory'
 import ProjectReviewTicket from '../components/ProjectReviewTicket'
 import ProjectList from '../components/ProjectList'
-import MarketingProjectList from '../components/MarketingProjectList'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -229,17 +228,6 @@ function Dashboard() {
             Project List
           </button>
           <button
-            onClick={() => setActiveTab('project-list-marketing')}
-            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
-              activeTab === 'project-list-marketing'
-                ? 'bg-[#FF5900] text-white'
-                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
-            }`}
-          >
-            <Icon icon="lucide:eye" className="w-4 h-4 flex-shrink-0" />
-            Project List - Marketing View
-          </button>
-          <button
             onClick={handleProjectReviewClick}
             className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
               activeTab === 'project-review'
@@ -304,8 +292,6 @@ function Dashboard() {
           {activeTab === 'project-dashboard' && <Projects />}
 
           {activeTab === 'project-list' && <ProjectList />}
-
-          {activeTab === 'project-list-marketing' && <MarketingProjectList />}
 
           {activeTab === 'project-review' && <ProjectReviewTicket onGoToProjectList={() => setActiveTab('project-list')} userEmail={user?.email} />}
 
