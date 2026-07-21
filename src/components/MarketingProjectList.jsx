@@ -175,7 +175,7 @@ function MarketingProjectList() {
     const fetchFromSupabase = async () => {
       try {
         const { data, error } = await supabase
-          .from('projects')
+          .from('project_review_tickets')
           .select('*')
           .order('created_at', { ascending: false })
         if (!error && data) {
@@ -199,7 +199,7 @@ function MarketingProjectList() {
     })
     setProjects(updated)
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
-    supabase.from('projects').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
+    supabase.from('project_review_tickets').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })
   }

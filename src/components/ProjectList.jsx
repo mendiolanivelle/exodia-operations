@@ -408,7 +408,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    supabase.from('projects').update({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }).eq('tracking_id', trackingId)
+    supabase.from('project_review_tickets').update({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }).eq('tracking_id', trackingId)
   }
 
   const markDiscoveryViewed = (id) => {
@@ -427,7 +427,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    await supabase.from('projects').update({ status: 'approved', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now }).eq('id', project.id)
+    await supabase.from('project_review_tickets').update({ status: 'approved', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now }).eq('id', project.id)
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
   }
@@ -437,10 +437,11 @@ function ProjectList() {
     fetchAllProjects()
     const handler = async () => {
       try {
-        const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+        const { data, error } = await supabase.from('project_review_tickets').select('*').order('created_at', { ascending: false })
+        const { data: approvedData } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
         if (!error && data) {
           setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
-          setApprovedProjects(data.filter(p => p.status === 'approved'))
+          if (approvedData) setApprovedProjects(approvedData)
         }
       } catch {}
     }
@@ -452,10 +453,11 @@ function ProjectList() {
 
   const fetchAll = async () => {
     try {
-      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase.from('project_review_tickets').select('*').order('created_at', { ascending: false })
+      const { data: approvedData } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
       if (!error && data) {
         setPotentialProjects(data.filter(p => p.status === 'leads' || p.status === 'discovery_scheduled'))
-        setApprovedProjects(data.filter(p => p.status === 'approved'))
+        if (approvedData) setApprovedProjects(approvedData)
       }
     } catch {} finally {
       setLoading(false)
@@ -503,11 +505,14 @@ function ProjectList() {
     })
     setPotentialProjects(updated)
     const { data, error } = await supabase
-      .from('projects')
+      .from('project_review_tickets')
       .update({ status: 'approved', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now })
       .eq('id', project.id)
       .select()
-    if (!error && data) setApprovedProjects(prev => [data[0], ...prev])
+    if (!error && data) {
+      const { data: approvedData } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
+      if (approvedData) setApprovedProjects(approvedData)
+    }
   }
 
   const handleDecline = async (project) => {
@@ -519,7 +524,7 @@ function ProjectList() {
       return p
     })
     setPotentialProjects(updated)
-    await supabase.from('projects').update({ status: 'declined', decision: 'declined', feasibility_decision_at: now, feasibility_status: 'declined' }).eq('id', project.id)
+    await supabase.from('project_review_tickets').update({ status: 'declined', decision: 'declined', feasibility_decision_at: now, feasibility_status: 'declined' }).eq('id', project.id)
   }
 
   if (loading) {
