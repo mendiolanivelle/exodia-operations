@@ -285,15 +285,7 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
         const data = await res.json()
-        const seen = new Map()
-        ;(data || []).forEach(t => {
-          const key = t.tracking_id || t.id
-          if (!seen.has(key) || new Date(t.sent_at) > new Date(seen.get(key).sent_at)) {
-            seen.set(key, t)
-          }
-        })
-        const unique = Array.from(seen.values())
-        setTickets(unique)
+        setTickets(data || [])
         setFetchError(null)
         if (isInitial && trackingId && data && data.length > 0) {
           markViewed(data[0].id)
@@ -314,7 +306,15 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
     return () => clearInterval(interval)
   }, [])
 
-  const visibleTickets = tickets.filter(t => t.status === 'Sent')
+  const sentTickets = tickets.filter(t => t.status === 'Sent')
+  const seen = new Map()
+  sentTickets.forEach(t => {
+    const key = t.tracking_id || t.id
+    if (!seen.has(key) || new Date(t.sent_at) > new Date(seen.get(key).sent_at)) {
+      seen.set(key, t)
+    }
+  })
+  const visibleTickets = Array.from(seen.values())
 
   if (loading) {
     return (
