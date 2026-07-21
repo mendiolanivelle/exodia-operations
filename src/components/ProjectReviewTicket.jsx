@@ -256,7 +256,8 @@ function ProjectReviewTicket({ onGoToProjectList, userEmail }) {
         sent_at: selectedTicket.sent_at,
       })
       if (insertError) throw insertError
-      await supabase.from('project_review_tickets').update({ status: 'proceeded' }).eq('tracking_id', selectedTicket.tracking_id)
+      const { error: updateError } = await supabase.from('project_review_tickets').update({ status: 'proceeded' }, { returning: 'minimal' }).eq('tracking_id', selectedTicket.tracking_id)
+      if (updateError) console.error('Failed to update tickets:', updateError)
       window.dispatchEvent(new CustomEvent('prt-projects-updated'))
       setToastTracking(selectedTicket.tracking_id || selectedTicket.id)
       setSelectedTicket(null)
