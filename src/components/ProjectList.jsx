@@ -1078,6 +1078,17 @@ function ProjectList() {
                   )}
                 </div>
               </div>
+
+              {detailDecidedProject.decision === 'accepted' && (
+                <div className="border-t border-[#CACDD7]/30 mt-4 pt-4">
+                  <button
+                    className="bg-[#FF5900] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    <Icon icon="lucide:arrow-right-circle" className="w-4 h-4" />
+                    Proceed to Internal Planning & Readiness
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
