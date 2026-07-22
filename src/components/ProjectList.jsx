@@ -422,12 +422,12 @@ function ProjectList() {
     const now = new Date().toISOString()
     const updated = potentialProjects.map(p => {
       if (p.id === project.id) {
-        return { ...p, feasibility_decision_at: now, decision: 'accepted' }
+        return { ...p, feasibility_decision_at: now, decision: 'accepted', pillar: 'Discovery' }
       }
       return p
     })
     setPotentialProjects(updated)
-    await supabase.from('potential_projects').update({ status: 'feasibility_accepted', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now }).eq('id', project.id)
+    await supabase.from('potential_projects').update({ status: 'feasibility_accepted', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now, pillar: 'Discovery' }).eq('id', project.id)
     const { data } = await supabase.from('projects').select('*').eq('status', 'approved').order('created_at', { ascending: false })
     if (data) setApprovedProjects(data)
   }
@@ -499,14 +499,14 @@ function ProjectList() {
     const now = new Date().toISOString()
     const updated = potentialProjects.map(p => {
       if (p.id === project.id) {
-        return { ...p, feasibility_decision_at: now, decision: 'accepted' }
+        return { ...p, feasibility_decision_at: now, decision: 'accepted', pillar: 'Discovery' }
       }
       return p
     })
     setPotentialProjects(updated)
     const { data, error } = await supabase
       .from('potential_projects')
-      .update({ status: 'feasibility_accepted', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now })
+      .update({ status: 'feasibility_accepted', phase: 'initiation', decision: 'accepted', feasibility_decision_at: now, pillar: 'Discovery' })
       .eq('id', project.id)
       .select()
     if (!error && data) {
