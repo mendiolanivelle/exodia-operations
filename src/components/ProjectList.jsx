@@ -384,6 +384,493 @@ return (
   )
 }
 
+function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
+  const [form, setForm] = useState({
+    roles: [],
+    teamAvailabilityConfirmed: false,
+    estimatedDuration: '',
+    durationUnit: 'days',
+    estimatedStartDate: '',
+    confidenceLevel: '',
+    basisOfEstimate: '',
+    risks: [],
+    dependencies: '',
+    clientConstraints: '',
+    requiredTools: [],
+    infrastructureNeeded: '',
+    accessNeeded: [
+      { id: 'repo', label: 'Repository Access', checked: false },
+      { id: 'client_systems', label: 'Client Systems', checked: false },
+      { id: 'apis', label: 'API Access', checked: false },
+    ],
+    customAccessItems: [],
+    itConfirmation: false,
+    itApproverName: '',
+    decision: '',
+    conditions: '',
+    declineReason: '',
+    opsManagerApproval: false,
+    opsManagerName: '',
+    opsManagerDate: '',
+    cooApproval: false,
+    cooName: '',
+    cooDate: '',
+  })
+
+  const [sectionsExpanded, setSectionsExpanded] = useState([true, true, true, true, true])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [roleInput, setRoleInput] = useState('')
+  const [toolInput, setToolInput] = useState('')
+  const [customAccessInput, setCustomAccessInput] = useState('')
+
+  const ROLE_OPTIONS = ['Developer', 'QA', 'Artist', 'PM', 'Designer']
+  const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
+  const ACCESS_OPTIONS = ['Repository Access', 'Client Systems', 'API Access']
+
+  const toggleSection = (idx) => {
+    const next = [...sectionsExpanded]
+    next[idx] = !next[idx]
+    setSectionsExpanded(next)
+  }
+
+  const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
+
+  const updateNested = (field, idx, key, value) => {
+    const arr = [...form[field]]
+    arr[idx] = { ...arr[idx], [key]: value }
+    update(field, arr)
+  }
+
+  const addRole = (role) => {
+    if (!role.trim() || form.roles.some(r => r.role === role.trim())) return
+    update('roles', [...form.roles, { role: role.trim(), headcount: 1, assignees: '' }])
+    setRoleInput('')
+  }
+
+  const removeRole = (idx) => {
+    update('roles', form.roles.filter((_, i) => i !== idx))
+  }
+
+  const addRisk = () => {
+    update('risks', [...form.risks, { description: '', severity: 'low' }])
+  }
+
+  const removeRisk = (idx) => {
+    update('risks', form.risks.filter((_, i) => i !== idx))
+  }
+
+  const addTool = (tool) => {
+    if (!tool.trim() || form.requiredTools.includes(tool.trim())) return
+    update('requiredTools', [...form.requiredTools, tool.trim()])
+    setToolInput('')
+  }
+
+  const removeTool = (idx) => {
+    update('requiredTools', form.requiredTools.filter((_, i) => i !== idx))
+  }
+
+  const addCustomAccess = () => {
+    if (!customAccessInput.trim()) return
+    const id = `custom_${Date.now()}`
+    update('customAccessItems', [...form.customAccessItems, { id, label: customAccessInput.trim(), checked: false }])
+    setCustomAccessInput('')
+  }
+
+  const removeCustomAccess = (id) => {
+    update('customAccessItems', form.customAccessItems.filter(a => a.id !== id))
+  }
+
+  const toggleAccess = (id) => {
+    const idx = form.accessNeeded.findIndex(a => a.id === id)
+    if (idx !== -1) { updateNested('accessNeeded', idx, 'checked', !form.accessNeeded[idx].checked); return }
+    const cIdx = form.customAccessItems.findIndex(a => a.id === id)
+    if (cIdx !== -1) {
+      const arr = [...form.customAccessItems]
+      arr[cIdx] = { ...arr[cIdx], checked: !arr[cIdx].checked }
+      update('customAccessItems', arr)
+    }
+  }
+
+  const sectionValid = (idx) => {
+    switch (idx) {
+      case 0: return form.roles.length > 0 && form.teamAvailabilityConfirmed
+      case 1: return form.estimatedDuration && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate
+      case 2: return true
+      case 3: return form.requiredTools.length > 0 && form.itConfirmation && form.itApproverName
+      case 4:
+        if (!form.decision) return false
+        if (!form.opsManagerApproval || !form.opsManagerName || !form.opsManagerDate) return false
+        if (!form.cooApproval || !form.cooName || !form.cooDate) return false
+        if (form.decision === 'conditions' && !form.conditions) return false
+        if (form.decision === 'decline' && !form.declineReason) return false
+        return true
+      default: return false
+    }
+  }
+
+  const completedSections = sectionsExpanded.map((_, i) => sectionValid(i) ? 1 : 0).reduce((a, b) => a + b, 0)
+
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    setError('')
+    try {
+      await onSubmit(project, form)
+      onClose()
+    } catch (e) {
+      setError(e.message || 'Failed to submit')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const sectionHeader = (idx, title, icon) => (
+    <button
+      type="button"
+      onClick={() => toggleSection(idx)}
+      className="w-full flex items-center justify-between py-3 px-1 bg-white rounded-lg cursor-pointer group"
+    >
+      <div className="flex items-center gap-2">
+        <Icon icon={icon} className="w-4 h-4 text-[#FF5900]" />
+        <span className="text-sm font-semibold text-[#1B1A1C]">{title}</span>
+        {sectionValid(idx) && <Icon icon="lucide:check-circle" className="w-3.5 h-3.5 text-green-600" />}
+      </div>
+      <Icon icon={sectionsExpanded[idx] ? 'lucide:chevron-up' : 'lucide:chevron-down'} className="w-4 h-4 text-[#3E4048]" />
+    </button>
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
+          <div>
+            <h3 className="text-[#1B1A1C] text-lg font-bold">Internal Planning & Readiness</h3>
+            <p className="text-xs text-[#3E4048] mt-1">
+              {project.tracking_id} &middot; {project.client_name} &middot; {project.project_name}
+            </p>
+          </div>
+          <button onClick={onClose} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+            <Icon icon="lucide:x" className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-6 pt-3 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+              <div className="bg-[#FF5900] h-1.5 rounded-full transition-all" style={{ width: `${(completedSections / 5) * 100}%` }} />
+            </div>
+            <span className="text-xs text-[#3E4048] font-medium whitespace-nowrap">{completedSections} of 5 sections complete</span>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto p-6 pt-4 space-y-1 flex-1">
+          {/* SECTION 1 */}
+          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+            {sectionHeader(0, 'Resource Planning', 'lucide:users')}
+            {sectionsExpanded[0] && (
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Roles Needed *</label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {form.roles.map((r, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                        {r.role}
+                        <button onClick={() => removeRole(i)} className="hover:text-red-300 cursor-pointer">&times;</button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={roleInput}
+                      onChange={e => setRoleInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRole(roleInput) } }}
+                      placeholder="Type a role and press Enter"
+                      className="flex-1 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                    />
+                    <button onClick={() => addRole(roleInput)} className="text-[#FF5900] text-sm font-medium px-3 py-2 hover:bg-orange-50 rounded-lg cursor-pointer">Add</button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {ROLE_OPTIONS.filter(o => !form.roles.some(r => r.role === o)).map(o => (
+                      <button key={o} onClick={() => addRole(o)} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2 py-0.5 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
+                    ))}
+                  </div>
+                </div>
+                {form.roles.map((r, i) => (
+                  <div key={i} className="grid grid-cols-3 gap-3 items-center">
+                    <span className="text-sm font-medium text-[#1B1A1C]">{r.role}</span>
+                    <div>
+                      <label className="text-xs text-[#3E4048]">Headcount</label>
+                      <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[#3E4048]">Assignees (optional)</label>
+                      <input value={r.assignees} onChange={e => updateNested('roles', i, 'assignees', e.target.value)} placeholder="Names" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                    </div>
+                  </div>
+                ))}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.teamAvailabilityConfirmed} onChange={e => update('teamAvailabilityConfirmed', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
+                  <span className="text-sm text-[#1B1A1C]">Team Availability Confirmed *</span>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 2 */}
+          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+            {sectionHeader(1, 'Preliminary Timeline Estimate', 'lucide:calendar')}
+            {sectionsExpanded[1] && (
+              <div className="px-4 pb-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Estimated Duration *</label>
+                    <div className="flex gap-2">
+                      <input type="number" min="1" value={form.estimatedDuration} onChange={e => update('estimatedDuration', e.target.value)} className="w-24 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <select value={form.durationUnit} onChange={e => update('durationUnit', e.target.value)} className="px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                        <option value="days">Days</option>
+                        <option value="weeks">Weeks</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Estimated Start Date *</label>
+                    <input type="date" value={form.estimatedStartDate} onChange={e => update('estimatedStartDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Confidence Level *</label>
+                  <div className="flex gap-2">
+                    {['Low', 'Medium', 'High'].map(l => (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => update('confidenceLevel', l)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                          form.confidenceLevel === l
+                            ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
+                            : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
+                        }`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Basis of Estimate *</label>
+                  <textarea value={form.basisOfEstimate} onChange={e => update('basisOfEstimate', e.target.value)} rows={2} placeholder="Describe how this estimate was derived" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-800 leading-relaxed">
+                  This is a preliminary estimate. Final timeline will be locked after client submits detailed requirements.
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 3 */}
+          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+            {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle')}
+            {sectionsExpanded[2] && (
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[#1B1A1C] text-sm font-medium">Known Risks</label>
+                    <button onClick={addRisk} type="button" className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Risk</button>
+                  </div>
+                  {form.risks.length === 0 && <p className="text-xs text-[#3E4048]">No risks added yet.</p>}
+                  {form.risks.map((r, i) => (
+                    <div key={i} className="flex gap-2 items-start mt-2">
+                      <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Describe the risk" className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <select value={r.severity} onChange={e => updateNested('risks', i, 'severity', e.target.value)} className="px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                        <option value="low">Low</option>
+                        <option value="med">Med</option>
+                        <option value="high">High</option>
+                      </select>
+                      <button onClick={() => removeRisk(i)} className="text-red-500 hover:text-red-700 px-2 cursor-pointer">&times;</button>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Dependencies (optional)</label>
+                  <textarea value={form.dependencies} onChange={e => update('dependencies', e.target.value)} rows={2} placeholder="List any dependencies" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Client-Side Constraints (optional)</label>
+                  <textarea value={form.clientConstraints} onChange={e => update('clientConstraints', e.target.value)} rows={2} placeholder="List any client constraints" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 4 */}
+          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+            {sectionHeader(3, 'Tools & System Requirements', 'lucide:wrench')}
+            {sectionsExpanded[3] && (
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Required Tools / Licenses *</label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {form.requiredTools.map((t, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                        {t}
+                        <button onClick={() => removeTool(i)} className="hover:text-red-300 cursor-pointer">&times;</button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={toolInput}
+                      onChange={e => setToolInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTool(toolInput) } }}
+                      placeholder="Type a tool and press Enter"
+                      className="flex-1 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                    />
+                    <button onClick={() => addTool(toolInput)} className="text-[#FF5900] text-sm font-medium px-3 py-2 hover:bg-orange-50 rounded-lg cursor-pointer">Add</button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {TOOL_OPTIONS.filter(o => !form.requiredTools.includes(o)).map(o => (
+                      <button key={o} onClick={() => addTool(o)} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2 py-0.5 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Infrastructure Needed (optional)</label>
+                  <textarea value={form.infrastructureNeeded} onChange={e => update('infrastructureNeeded', e.target.value)} rows={2} placeholder="Describe infrastructure requirements" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Access Needed</label>
+                  <div className="space-y-1.5">
+                    {[...form.accessNeeded, ...form.customAccessItems].map(a => (
+                      <label key={a.id} className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={a.checked} onChange={() => toggleAccess(a.id)} className="accent-[#FF5900] w-4 h-4" />
+                        <span className="text-sm text-[#1B1A1C]">{a.label}</span>
+                        {a.id.startsWith('custom_') && (
+                          <button onClick={() => removeCustomAccess(a.id)} className="text-red-400 hover:text-red-600 text-xs ml-1 cursor-pointer">&times;</button>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      value={customAccessInput}
+                      onChange={e => setCustomAccessInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomAccess() } }}
+                      placeholder="Add custom access item"
+                      className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                    />
+                    <button onClick={addCustomAccess} className="text-[#FF5900] text-sm font-medium px-3 hover:bg-orange-50 rounded-lg cursor-pointer">Add</button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.itConfirmation} onChange={e => update('itConfirmation', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
+                    <span className="text-sm text-[#1B1A1C]">IT Confirmation *</span>
+                  </label>
+                  {form.itConfirmation && (
+                    <input
+                      value={form.itApproverName}
+                      onChange={e => update('itApproverName', e.target.value)}
+                      placeholder="IT Approver Name *"
+                      className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 5 */}
+          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+            {sectionHeader(4, 'Readiness Decision (Go/No-Go)', 'lucide:flag')}
+            {sectionsExpanded[4] && (
+              <div className="px-4 pb-4 space-y-3">
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Decision *</label>
+                  <div className="space-y-2">
+                    {[
+                      { value: 'proceed', label: 'Proceed as-is', icon: 'lucide:check-circle', color: 'text-green-600' },
+                      { value: 'conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
+                      { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
+                    ].map(opt => (
+                      <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        form.decision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7] hover:bg-gray-50'
+                      }`}>
+                        <input type="radio" name="decision" value={opt.value} checked={form.decision === opt.value} onChange={e => update('decision', e.target.value)} className="accent-[#FF5900]" />
+                        <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
+                        <span className="text-sm font-medium text-[#1B1A1C]">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                {form.decision === 'conditions' && (
+                  <div>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Conditions *</label>
+                    <textarea value={form.conditions} onChange={e => update('conditions', e.target.value)} rows={3} placeholder="Describe the conditions for proceeding" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  </div>
+                )}
+                {form.decision === 'decline' && (
+                  <div>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Decline Reason *</label>
+                    <textarea value={form.declineReason} onChange={e => update('declineReason', e.target.value)} rows={3} placeholder="Explain why this project is being declined" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  </div>
+                )}
+                <div className="border-t border-[#CACDD7]/30 pt-3 space-y-3">
+                  <p className="text-sm font-semibold text-[#1B1A1C]">Approvals</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2 border border-[#CACDD7]/30 rounded-lg p-3 bg-white">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={form.opsManagerApproval} onChange={e => update('opsManagerApproval', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
+                        <span className="text-sm font-medium text-[#1B1A1C]">Ops Manager *</span>
+                      </label>
+                      {form.opsManagerApproval && (
+                        <div className="space-y-2">
+                          <input value={form.opsManagerName} onChange={e => update('opsManagerName', e.target.value)} placeholder="Name *" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                          <input type="date" value={form.opsManagerDate} onChange={e => update('opsManagerDate', e.target.value)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2 border border-[#CACDD7]/30 rounded-lg p-3 bg-white">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={form.cooApproval} onChange={e => update('cooApproval', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
+                        <span className="text-sm font-medium text-[#1B1A1C]">COO *</span>
+                      </label>
+                      {form.cooApproval && (
+                        <div className="space-y-2">
+                          <input value={form.cooName} onChange={e => update('cooName', e.target.value)} placeholder="Name *" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                          <input type="date" value={form.cooDate} onChange={e => update('cooDate', e.target.value)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {error && (
+          <div className="px-6 pb-2 flex-shrink-0">
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-[#CACDD7]/30 flex-shrink-0">
+          <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={![0, 1, 2, 3, 4].every(i => sectionValid(i)) || submitting}
+            className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? 'Submitting...' : 'Submit'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ProjectList() {
   const [potentialProjects, setPotentialProjects] = useState([])
   const [approvedProjects, setApprovedProjects] = useState([])
@@ -394,6 +881,7 @@ function ProjectList() {
   const [detailDecidedProject, setDetailDecidedProject] = useState(null)
   const [notesProject, setNotesProject] = useState(null)
   const [decisionProject, setDecisionProject] = useState(null)
+  const [planningProject, setPlanningProject] = useState(null)
   const [discoveryViewedIds, setDiscoveryViewedIds] = useState(() => JSON.parse(localStorage.getItem(DISCOVERY_VIEWED_IDS_KEY) || '[]'))
 
   const qualifiedLeads = potentialProjects.filter(p => p.decision === 'accepted')
@@ -533,6 +1021,62 @@ function ProjectList() {
     })
     setPotentialProjects(updated)
     await supabase.from('potential_projects').update({ status: 'feasibility_declined', decision: 'declined', feasibility_decision_at: now, feasibility_status: 'declined' }).eq('id', project.id)
+  }
+
+  const handlePlanningSubmit = async (project, form) => {
+    const now = new Date().toISOString()
+    const sowDraft = {
+      roles: form.roles,
+      timeline: {
+        duration: form.estimatedDuration,
+        unit: form.durationUnit,
+        startDate: form.estimatedStartDate,
+        confidence: form.confidenceLevel,
+        basis: form.basisOfEstimate,
+      },
+      risks: form.risks,
+      dependencies: form.dependencies,
+      clientConstraints: form.clientConstraints,
+      tools: form.requiredTools,
+      infrastructure: form.infrastructureNeeded,
+      access: {
+        items: [...form.accessNeeded, ...form.customAccessItems],
+        itConfirmation: form.itConfirmation,
+        itApprover: form.itApproverName,
+      },
+      decision: form.decision,
+      conditions: form.conditions,
+      declineReason: form.declineReason,
+      approvals: {
+        opsManager: { name: form.opsManagerName, date: form.opsManagerDate },
+        coo: { name: form.cooName, date: form.cooDate },
+      },
+      submittedAt: now,
+    }
+
+    if (form.decision === 'decline') {
+      const updated = potentialProjects.map(p => {
+        if (p.id === project.id) return { ...p, status: 'feasibility_declined_post_planning', planning_data: sowDraft, pillar: 'Discovery' }
+        return p
+      })
+      setPotentialProjects(updated)
+      await supabase.from('potential_projects').update({
+        status: 'feasibility_declined_post_planning',
+        planning_data: sowDraft,
+        pillar: 'Discovery',
+      }).eq('id', project.id)
+    } else {
+      const updated = potentialProjects.map(p => {
+        if (p.id === project.id) return { ...p, status: 'planning_approved', planning_data: sowDraft, pillar: 'Discovery' }
+        return p
+      })
+      setPotentialProjects(updated)
+      await supabase.from('potential_projects').update({
+        status: 'planning_approved',
+        planning_data: sowDraft,
+        pillar: 'Discovery',
+      }).eq('id', project.id)
+    }
   }
 
   if (loading) {
@@ -1090,6 +1634,7 @@ function ProjectList() {
               {detailDecidedProject.decision === 'accepted' && (
                 <div className="border-t border-[#CACDD7]/30 mt-4 pt-4">
                   <button
+                    onClick={() => { setPlanningProject(detailDecidedProject); setDetailDecidedProject(null) }}
                     className="bg-[#1B1A1C] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     <Icon icon="lucide:arrow-right-circle" className="w-4 h-4" />
@@ -1116,6 +1661,14 @@ function ProjectList() {
           onClose={() => setDecisionProject(null)}
           onApprove={handleFeasibilityApprove}
           onDecline={handleDecline}
+        />
+      )}
+
+      {planningProject && (
+        <InternalPlanningReadinessModal
+          project={planningProject}
+          onClose={() => setPlanningProject(null)}
+          onSubmit={handlePlanningSubmit}
         />
       )}
     </div>
