@@ -435,6 +435,14 @@ function ProjectList() {
   useEffect(() => {
     fetchAll()
     fetchAllProjects()
+    ;(async () => {
+      const { data: accepted } = await supabase.from('potential_projects').select('*').eq('decision', 'accepted').neq('pillar', 'Discovery')
+      if (accepted && accepted.length > 0) {
+        const ids = accepted.map(p => p.id)
+        await supabase.from('potential_projects').update({ pillar: 'Discovery' }).in('id', ids)
+        fetchAll()
+      }
+    })()
     const handler = async () => {
       try {
         const { data, error } = await supabase.from('potential_projects').select('*').order('created_at', { ascending: false })
