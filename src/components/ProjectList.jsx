@@ -700,7 +700,7 @@ function ProjectList() {
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
+                        <span className={`text-xs ${p.pillar ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.pillar || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -781,7 +781,7 @@ function ProjectList() {
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
+                        <span className={`text-xs ${p.pillar ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.pillar || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -862,7 +862,7 @@ function ProjectList() {
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
+                        <span className={`text-xs ${p.pillar ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.pillar || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -923,7 +923,7 @@ function ProjectList() {
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-[#CACDD7] text-xs">{p.pillar || '-'}</span>
+                        <span className={`text-xs ${p.pillar ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.pillar || '-'}</span>
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Approved</span>
