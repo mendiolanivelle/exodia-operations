@@ -1024,59 +1024,7 @@ function ProjectList() {
   }
 
   const handlePlanningSubmit = async (project, form) => {
-    const now = new Date().toISOString()
-    const sowDraft = {
-      roles: form.roles,
-      timeline: {
-        duration: form.estimatedDuration,
-        unit: form.durationUnit,
-        startDate: form.estimatedStartDate,
-        confidence: form.confidenceLevel,
-        basis: form.basisOfEstimate,
-      },
-      risks: form.risks,
-      dependencies: form.dependencies,
-      clientConstraints: form.clientConstraints,
-      tools: form.requiredTools,
-      infrastructure: form.infrastructureNeeded,
-      access: {
-        items: [...form.accessNeeded, ...form.customAccessItems],
-        itConfirmation: form.itConfirmation,
-        itApprover: form.itApproverName,
-      },
-      decision: form.decision,
-      conditions: form.conditions,
-      declineReason: form.declineReason,
-      approvals: {
-        opsManager: { name: form.opsManagerName, date: form.opsManagerDate },
-        coo: { name: form.cooName, date: form.cooDate },
-      },
-      submittedAt: now,
-    }
-
-    if (form.decision === 'decline') {
-      const updated = potentialProjects.map(p => {
-        if (p.id === project.id) return { ...p, status: 'feasibility_declined_post_planning', planning_data: sowDraft, pillar: 'Discovery' }
-        return p
-      })
-      setPotentialProjects(updated)
-      await supabase.from('potential_projects').update({
-        status: 'feasibility_declined_post_planning',
-        planning_data: sowDraft,
-        pillar: 'Discovery',
-      }).eq('id', project.id)
-    } else {
-      const updated = potentialProjects.map(p => {
-        if (p.id === project.id) return { ...p, status: 'planning_approved', planning_data: sowDraft, pillar: 'Discovery' }
-        return p
-      })
-      setPotentialProjects(updated)
-      await supabase.from('potential_projects').update({
-        status: 'planning_approved',
-        planning_data: sowDraft,
-        pillar: 'Discovery',
-      }).eq('id', project.id)
-    }
+    console.log('Internal Planning & Readiness submitted', { project, form })
   }
 
   if (loading) {
