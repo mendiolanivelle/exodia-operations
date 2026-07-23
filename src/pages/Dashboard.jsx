@@ -149,9 +149,9 @@ function Dashboard() {
           <div className="relative" ref={notifPanelRef}>
             <button onClick={() => setShowNotif(v => !v)} className="relative cursor-pointer">
               <Icon icon="lucide:bell" className="w-5 h-5 text-[#CACDD7] hover:text-white transition-colors" />
-              {unreadNotif > 0 && (
+              {totalUnread > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
-                  {unreadNotif > 99 ? '99+' : unreadNotif}
+                  {totalUnread > 99 ? '99+' : totalUnread}
                 </span>
               )}
             </button>
