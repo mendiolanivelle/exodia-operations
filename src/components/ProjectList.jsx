@@ -423,10 +423,30 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [roleInput, setRoleInput] = useState('')
   const [toolInput, setToolInput] = useState('')
   const [customAccessInput, setCustomAccessInput] = useState('')
+  const [roleOptions, setRoleOptions] = useState([])
+  const [roleCounts, setRoleCounts] = useState({})
 
-  const ROLE_OPTIONS = ['Developer', 'QA', 'Artist', 'PM', 'Designer']
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
-  const ACCESS_OPTIONS = ['Repository Access', 'Client Systems', 'API Access']
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const { data: pricing } = await supabase.from('manpower_pricing').select('role')
+      const { data: employees } = await supabase.from('employee_master').select('position_title').eq('department_text', 'Operation')
+      if (pricing) {
+        const unique = [...new Set(pricing.map(r => r.role).filter(Boolean))]
+        setRoleOptions(unique.sort())
+      }
+      if (employees) {
+        const counts = {}
+        employees.forEach(e => {
+          const t = e.position_title?.trim()
+          if (t) counts[t] = (counts[t] || 0) + 1
+        })
+        setRoleCounts(counts)
+      }
+    }
+    fetchRoles()
+  }, [])
 
   const toggleSection = (idx) => {
     const next = [...sectionsExpanded]
@@ -451,6 +471,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const removeRole = (idx) => {
     update('roles', form.roles.filter((_, i) => i !== idx))
   }
+
+  const filteredRoles = roleInput.trim()
+    ? roleOptions.filter(r => r.toLowerCase().includes(roleInput.toLowerCase()) && !form.roles.some(fr => fr.role === r))
+    : []
 
   const addRisk = () => {
     update('risks', [...form.risks, { description: '', severity: 'low' }])
@@ -569,32 +593,47 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
             {sectionHeader(0, 'Resource Planning', 'lucide:users')}
             {sectionsExpanded[0] && (
               <div className="px-4 pb-4 space-y-3">
-                <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Roles Needed *</label>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {form.roles.map((r, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                        {r.role}
-                        <button onClick={() => removeRole(i)} className="hover:text-red-300 cursor-pointer">&times;</button>
-                      </span>
-                    ))}
+<div>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Roles Needed *</label>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {form.roles.map((r, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                          {r.role}
+                          <button onClick={() => removeRole(i)} className="hover:text-red-300 cursor-pointer">&times;</button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="relative">
+                      <div className="flex gap-2 items-center">
+                        <input
+                          value={roleInput}
+                          onChange={e => setRoleInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter' && filteredRoles.length === 1) { e.preventDefault(); addRole(filteredRoles[0]) } }}
+                          placeholder="Search for a role..."
+                          className="flex-1 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                        />
+                        {roleInput.trim() && filteredRoles.length > 0 && (
+                          <span className="text-xs text-[#3E4048] whitespace-nowrap">
+                            Available: <span className="font-semibold text-[#1B1A1C]">{roleCounts[filteredRoles[0]] || 0}</span>
+                          </span>
+                        )}
+                      </div>
+                      {roleInput.trim() && filteredRoles.length > 0 && (
+                        <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {filteredRoles.map(role => (
+                            <button
+                              key={role}
+                              onClick={() => addRole(role)}
+                              className="w-full text-left px-3 py-2 text-sm text-[#1B1A1C] hover:bg-orange-50 flex items-center justify-between cursor-pointer"
+                            >
+                              <span>{role}</span>
+                              <span className="text-xs text-[#3E4048]">{roleCounts[role] || 0} available</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <input
-                      value={roleInput}
-                      onChange={e => setRoleInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRole(roleInput) } }}
-                      placeholder="Type a role and press Enter"
-                      className="flex-1 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
-                    />
-                    <button onClick={() => addRole(roleInput)} className="text-[#FF5900] text-sm font-medium px-3 py-2 hover:bg-orange-50 rounded-lg cursor-pointer">Add</button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {ROLE_OPTIONS.filter(o => !form.roles.some(r => r.role === o)).map(o => (
-                      <button key={o} onClick={() => addRole(o)} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2 py-0.5 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
-                    ))}
-                  </div>
-                </div>
                 {form.roles.map((r, i) => (
                   <div key={i} className="grid grid-cols-3 gap-3 items-center">
                     <span className="text-sm font-medium text-[#1B1A1C]">{r.role}</span>
