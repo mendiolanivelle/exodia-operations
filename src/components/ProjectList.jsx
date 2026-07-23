@@ -14,7 +14,6 @@ const stages = [
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabaseHeaders = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }
-const DISCOVERY_VIEWED_IDS_KEY = 'prt_discovery_viewed_ids'
 
 function formatDateTime(iso) {
   if (!iso) return '-'
@@ -882,7 +881,6 @@ function ProjectList() {
   const [notesProject, setNotesProject] = useState(null)
   const [decisionProject, setDecisionProject] = useState(null)
   const [planningProject, setPlanningProject] = useState(null)
-  const [discoveryViewedIds, setDiscoveryViewedIds] = useState(() => JSON.parse(localStorage.getItem(DISCOVERY_VIEWED_IDS_KEY) || '[]'))
 
   const qualifiedLeads = potentialProjects.filter(p => p.decision === 'accepted')
   const archivedLeads = potentialProjects.filter(p => p.decision === 'declined')
@@ -899,11 +897,9 @@ function ProjectList() {
     supabase.from('potential_projects').update({ additional_attachments: [{ _type: 'meeting_notes', notes: data.notes, videoLink: data.videoLink }] }).eq('tracking_id', trackingId)
   }
 
-  const markDiscoveryViewed = (id) => {
-    if (discoveryViewedIds.includes(id)) return
-    const updated = [...discoveryViewedIds, id]
-    setDiscoveryViewedIds(updated)
-    localStorage.setItem(DISCOVERY_VIEWED_IDS_KEY, JSON.stringify(updated))
+  const markDiscoveryViewed = async (id) => {
+    await supabase.from('potential_projects').update({ discovery_viewed: true }).eq('id', id)
+    setPotentialProjects(prev => prev.map(p => p.id === id ? { ...p, discovery_viewed: true } : p))
   }
 
   const handleFeasibilityApprove = async (project) => {
@@ -1143,7 +1139,7 @@ function ProjectList() {
                     const isScheduled = p.status === 'discovery_scheduled'
                     const day = getFeasibilityDay(p.createdAt)
                     const diffDays = Math.floor((new Date() - new Date(p.createdAt)) / (1000 * 60 * 60 * 24))
-                    const isUnreadDiscovery = isScheduled && !discoveryViewedIds.includes(p.id)
+                    const isUnreadDiscovery = isScheduled && !p.discovery_viewed
                     const action = isScheduled
                       ? { text: 'Discovery Call \u2013 Scheduled', color: 'bg-green-100 text-green-700' }
                       : diffDays >= 2

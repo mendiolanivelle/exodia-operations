@@ -210,6 +210,12 @@ function MarketingProjectList() {
     })
     setProjects(updated)
     await supabase.from('potential_projects').update({ status: 'discovery_scheduled', meet_link: event.hangoutLink, event_id: event.id, discovery_scheduled_at: now }).eq('id', selectedProject.id)
+    await supabase.from('notifications').insert({
+      type: 'meeting_scheduled',
+      message: `Leads \u2013 ${selectedProject.project_name || selectedProject.client_name || 'Untitled'} meeting scheduled`,
+      reference_id: selectedProject.id,
+      reference_type: 'lead',
+    })
     window.dispatchEvent(new CustomEvent('prt-projects-updated'))
     setSelectedProject(null)
     setSuccessProject({ ...selectedProject, meetLink: event.hangoutLink })

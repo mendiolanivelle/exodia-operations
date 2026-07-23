@@ -11,31 +11,31 @@ import ProjectList from '../components/ProjectList'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
-const VIEWED_IDS_KEY = 'prt_viewed_ids'
-const NOTIF_KEY = 'op_notifications'
 
 function Dashboard() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [totalTickets, setTotalTickets] = useState(0)
   const [teamMemberCount, setTeamMemberCount] = useState(0)
   const [projectCount, setProjectCount] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showNotif, setShowNotif] = useState(false)
-  const [notifications, setNotifications] = useState(() => JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'))
-  const prevCountRef = useRef(totalTickets)
+  const [notifications, setNotifications] = useState([])
+  const [unreadTickets, setUnreadTickets] = useState(0)
+  const [unreadDiscovery, setUnreadDiscovery] = useState(0)
+  const [unreadNotif, setUnreadNotif] = useState(0)
+  const prevCountRef = useRef(0)
   const notifPanelRef = useRef(null)
 
-  const viewedIds = JSON.parse(localStorage.getItem(VIEWED_IDS_KEY) || '[]')
-  const unread = Math.max(0, totalTickets - viewedIds.length)
-  const notifRef = useRef(notifications)
-  notifRef.current = notifications
+  const totalUnread = unreadTickets + unreadDiscovery + unreadNotif
 
-  const addNotif = (msg) => {
-    const entry = { id: Date.now(), msg, time: new Date().toLocaleString(), read: false }
-    const updated = [entry, ...notifRef.current].slice(0, 50)
-    setNotifications(updated)
-    localStorage.setItem(NOTIF_KEY, JSON.stringify(updated))
+  const fetchNotifications = async () => {
+    try {
+      const { data, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(50)
+      if (!error && data) {
+        setNotifications(data)
+        setUnreadNotif(data.filter(n => !n.read).length)
+      }
+    } catch {}
   }
 
   useEffect(() => {
@@ -43,37 +43,51 @@ function Dashboard() {
     if (params.get('tracking_id')) {
       setActiveTab('project-review')
     }
-    const handler = () => setRefreshKey(k => k + 1)
+    const handler = () => {
+      setRefreshKey(k => k + 1)
+      fetchNotifications()
+    }
     window.addEventListener('prt-viewed', handler)
+    window.addEventListener('prt-projects-updated', handler)
     const closeNotif = (e) => {
       if (notifPanelRef.current && !notifPanelRef.current.contains(e.target)) setShowNotif(false)
     }
     window.addEventListener('mousedown', closeNotif)
     return () => {
       window.removeEventListener('prt-viewed', handler)
+      window.removeEventListener('prt-projects-updated', handler)
       window.removeEventListener('mousedown', closeNotif)
     }
   }, [])
 
   useEffect(() => {
-    const fetchCount = async () => {
+    const fetchCounts = async () => {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/project_review_tickets?select=tracking_id&status=eq.Sent`, {
-          headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-        })
-        if (res.ok) {
-          const data = await res.json()
-          const unique = new Set((data || []).map(t => t.tracking_id).filter(Boolean))
-          const count = unique.size
-          if (prevCountRef.current > 0 && count > prevCountRef.current) {
-            const entry = { id: Date.now(), msg: 'New project review ticket added', time: new Date().toLocaleString(), read: false }
-            const updated = [entry, ...notifRef.current].slice(0, 50)
-            setNotifications(updated)
-            localStorage.setItem(NOTIF_KEY, JSON.stringify(updated))
+        const { count: ticketCount } = await supabase.from('project_review_tickets').select('*', { count: 'exact', head: true }).eq('status', 'Sent').eq('viewed', false)
+        if (ticketCount !== null) {
+          if (prevCountRef.current > 0 && ticketCount > prevCountRef.current) {
+            const { data: newTickets } = await supabase.from('project_review_tickets').select('tracking_id, project_name').eq('status', 'Sent').eq('viewed', false)
+            if (newTickets && newTickets.length > 0) {
+              const prev = prevCountRef.current
+              const newlyAdded = newTickets.slice(0, ticketCount - prev)
+              for (const t of newlyAdded) {
+                await supabase.from('notifications').insert({
+                  type: 'new_ticket',
+                  message: `New project review ticket added \u2013 ${t.project_name || t.tracking_id}`,
+                  reference_id: t.tracking_id,
+                  reference_type: 'ticket',
+                })
+              }
+            }
           }
-          prevCountRef.current = count
-          setTotalTickets(count)
+          prevCountRef.current = ticketCount
+          setUnreadTickets(ticketCount)
         }
+      } catch {}
+
+      try {
+        const { count: discCount } = await supabase.from('potential_projects').select('*', { count: 'exact', head: true }).eq('status', 'discovery_scheduled').eq('discovery_viewed', false)
+        if (discCount !== null) setUnreadDiscovery(discCount)
       } catch {}
     }
     const fetchTeamCount = async () => {
@@ -102,15 +116,26 @@ function Dashboard() {
         if (count !== null) setProjectCount(count)
       } catch {}
     }
-    fetchCount()
+    fetchCounts()
+    fetchNotifications()
     fetchTeamCount()
     fetchProjectCount()
-    const interval = setInterval(fetchCount, 10000)
+    const interval = setInterval(fetchCounts, 10000)
     return () => clearInterval(interval)
   }, [])
 
   const handleProjectReviewClick = () => {
     setActiveTab('project-review')
+  }
+
+  const markNotifRead = async (id) => {
+    await supabase.from('notifications').update({ read: true }).eq('id', id)
+    fetchNotifications()
+  }
+
+  const clearAllNotifs = async () => {
+    await supabase.from('notifications').update({ read: true }).eq('read', false)
+    fetchNotifications()
   }
 
   return (
@@ -124,9 +149,9 @@ function Dashboard() {
           <div className="relative" ref={notifPanelRef}>
             <button onClick={() => setShowNotif(v => !v)} className="relative cursor-pointer">
               <Icon icon="lucide:bell" className="w-5 h-5 text-[#CACDD7] hover:text-white transition-colors" />
-              {unread > 0 && (
+              {totalUnread > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">
-                  {unread > 99 ? '99+' : unread}
+                  {totalUnread > 99 ? '99+' : totalUnread}
                 </span>
               )}
             </button>
@@ -135,16 +160,16 @@ function Dashboard() {
                 <div className="p-3 border-b border-[#CACDD7]/30 flex items-center justify-between">
                   <h3 className="text-[#1B1A1C] text-sm font-semibold">Notifications</h3>
                   {notifications.length > 0 && (
-                    <button onClick={() => { setNotifications([]); localStorage.removeItem(NOTIF_KEY) }} className="text-xs text-[#3E4048] hover:text-red-500 cursor-pointer">Clear all</button>
+                    <button onClick={clearAllNotifs} className="text-xs text-[#3E4048] hover:text-red-500 cursor-pointer">Clear all</button>
                   )}
                 </div>
                 {notifications.length === 0 ? (
                   <div className="p-6 text-center text-[#3E4048] text-sm">No notifications yet.</div>
                 ) : (
                   notifications.map(n => (
-                    <div key={n.id} className="px-4 py-3 border-b border-[#CACDD7]/20 text-sm hover:bg-gray-50">
-                      <p className="text-[#1B1A1C]">{n.msg}</p>
-                      <p className="text-[#3E4048] text-xs mt-0.5">{n.time}</p>
+                    <div key={n.id} className={`px-4 py-3 border-b border-[#CACDD7]/20 text-sm hover:bg-gray-50 cursor-pointer ${!n.read ? 'bg-orange-50' : ''}`} onClick={() => markNotifRead(n.id)}>
+                      <p className="text-[#1B1A1C]">{n.message}</p>
+                      <p className="text-[#3E4048] text-xs mt-0.5">{n.created_at ? new Date(n.created_at).toLocaleString() : ''}</p>
                     </div>
                   ))
                 )}
@@ -225,7 +250,12 @@ function Dashboard() {
             }`}
           >
             <Icon icon="lucide:folder-kanban" className="w-4 h-4 flex-shrink-0" />
-            Project List
+            <span className="flex-1">Project List</span>
+            {unreadDiscovery > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                {unreadDiscovery > 99 ? '99+' : unreadDiscovery}
+              </span>
+            )}
           </button>
           <button
             onClick={handleProjectReviewClick}
@@ -237,9 +267,9 @@ function Dashboard() {
           >
             <Icon icon="lucide:file-text" className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1">Project Review Ticket</span>
-            {unread > 0 && (
+            {unreadTickets > 0 && (
               <span className="bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
-                {unread > 99 ? '99+' : unread}
+                {unreadTickets > 99 ? '99+' : unreadTickets}
               </span>
             )}
           </button>
