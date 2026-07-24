@@ -652,7 +652,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   const available = roleCounts[r.role] || 0
                   const insufficient = available === 0 || r.headcount > available
                   return (
-                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-center p-2 rounded-lg ${insufficient ? 'bg-gray-100 opacity-60' : ''}`}>
+                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-center p-2 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-[#1B1A1C]">{r.role} &ndash; {r.level}</span>
                       <span className="text-xs text-[#3E4048]">({available} avail)</span>
