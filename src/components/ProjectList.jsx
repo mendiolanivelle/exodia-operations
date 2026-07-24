@@ -615,7 +615,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(0, 'Resource Planning', 'lucide:users')}
             {sectionsExpanded[0] && (
-              <div className="px-5 pb-6 space-y-5">
+              <div className="px-5 pb-6 pt-2 space-y-5">
 <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Roles Needed *</label>
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -751,7 +751,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(1, 'Preliminary Timeline Estimate', 'lucide:calendar')}
             {sectionsExpanded[1] && (
-              <div className="px-5 pb-6 space-y-5">
+              <div className="px-5 pb-6 pt-2 space-y-5">
                 <div className="grid grid-cols-2 gap-5">
                 <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Estimated Duration *</label>
@@ -802,7 +802,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle')}
             {sectionsExpanded[2] && (
-              <div className="px-5 pb-6 space-y-5">
+              <div className="px-5 pb-6 pt-2 space-y-5">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-[#1B1A1C] text-sm font-medium">Known Risks</label>
@@ -837,7 +837,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(3, 'Tools & System Requirements', 'lucide:wrench')}
             {sectionsExpanded[3] && (
-              <div className="px-5 pb-6 space-y-5">
+              <div className="px-5 pb-6 pt-2 space-y-5">
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Required Tools / Licenses *</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
@@ -914,7 +914,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(4, 'Readiness Decision (Go/No-Go)', 'lucide:flag')}
             {sectionsExpanded[4] && (
-              <div className="px-5 pb-6 space-y-5">
+              <div className="px-5 pb-6 pt-2 space-y-5">
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-3 block">Decision *</label>
                   <div className="space-y-2">
