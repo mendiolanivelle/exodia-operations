@@ -723,7 +723,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <div className="col-span-3 text-xs text-amber-600 flex items-center justify-between -mt-1">
                         <div className="flex items-center gap-1">
                           <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
-                          Not enough manpower available for this role. Requested {r.headcount}, only {available} available.
+                          Not enough manpower available for this role. Needed {r.headcount}, only {available} available.
                         </div>
                         <a
                           href="https://hr.exodiagamedev.com/haf-form"
