@@ -669,9 +669,20 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <input value={r.assignees} onChange={e => updateNested('roles', i, 'assignees', e.target.value)} placeholder="Names" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                     </div>
                     {insufficient && (
-                      <div className="col-span-3 text-xs text-amber-600 flex items-center gap-1 -mt-1">
-                        <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
-                        Not enough manpower available for this role. Requested {r.headcount}, only {available} available.
+                      <div className="col-span-3 text-xs text-amber-600 flex items-center justify-between -mt-1">
+                        <div className="flex items-center gap-1">
+                          <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                          Not enough manpower available for this role. Requested {r.headcount}, only {available} available.
+                        </div>
+                        <a
+                          href="https://hr.exodiagamedev.com/haf-form"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                        >
+                          <Icon icon="lucide:external-link" className="w-3 h-3" />
+                          HAF
+                        </a>
                       </div>
                     )}
                   </div>
