@@ -615,9 +615,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(0, 'Resource Planning', 'lucide:users')}
             {sectionsExpanded[0] && (
-              <div className="px-5 pb-5 space-y-4">
+              <div className="px-5 pb-6 space-y-5">
 <div>
-                    <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Roles Needed *</label>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Roles Needed *</label>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {form.roles.map((r, i) => (
                         <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
@@ -637,7 +637,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                             onBlur={() => setTimeout(() => setShowRoleDropdown(false), 200)}
                             onKeyDown={e => { if (e.key === 'Enter' && filteredRoles.length === 1) { e.preventDefault(); addRole(filteredRoles[0]) } }}
                             placeholder="Add a role..."
-                            className="w-full pl-8 pr-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                            className="w-full pl-8 pr-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
                           />
                         </div>
                       </div>
@@ -647,7 +647,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                             <button
                               key={`${entry.role}|${entry.level}`}
                               onClick={() => { addRole(entry); setShowRoleDropdown(false) }}
-                              className="w-full text-left px-3 py-2 text-sm text-[#1B1A1C] hover:bg-orange-50 flex items-center justify-between cursor-pointer"
+                              className="w-full text-left px-3 py-2.5 text-sm text-[#1B1A1C] hover:bg-orange-50 flex items-center justify-between cursor-pointer"
                             >
                               <span>{entry.label}</span>
                               <span className="text-xs text-[#3E4048]">{roleCounts[entry.role] || 0} available</span>
@@ -661,7 +661,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   const available = roleCounts[r.role] || 0
                   const insufficient = available === 0 || r.headcount > available
                   return (
-                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-start p-3 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
+                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-4 items-start p-3 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
                     <div className="flex items-center gap-2 pt-1.5">
                       <span className="text-sm font-medium text-[#1B1A1C]">{r.role} &ndash; {r.level}</span>
                       <span className="text-xs text-[#3E4048]">({available} avail)</span>
@@ -673,7 +673,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     </div>
                     <div>
                       <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Qty</label>
-                      <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                     </div>
                     <div>
                       <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Assignee</label>
@@ -687,7 +687,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                             onFocus={() => { setAssigneeSearch(''); setOpenAssigneeIdx(i) }}
                             onBlur={() => setTimeout(() => setOpenAssigneeIdx(null), 200)}
                             placeholder="Select Manpower"
-                            className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                            className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
                           />
                           {openAssigneeIdx === i && (
                             <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-36 overflow-y-auto">
@@ -751,13 +751,13 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(1, 'Preliminary Timeline Estimate', 'lucide:calendar')}
             {sectionsExpanded[1] && (
-              <div className="px-5 pb-5 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Estimated Duration *</label>
+              <div className="px-5 pb-6 space-y-5">
+                <div className="grid grid-cols-2 gap-5">
+                <div>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Estimated Duration *</label>
                     <div className="flex gap-2">
-                      <input type="number" min="1" value={form.estimatedDuration} onChange={e => update('estimatedDuration', e.target.value)} className="w-24 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                      <select value={form.durationUnit} onChange={e => update('durationUnit', e.target.value)} className="px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                      <input type="number" min="1" value={form.estimatedDuration} onChange={e => update('estimatedDuration', e.target.value)} className="w-24 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <select value={form.durationUnit} onChange={e => update('durationUnit', e.target.value)} className="px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="days">Days</option>
                         <option value="weeks">Weeks</option>
                       </select>
@@ -765,7 +765,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                   <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Estimated Start Date *</label>
-                    <input type="date" value={form.estimatedStartDate} onChange={e => update('estimatedStartDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                    <input type="date" value={form.estimatedStartDate} onChange={e => update('estimatedStartDate', e.target.value)} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                   </div>
                 </div>
                 <div>
@@ -776,7 +776,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         key={l}
                         type="button"
                         onClick={() => update('confidenceLevel', l)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                        className={`px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
                           form.confidenceLevel === l
                             ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
                             : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
@@ -789,9 +789,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Basis of Estimate *</label>
-                  <textarea value={form.basisOfEstimate} onChange={e => update('basisOfEstimate', e.target.value)} rows={2} placeholder="Describe how this estimate was derived" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <textarea value={form.basisOfEstimate} onChange={e => update('basisOfEstimate', e.target.value)} rows={2} placeholder="Describe how this estimate was derived" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-800 leading-relaxed">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 text-xs text-amber-800 leading-relaxed">
                   This is a preliminary estimate. Final timeline will be locked after client submits detailed requirements.
                 </div>
               </div>
@@ -802,9 +802,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle')}
             {sectionsExpanded[2] && (
-              <div className="px-5 pb-5 space-y-4">
+              <div className="px-5 pb-6 space-y-5">
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <label className="text-[#1B1A1C] text-sm font-medium">Known Risks</label>
                     <button onClick={addRisk} type="button" className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Risk</button>
                   </div>
@@ -823,11 +823,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Dependencies (optional)</label>
-                  <textarea value={form.dependencies} onChange={e => update('dependencies', e.target.value)} rows={2} placeholder="List any dependencies" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <textarea value={form.dependencies} onChange={e => update('dependencies', e.target.value)} rows={2} placeholder="List any dependencies" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Client-Side Constraints (optional)</label>
-                  <textarea value={form.clientConstraints} onChange={e => update('clientConstraints', e.target.value)} rows={2} placeholder="List any client constraints" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <textarea value={form.clientConstraints} onChange={e => update('clientConstraints', e.target.value)} rows={2} placeholder="List any client constraints" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
               </div>
             )}
@@ -837,9 +837,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(3, 'Tools & System Requirements', 'lucide:wrench')}
             {sectionsExpanded[3] && (
-              <div className="px-5 pb-5 space-y-4">
+              <div className="px-5 pb-6 space-y-5">
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Required Tools / Licenses *</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Required Tools / Licenses *</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {form.requiredTools.map((t, i) => (
                       <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
@@ -860,13 +860,13 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {TOOL_OPTIONS.filter(o => !form.requiredTools.includes(o)).map(o => (
-                      <button key={o} onClick={() => addTool(o)} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2 py-0.5 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
+                      <button key={o} onClick={() => addTool(o)} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2.5 py-1 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
                     ))}
                   </div>
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Infrastructure Needed (optional)</label>
-                  <textarea value={form.infrastructureNeeded} onChange={e => update('infrastructureNeeded', e.target.value)} rows={2} placeholder="Describe infrastructure requirements" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <textarea value={form.infrastructureNeeded} onChange={e => update('infrastructureNeeded', e.target.value)} rows={2} placeholder="Describe infrastructure requirements" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Access Needed</label>
@@ -902,7 +902,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       value={form.itApproverName}
                       onChange={e => update('itApproverName', e.target.value)}
                       placeholder="IT Approver Name *"
-                      className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                      className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
                     />
                   )}
                 </div>
@@ -914,7 +914,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(4, 'Readiness Decision (Go/No-Go)', 'lucide:flag')}
             {sectionsExpanded[4] && (
-              <div className="px-5 pb-5 space-y-4">
+              <div className="px-5 pb-6 space-y-5">
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-3 block">Decision *</label>
                   <div className="space-y-2">
@@ -923,7 +923,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       { value: 'conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
                       { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
                     ].map(opt => (
-                      <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      <label key={opt.value} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
                         form.decision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7] hover:bg-gray-50'
                       }`}>
                         <input type="radio" name="decision" value={opt.value} checked={form.decision === opt.value} onChange={e => update('decision', e.target.value)} className="accent-[#FF5900]" />
@@ -936,39 +936,39 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 {form.decision === 'conditions' && (
                   <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Conditions *</label>
-                    <textarea value={form.conditions} onChange={e => update('conditions', e.target.value)} rows={3} placeholder="Describe the conditions for proceeding" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                    <textarea value={form.conditions} onChange={e => update('conditions', e.target.value)} rows={3} placeholder="Describe the conditions for proceeding" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                   </div>
                 )}
                 {form.decision === 'decline' && (
                   <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Decline Reason *</label>
-                    <textarea value={form.declineReason} onChange={e => update('declineReason', e.target.value)} rows={3} placeholder="Explain why this project is being declined" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                    <textarea value={form.declineReason} onChange={e => update('declineReason', e.target.value)} rows={3} placeholder="Explain why this project is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                   </div>
                 )}
                 <div className="border-t border-[#CACDD7]/30 pt-3 space-y-3">
                   <p className="text-sm font-semibold text-[#1B1A1C]">Approvals</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2 border border-[#CACDD7]/30 rounded-lg p-3 bg-white">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3 border border-[#CACDD7]/30 rounded-lg p-4 bg-white">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={form.opsManagerApproval} onChange={e => update('opsManagerApproval', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
                         <span className="text-sm font-medium text-[#1B1A1C]">Ops Manager *</span>
                       </label>
                       {form.opsManagerApproval && (
                         <div className="space-y-2">
-                          <input value={form.opsManagerName} onChange={e => update('opsManagerName', e.target.value)} placeholder="Name *" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                          <input type="date" value={form.opsManagerDate} onChange={e => update('opsManagerDate', e.target.value)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                          <input value={form.opsManagerName} onChange={e => update('opsManagerName', e.target.value)} placeholder="Name *" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                          <input type="date" value={form.opsManagerDate} onChange={e => update('opsManagerDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                         </div>
                       )}
                     </div>
-                    <div className="space-y-2 border border-[#CACDD7]/30 rounded-lg p-3 bg-white">
+                    <div className="space-y-3 border border-[#CACDD7]/30 rounded-lg p-4 bg-white">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={form.cooApproval} onChange={e => update('cooApproval', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
                         <span className="text-sm font-medium text-[#1B1A1C]">COO *</span>
                       </label>
                       {form.cooApproval && (
                         <div className="space-y-2">
-                          <input value={form.cooName} onChange={e => update('cooName', e.target.value)} placeholder="Name *" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                          <input type="date" value={form.cooDate} onChange={e => update('cooDate', e.target.value)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                          <input value={form.cooName} onChange={e => update('cooName', e.target.value)} placeholder="Name *" className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                          <input type="date" value={form.cooDate} onChange={e => update('cooDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                         </div>
                       )}
                     </div>
