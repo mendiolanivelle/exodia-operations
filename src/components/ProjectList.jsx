@@ -661,8 +661,8 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   const available = roleCounts[r.role] || 0
                   const insufficient = available === 0 || r.headcount > available
                   return (
-                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-center p-2 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
-                    <div className="flex items-center gap-2">
+                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-start p-2 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
+                    <div className="flex items-center gap-2 pt-1.5">
                       <span className="text-sm font-medium text-[#1B1A1C]">{r.role} &ndash; {r.level}</span>
                       <span className="text-xs text-[#3E4048]">({available} avail)</span>
                       {insufficient && (
@@ -672,9 +672,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       )}
                     </div>
                     <div>
+                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Qty</label>
                       <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                     </div>
                     <div>
+                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Assignee</label>
                       {available === 0 ? (
                         <input value="No Manpower" disabled className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm bg-gray-100 text-[#3E4048] cursor-not-allowed" />
                       ) : (
