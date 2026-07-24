@@ -619,15 +619,18 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     </div>
                     <div className="relative">
                       <div className="flex gap-2 items-center">
-                        <input
-                          value={roleInput}
-                          onChange={e => { setRoleInput(e.target.value); setShowRoleDropdown(true) }}
-                          onFocus={() => setShowRoleDropdown(true)}
-                          onBlur={() => setTimeout(() => setShowRoleDropdown(false), 200)}
-                          onKeyDown={e => { if (e.key === 'Enter' && filteredRoles.length === 1) { e.preventDefault(); addRole(filteredRoles[0]) } }}
-                          placeholder="Search for a role..."
-                          className="flex-1 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
-                        />
+                        <div className="relative flex-1">
+                          <Icon icon="lucide:plus-circle" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3E4048] pointer-events-none" />
+                          <input
+                            value={roleInput}
+                            onChange={e => { setRoleInput(e.target.value); setShowRoleDropdown(true) }}
+                            onFocus={() => setShowRoleDropdown(true)}
+                            onBlur={() => setTimeout(() => setShowRoleDropdown(false), 200)}
+                            onKeyDown={e => { if (e.key === 'Enter' && filteredRoles.length === 1) { e.preventDefault(); addRole(filteredRoles[0]) } }}
+                            placeholder="Add a role..."
+                            className="w-full pl-8 pr-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                          />
+                        </div>
                       </div>
                       {showRoleDropdown && filteredRoles.length > 0 && (
                         <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-48 overflow-y-auto">
