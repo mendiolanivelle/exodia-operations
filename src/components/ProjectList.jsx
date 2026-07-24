@@ -575,7 +575,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     <button
       type="button"
       onClick={() => toggleSection(idx)}
-      className="w-full flex items-center justify-between py-3 px-1 bg-white rounded-lg cursor-pointer group"
+      className="w-full flex items-center justify-between py-4 px-5 bg-white rounded-lg cursor-pointer group"
     >
       <div className="flex items-center gap-2">
         <Icon icon={icon} className="w-4 h-4 text-[#FF5900]" />
@@ -589,10 +589,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
+        <div className="flex items-center justify-between p-6 pb-2 flex-shrink-0">
           <div>
             <h3 className="text-[#1B1A1C] text-lg font-bold">Internal Planning & Readiness</h3>
-            <p className="text-xs text-[#3E4048] mt-1">
+            <p className="text-xs text-[#3E4048] mt-1.5">
               {project.tracking_id} &middot; {project.client_name} &middot; {project.project_name}
             </p>
           </div>
@@ -601,24 +601,24 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           </button>
         </div>
 
-        <div className="px-6 pt-3 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-              <div className="bg-[#FF5900] h-1.5 rounded-full transition-all" style={{ width: `${(completedSections / 5) * 100}%` }} />
+        <div className="px-6 pt-4 pb-1 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <div className="bg-[#FF5900] h-2 rounded-full transition-all" style={{ width: `${(completedSections / 5) * 100}%` }} />
             </div>
             <span className="text-xs text-[#3E4048] font-medium whitespace-nowrap">{completedSections} of 5 sections complete</span>
           </div>
         </div>
 
-        <div className="overflow-y-auto p-6 pt-4 space-y-1 flex-1">
+        <div className="overflow-y-auto p-6 pt-5 space-y-5 flex-1">
           {/* SECTION 1 */}
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(0, 'Resource Planning', 'lucide:users')}
             {sectionsExpanded[0] && (
-              <div className="px-4 pb-4 space-y-3">
+              <div className="px-5 pb-5 space-y-4">
 <div>
-                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Roles Needed *</label>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Roles Needed *</label>
+                    <div className="flex flex-wrap gap-2 mb-3">
                       {form.roles.map((r, i) => (
                         <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
                           {r.role} &ndash; {r.level}
@@ -661,7 +661,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   const available = roleCounts[r.role] || 0
                   const insufficient = available === 0 || r.headcount > available
                   return (
-                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-start p-2 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
+                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-start p-3 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
                     <div className="flex items-center gap-2 pt-1.5">
                       <span className="text-sm font-medium text-[#1B1A1C]">{r.role} &ndash; {r.level}</span>
                       <span className="text-xs text-[#3E4048]">({available} avail)</span>
@@ -739,7 +739,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                   )
                 })}
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2.5 cursor-pointer pt-1">
                   <input type="checkbox" checked={form.teamAvailabilityConfirmed} onChange={e => update('teamAvailabilityConfirmed', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
                   <span className="text-sm text-[#1B1A1C]">Team Availability Confirmed *</span>
                 </label>
@@ -751,10 +751,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(1, 'Preliminary Timeline Estimate', 'lucide:calendar')}
             {sectionsExpanded[1] && (
-              <div className="px-4 pb-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="px-5 pb-5 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Estimated Duration *</label>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Estimated Duration *</label>
                     <div className="flex gap-2">
                       <input type="number" min="1" value={form.estimatedDuration} onChange={e => update('estimatedDuration', e.target.value)} className="w-24 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                       <select value={form.durationUnit} onChange={e => update('durationUnit', e.target.value)} className="px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
@@ -802,9 +802,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle')}
             {sectionsExpanded[2] && (
-              <div className="px-4 pb-4 space-y-3">
+              <div className="px-5 pb-5 space-y-4">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <label className="text-[#1B1A1C] text-sm font-medium">Known Risks</label>
                     <button onClick={addRisk} type="button" className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Risk</button>
                   </div>
@@ -837,9 +837,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(3, 'Tools & System Requirements', 'lucide:wrench')}
             {sectionsExpanded[3] && (
-              <div className="px-4 pb-4 space-y-3">
+              <div className="px-5 pb-5 space-y-4">
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Required Tools / Licenses *</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Required Tools / Licenses *</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {form.requiredTools.map((t, i) => (
                       <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
@@ -914,9 +914,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(4, 'Readiness Decision (Go/No-Go)', 'lucide:flag')}
             {sectionsExpanded[4] && (
-              <div className="px-4 pb-4 space-y-3">
+              <div className="px-5 pb-5 space-y-4">
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Decision *</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-3 block">Decision *</label>
                   <div className="space-y-2">
                     {[
                       { value: 'proceed', label: 'Proceed as-is', icon: 'lucide:check-circle', color: 'text-green-600' },
@@ -985,7 +985,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-[#CACDD7]/30 flex-shrink-0">
+        <div className="flex items-center justify-end gap-3 px-6 py-5 border-t border-[#CACDD7]/30 flex-shrink-0">
           <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
             Cancel
           </button>
