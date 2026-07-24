@@ -425,14 +425,17 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [customAccessInput, setCustomAccessInput] = useState('')
   const [roleOptions, setRoleOptions] = useState([])
   const [roleCounts, setRoleCounts] = useState({})
+  const [roleEmployees, setRoleEmployees] = useState({})
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
+  const [openAssigneeIdx, setOpenAssigneeIdx] = useState(null)
+  const [assigneeSearch, setAssigneeSearch] = useState('')
 
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
 
   useEffect(() => {
     const fetchRoles = async () => {
       const { data: pricing } = await supabase.from('manpower_pricing').select('role, level')
-      const { data: employees } = await supabase.from('employee_master').select('position_title').eq('department_text', 'Operation')
+      const { data: employees } = await supabase.from('employee_master').select('position_title, full_name').eq('department_text', 'Operation')
       if (pricing) {
         const seen = new Set()
         const combined = pricing
@@ -449,11 +452,17 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       }
       if (employees) {
         const counts = {}
+        const names = {}
         employees.forEach(e => {
           const t = e.position_title?.trim()
-          if (t) counts[t] = (counts[t] || 0) + 1
+          if (t) {
+            counts[t] = (counts[t] || 0) + 1
+            if (!names[t]) names[t] = []
+            if (e.full_name) names[t].push(e.full_name)
+          }
         })
         setRoleCounts(counts)
+        setRoleEmployees(names)
       }
     }
     fetchRoles()
@@ -666,7 +675,47 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                     </div>
                     <div>
-                      <input value={r.assignees} onChange={e => updateNested('roles', i, 'assignees', e.target.value)} placeholder="Names" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      {available === 0 ? (
+                        <input value="No Manpower" disabled className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm bg-gray-100 text-[#3E4048] cursor-not-allowed" />
+                      ) : (
+                        <div className="relative">
+                          <input
+                            value={openAssigneeIdx === i ? assigneeSearch : r.assignees}
+                            onChange={e => { setAssigneeSearch(e.target.value); setOpenAssigneeIdx(i) }}
+                            onFocus={() => { setAssigneeSearch(''); setOpenAssigneeIdx(i) }}
+                            onBlur={() => setTimeout(() => setOpenAssigneeIdx(null), 200)}
+                            placeholder="Select Manpower"
+                            className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
+                          />
+                          {openAssigneeIdx === i && (
+                            <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                              {(roleEmployees[r.role] || [])
+                                .filter(name => !assigneeSearch || name.toLowerCase().includes(assigneeSearch.toLowerCase()))
+                                .map(name => (
+                                  <button
+                                    key={name}
+                                    onClick={() => {
+                                      const current = r.assignees ? r.assignees.split(', ').filter(Boolean) : []
+                                      const updated = current.includes(name) ? current.filter(n => n !== name) : [...current, name]
+                                      updateNested('roles', i, 'assignees', updated.join(', '))
+                                      setAssigneeSearch('')
+                                      setOpenAssigneeIdx(null)
+                                    }}
+                                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${
+                                      r.assignees?.split(', ').includes(name) ? 'bg-orange-50 font-medium' : ''
+                                    }`}
+                                  >
+                                    <Icon icon={r.assignees?.split(', ').includes(name) ? 'lucide:check-square' : 'lucide:square'} className="w-3.5 h-3.5 text-[#3E4048]" />
+                                    {name}
+                                  </button>
+                                ))}
+                              {(roleEmployees[r.role] || []).filter(name => !assigneeSearch || name.toLowerCase().includes(assigneeSearch.toLowerCase())).length === 0 && (
+                                <div className="px-3 py-2 text-xs text-[#3E4048]">No matching employees</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {insufficient && (
                       <div className="col-span-3 text-xs text-amber-600 flex items-center justify-between -mt-1">
