@@ -431,11 +431,21 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
   useEffect(() => {
     const fetchRoles = async () => {
-      const { data: pricing } = await supabase.from('manpower_pricing').select('role')
+      const { data: pricing } = await supabase.from('manpower_pricing').select('role, level')
       const { data: employees } = await supabase.from('employee_master').select('position_title').eq('department_text', 'Operation')
       if (pricing) {
-        const unique = [...new Set(pricing.map(r => r.role).filter(Boolean))]
-        setRoleOptions(unique.sort())
+        const seen = new Set()
+        const combined = pricing
+          .filter(r => r.role && r.level)
+          .filter(r => {
+            const key = `${r.role}|${r.level}`
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+          })
+          .map(r => ({ role: r.role, level: r.level, label: `${r.role} \u2013 ${r.level}` }))
+          .sort((a, b) => a.role.localeCompare(b.role) || a.level.localeCompare(b.level))
+        setRoleOptions(combined)
       }
       if (employees) {
         const counts = {}
@@ -463,9 +473,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     update(field, arr)
   }
 
-  const addRole = (role) => {
-    if (!role.trim() || form.roles.some(r => r.role === role.trim())) return
-    update('roles', [...form.roles, { role: role.trim(), headcount: 1, assignees: '' }])
+  const addRole = (roleEntry) => {
+    if (!roleEntry || form.roles.some(r => r.role === roleEntry.role && r.level === roleEntry.level)) return
+    update('roles', [...form.roles, { role: roleEntry.role, level: roleEntry.level, headcount: 1, assignees: '' }])
     setRoleInput('')
   }
 
@@ -473,9 +483,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     update('roles', form.roles.filter((_, i) => i !== idx))
   }
 
-  const filteredRoles = roleInput.trim()
-    ? roleOptions.filter(r => r.toLowerCase().includes(roleInput.toLowerCase()) && !form.roles.some(fr => fr.role === r))
-    : roleOptions.filter(r => !form.roles.some(fr => fr.role === r))
+  const filteredRoles = roleOptions.filter(r => {
+    const alreadyAdded = form.roles.some(fr => fr.role === r.role && fr.level === r.level)
+    if (alreadyAdded) return false
+    if (!roleInput.trim()) return true
+    return r.label.toLowerCase().includes(roleInput.toLowerCase()) || r.role.toLowerCase().includes(roleInput.toLowerCase())
+  })
 
   const addRisk = () => {
     update('risks', [...form.risks, { description: '', severity: 'low' }])
@@ -599,7 +612,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       {form.roles.map((r, i) => (
                         <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                          {r.role}
+                          {r.role} &ndash; {r.level}
                           <button onClick={() => removeRole(i)} className="hover:text-red-300 cursor-pointer">&times;</button>
                         </span>
                       ))}
@@ -618,14 +631,14 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       </div>
                       {showRoleDropdown && filteredRoles.length > 0 && (
                         <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filteredRoles.map(role => (
+                          {filteredRoles.map(entry => (
                             <button
-                              key={role}
-                              onClick={() => { addRole(role); setShowRoleDropdown(false) }}
+                              key={`${entry.role}|${entry.level}`}
+                              onClick={() => { addRole(entry); setShowRoleDropdown(false) }}
                               className="w-full text-left px-3 py-2 text-sm text-[#1B1A1C] hover:bg-orange-50 flex items-center justify-between cursor-pointer"
                             >
-                              <span>{role}</span>
-                              <span className="text-xs text-[#3E4048]">{roleCounts[role] || 0} available</span>
+                              <span>{entry.label}</span>
+                              <span className="text-xs text-[#3E4048]">{roleCounts[entry.role] || 0} available</span>
                             </button>
                           ))}
                         </div>
@@ -638,7 +651,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   return (
                   <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-center p-2 rounded-lg ${insufficient ? 'bg-gray-100 opacity-60' : ''}`}>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#1B1A1C]">{r.role}</span>
+                      <span className="text-sm font-medium text-[#1B1A1C]">{r.role} &ndash; {r.level}</span>
                       <span className="text-xs text-[#3E4048]">({available} avail)</span>
                       {insufficient && (
                         <span className="text-xs text-amber-600 flex items-center gap-1" title="Not enough manpower for this role">
