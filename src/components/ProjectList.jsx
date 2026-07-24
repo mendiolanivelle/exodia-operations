@@ -425,6 +425,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [customAccessInput, setCustomAccessInput] = useState('')
   const [roleOptions, setRoleOptions] = useState([])
   const [roleCounts, setRoleCounts] = useState({})
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false)
 
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
 
@@ -474,7 +475,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
   const filteredRoles = roleInput.trim()
     ? roleOptions.filter(r => r.toLowerCase().includes(roleInput.toLowerCase()) && !form.roles.some(fr => fr.role === r))
-    : []
+    : roleOptions.filter(r => !form.roles.some(fr => fr.role === r))
 
   const addRisk = () => {
     update('risks', [...form.risks, { description: '', severity: 'low' }])
@@ -607,23 +608,20 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <div className="flex gap-2 items-center">
                         <input
                           value={roleInput}
-                          onChange={e => setRoleInput(e.target.value)}
+                          onChange={e => { setRoleInput(e.target.value); setShowRoleDropdown(true) }}
+                          onFocus={() => setShowRoleDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowRoleDropdown(false), 200)}
                           onKeyDown={e => { if (e.key === 'Enter' && filteredRoles.length === 1) { e.preventDefault(); addRole(filteredRoles[0]) } }}
                           placeholder="Search for a role..."
                           className="flex-1 px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
                         />
-                        {roleInput.trim() && filteredRoles.length > 0 && (
-                          <span className="text-xs text-[#3E4048] whitespace-nowrap">
-                            Available: <span className="font-semibold text-[#1B1A1C]">{roleCounts[filteredRoles[0]] || 0}</span>
-                          </span>
-                        )}
                       </div>
-                      {roleInput.trim() && filteredRoles.length > 0 && (
+                      {showRoleDropdown && filteredRoles.length > 0 && (
                         <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-48 overflow-y-auto">
                           {filteredRoles.map(role => (
                             <button
                               key={role}
-                              onClick={() => addRole(role)}
+                              onClick={() => { addRole(role); setShowRoleDropdown(false) }}
                               className="w-full text-left px-3 py-2 text-sm text-[#1B1A1C] hover:bg-orange-50 flex items-center justify-between cursor-pointer"
                             >
                               <span>{role}</span>
@@ -634,19 +632,35 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       )}
                     </div>
                   </div>
-                {form.roles.map((r, i) => (
-                  <div key={i} className="grid grid-cols-3 gap-3 items-center">
-                    <span className="text-sm font-medium text-[#1B1A1C]">{r.role}</span>
+                {form.roles.map((r, i) => {
+                  const available = roleCounts[r.role] || 0
+                  const insufficient = available === 0 || r.headcount > available
+                  return (
+                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-3 items-center p-2 rounded-lg ${insufficient ? 'bg-gray-100 opacity-60' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[#1B1A1C]">{r.role}</span>
+                      <span className="text-xs text-[#3E4048]">({available} avail)</span>
+                      {insufficient && (
+                        <span className="text-xs text-amber-600 flex items-center gap-1" title="Not enough manpower for this role">
+                          <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </div>
                     <div>
-                      <label className="text-xs text-[#3E4048]">Headcount</label>
                       <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                     </div>
                     <div>
-                      <label className="text-xs text-[#3E4048]">Assignees (optional)</label>
                       <input value={r.assignees} onChange={e => updateNested('roles', i, 'assignees', e.target.value)} placeholder="Names" className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                     </div>
+                    {insufficient && (
+                      <div className="col-span-3 text-xs text-amber-600 flex items-center gap-1 -mt-1">
+                        <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                        Not enough manpower available for this role. Requested {r.headcount}, only {available} available.
+                      </div>
+                    )}
                   </div>
-                ))}
+                  )
+                })}
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.teamAvailabilityConfirmed} onChange={e => update('teamAvailabilityConfirmed', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
                   <span className="text-sm text-[#1B1A1C]">Team Availability Confirmed *</span>
