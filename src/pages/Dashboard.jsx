@@ -8,6 +8,7 @@ import ManpowerPricing from '../components/ManpowerPricing'
 import RoleInventory from '../components/RoleInventory'
 import ProjectReviewTicket from '../components/ProjectReviewTicket'
 import ProjectList from '../components/ProjectList'
+import DepartmentSalaryStructure from '../components/DepartmentSalaryStructure'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -258,6 +259,17 @@ function Dashboard() {
             <Icon icon="lucide:dollar-sign" className="w-4 h-4 flex-shrink-0" />
             Manpower & Pricing
           </button>
+          <button
+            onClick={() => setActiveTab('dept-salary')}
+            className={`w-full text-left px-5 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-3 ${
+              activeTab === 'dept-salary'
+                ? 'bg-[#FF5900] text-white'
+                : 'text-[#CACDD7] hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <Icon icon="lucide:building" className="w-4 h-4 flex-shrink-0" />
+            Department Salary Structure
+          </button>
         </aside>
 
         <main className="flex-1 min-w-0 p-10">
@@ -296,6 +308,7 @@ function Dashboard() {
           {activeTab === 'project-review' && <ProjectReviewTicket onGoToProjectList={() => setActiveTab('project-list')} userEmail={user?.email} />}
 
           {activeTab === 'manpower-pricing' && <ManpowerPricing />}
+          {activeTab === 'dept-salary' && <DepartmentSalaryStructure />}
         </main>
       </div>
     </div>
