@@ -427,8 +427,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [roleCounts, setRoleCounts] = useState({})
   const [roleEmployees, setRoleEmployees] = useState({})
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
-  const [openAssigneeIdx, setOpenAssigneeIdx] = useState(null)
-  const [assigneeSearch, setAssigneeSearch] = useState('')
 
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
 
@@ -657,85 +655,77 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       )}
                     </div>
                   </div>
-                {form.roles.map((r, i) => {
+{form.roles.map((r, i) => {
                   const available = roleCounts[r.role] || 0
                   const insufficient = available === 0 || r.headcount > available
+                  const gap = Math.max(0, r.headcount - available)
                   return (
-                  <div key={i} className={`grid grid-cols-[1fr_80px_1fr] gap-4 items-start p-3 rounded-lg ${insufficient ? 'bg-gray-100' : ''}`}>
-                    <div className="flex items-center gap-2 pt-1.5">
-                      <span className={`text-sm font-medium ${insufficient ? 'text-[#3E4048]' : 'text-[#1B1A1C]'}`}>{r.role} &ndash; {r.level}</span>
-                      <span className="text-xs text-[#3E4048]">({available} avail)</span>
-                      {insufficient && (
-                        <span className="text-xs text-amber-600 flex items-center gap-1" title="Not enough manpower for this role">
-                          <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <label className={`text-[10px] font-medium block mb-1 ${insufficient ? 'text-[#3E4048]' : 'text-[#3E4048]'}`}>Qty</label>
-                      <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Assignee</label>
-                      {available === 0 ? (
-                        <input value="No Manpower" disabled className="w-full px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm bg-gray-100 text-[#3E4048] cursor-not-allowed" />
-                      ) : (
-                        <div className="relative">
-                          <input
-                            value={openAssigneeIdx === i ? assigneeSearch : r.assignees}
-                            onChange={e => { setAssigneeSearch(e.target.value); setOpenAssigneeIdx(i) }}
-                            onFocus={() => { setAssigneeSearch(''); setOpenAssigneeIdx(i) }}
-                            onBlur={() => setTimeout(() => setOpenAssigneeIdx(null), 200)}
-                            placeholder="Select Manpower"
-                            className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
-                          />
-                          {openAssigneeIdx === i && (
-                            <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-white border border-[#CACDD7] rounded-lg shadow-lg max-h-36 overflow-y-auto">
-                              {(roleEmployees[r.role] || [])
-                                .filter(name => !assigneeSearch || name.toLowerCase().includes(assigneeSearch.toLowerCase()))
-                                .map(name => (
-                                  <button
-                                    key={name}
-                                    onClick={() => {
-                                      const current = r.assignees ? r.assignees.split(', ').filter(Boolean) : []
-                                      const updated = current.includes(name) ? current.filter(n => n !== name) : [...current, name]
-                                      updateNested('roles', i, 'assignees', updated.join(', '))
-                                      setAssigneeSearch('')
-                                      setOpenAssigneeIdx(null)
-                                    }}
-                                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${
-                                      r.assignees?.split(', ').includes(name) ? 'bg-orange-50 font-medium' : ''
-                                    }`}
-                                  >
-                                    <Icon icon={r.assignees?.split(', ').includes(name) ? 'lucide:check-square' : 'lucide:square'} className="w-3.5 h-3.5 text-[#3E4048]" />
-                                    {name}
-                                  </button>
-                                ))}
-                              {(roleEmployees[r.role] || []).filter(name => !assigneeSearch || name.toLowerCase().includes(assigneeSearch.toLowerCase())).length === 0 && (
-                                <div className="px-3 py-2 text-xs text-[#3E4048]">No matching employees</div>
-                              )}
-                            </div>
-                          )}
+                  <div key={i} className="border border-[#CACDD7]/30 rounded-xl bg-white overflow-hidden">
+                    <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-semibold text-[#1B1A1C]">{r.role}</span>
+                          <span className="text-xs text-[#3E4048] ml-2">{r.level}</span>
                         </div>
-                      )}
-                    </div>
-                    {insufficient && (
-                      <div className="col-span-3 flex items-center justify-between -mt-1">
-                        <div className="flex items-center gap-1 text-xs text-amber-600">
-                          <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
-                          Not enough manpower available for this role. Needed {r.headcount}, only {available} available.
-                        </div>
-                        <a
-                          href="https://hr.exodiagamedev.com/haf-form"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline"
-                        >
-                          <Icon icon="lucide:external-link" className="w-3 h-3" />
-                          Create HAF
-                        </a>
+                        {insufficient && (
+                          <span className="flex items-center gap-1 text-xs text-amber-600">
+                            <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
+                            Manpower Gap
+                          </span>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <div className="px-4 py-3 space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Quantity</label>
+                          <input type="number" min="1" value={r.headcount} onChange={e => updateNested('roles', i, 'headcount', parseInt(e.target.value) || 1)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Internal Capacity</label>
+                          <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#3E4048]">{available} Available</div>
+                        </div>
+                      </div>
+                      {insufficient && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1 text-xs text-amber-700">
+                              <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                              Not enough manpower available for this role. Needed {r.headcount}, only {available} available.
+                            </div>
+                            <span className="text-sm font-bold text-amber-700">{gap}</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-3 gap-4 pt-1">
+                        <div>
+                          <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Resource Status</label>
+                          <span className="text-xs font-medium text-amber-600">Manpower Gap</span>
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-[#3E4048] font-medium block mb-1">HR Status</label>
+                          <span className="text-xs text-[#3E4048]">Not Submitted</span>
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-[#3E4048] font-medium block mb-1">HAF Status</label>
+                          <span className="text-xs text-[#3E4048]">Not Created</span>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-[#CACDD7]/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-[#3E4048] font-medium">Action</span>
+                          <a
+                            href="https://hr.exodiagamedev.com/haf-form"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                          >
+                            <Icon icon="lucide:external-link" className="w-3 h-3" />
+                            Create HAF
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   )
                 })}
