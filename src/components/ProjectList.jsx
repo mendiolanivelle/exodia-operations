@@ -1717,7 +1717,7 @@ function ProjectList() {
                     className="bg-[#1B1A1C] text-white w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     <Icon icon="lucide:arrow-right-circle" className="w-4 h-4" />
-                    Proceed to Internal Planning & Readiness
+                    Start Internal Readiness Review
                   </button>
                 </div>
               )}
