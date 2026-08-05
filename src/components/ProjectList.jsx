@@ -591,7 +591,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 pb-2 flex-shrink-0">
           <div>
-            <h3 className="text-[#1B1A1C] text-lg font-bold">Internal Planning & Readiness</h3>
+            <h3 className="text-[#1B1A1C] text-lg font-bold">Internal Readiness Review</h3>
             <p className="text-xs text-[#3E4048] mt-1.5">
               {project.tracking_id} &middot; {project.client_name} &middot; {project.project_name}
             </p>
@@ -1155,7 +1155,7 @@ function ProjectList() {
   }
 
   const handlePlanningSubmit = async (project, form) => {
-    console.log('Internal Planning & Readiness submitted', { project, form })
+    console.log('Internal Readiness Review submitted', { project, form })
   }
 
   if (loading) {
