@@ -613,7 +613,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
         <div className="overflow-y-auto p-6 pt-5 space-y-5 flex-1">
           {/* SECTION 1 */}
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
-            {sectionHeader(0, 'Resource Planning', 'lucide:users')}
+            {sectionHeader(0, 'Resource Readiness', 'lucide:users')}
             {sectionsExpanded[0] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
 <div>
@@ -732,7 +732,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity no-underline"
                         >
                           <Icon icon="lucide:external-link" className="w-3 h-3" />
-                          HAF
+                          Create HAF
                         </a>
                       </div>
                     )}
