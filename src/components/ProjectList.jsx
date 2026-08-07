@@ -400,6 +400,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     risks: [],
     dependencies: '',
     clientConstraints: '',
+    clientResponsibilities: '',
     requiredTools: [],
     infrastructureNeeded: '',
     accessNeeded: [
@@ -502,7 +503,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   })
 
   const addRisk = () => {
-    update('risks', [...form.risks, { description: '', severity: 'low' }])
+    update('risks', [...form.risks, { description: '', severity: 'low', category: '' }])
   }
 
   const removeRisk = (idx) => {
@@ -809,7 +810,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <textarea value={form.timelineDependencies} onChange={e => update('timelineDependencies', e.target.value)} rows={3} placeholder={`\u2022 Client approval\n\u2022 SDK access\n\u2022 Platform approval\n\u2022 Third-party API`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Known Timeline Risks</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Timeline Risks</label>
                   <textarea value={form.knownTimelineRisks} onChange={e => update('knownTimelineRisks', e.target.value)} rows={3} placeholder={`Possible delays due to:\n\n\u2022 Asset delivery\n\u2022 New technology\n\u2022 Unknown requirements`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div className="flex items-center gap-3 pt-2 border-t border-[#CACDD7]/30">
@@ -829,14 +830,26 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
             {sectionsExpanded[2] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-[#1B1A1C] text-sm font-medium">Known Risks</label>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[#1B1A1C] text-sm font-medium">Project Risks</label>
                     <button onClick={addRisk} type="button" className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Risk</button>
                   </div>
                   {form.risks.length === 0 && <p className="text-xs text-[#3E4048]">No risks added yet.</p>}
                   {form.risks.map((r, i) => (
                     <div key={i} className="flex gap-2 items-start mt-2">
-                      <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Describe the risk" className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <select value={r.category} onChange={e => updateNested('risks', i, 'category', e.target.value)} className="w-28 px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                        <option value="">Category</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Resource">Resource</option>
+                        <option value="Client">Client</option>
+                        <option value="Legal">Legal</option>
+                        <option value="Schedule">Schedule</option>
+                        <option value="Quality">Quality</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Risk Description" className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                       <select value={r.severity} onChange={e => updateNested('risks', i, 'severity', e.target.value)} className="px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="low">Low</option>
                         <option value="med">Med</option>
@@ -847,12 +860,16 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   ))}
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Dependencies (optional)</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Dependencies (optional)</label>
                   <textarea value={form.dependencies} onChange={e => update('dependencies', e.target.value)} rows={2} placeholder="List any dependencies" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Client-Side Constraints (optional)</label>
-                  <textarea value={form.clientConstraints} onChange={e => update('clientConstraints', e.target.value)} rows={2} placeholder="List any client constraints" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Project Constraints (optional)</label>
+                  <textarea value={form.clientConstraints} onChange={e => update('clientConstraints', e.target.value)} rows={2} placeholder="List any project constraints" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Client Responsibilities</label>
+                  <textarea value={form.clientResponsibilities} onChange={e => update('clientResponsibilities', e.target.value)} rows={4} placeholder={`\u2022 Provide final assets\n\u2022 Approve milestones\n\u2022 Deliver API documentation\n\u2022 Grant repository access\n\u2022 Provide test devices`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
               </div>
             )}
