@@ -578,7 +578,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     }
   }
 
-  const sectionHeader = (idx, title, icon) => (
+  const sectionHeader = (idx, title, icon, hideCheck) => (
     <button
       type="button"
       onClick={() => toggleSection(idx)}
@@ -587,7 +587,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       <div className="flex items-center gap-2">
         <Icon icon={icon} className="w-4 h-4 text-[#FF5900]" />
         <span className="text-sm font-semibold text-[#1B1A1C]">{title}</span>
-        {sectionValid(idx) && <Icon icon="lucide:check-circle" className="w-3.5 h-3.5 text-green-600" />}
+        {!hideCheck && sectionValid(idx) && <Icon icon="lucide:check-circle" className="w-3.5 h-3.5 text-green-600" />}
       </div>
       <Icon icon={sectionsExpanded[idx] ? 'lucide:chevron-up' : 'lucide:chevron-down'} className="w-4 h-4 text-[#3E4048]" />
     </button>
@@ -826,7 +826,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
           {/* SECTION 3 */}
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
-            {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle')}
+            {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle', true)}
             {sectionsExpanded[2] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
                 {(() => {
