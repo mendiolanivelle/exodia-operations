@@ -870,7 +870,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       </div>
                       <div className="text-xs text-[#3E4048]">Overall Risk</div>
                       {basedOn && <div className="text-[10px] text-[#3E4048] mt-0.5">Based on {basedOn}</div>}
-                      {topCategory && <div className="text-[10px] text-[#3E4048]">Highest: {topCategory[0]}</div>}
+                      {topCategory && <div className="text-[10px] text-[#3E4048] mt-1 leading-tight">Highest Risk Category<br />{topCategory[0]}</div>}
                     </div>
                   </div>
                   )
@@ -885,7 +885,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     const severityColors = { low: 'bg-green-100 text-green-700', med: 'bg-yellow-100 text-yellow-700', high: 'bg-red-100 text-red-700' }
                     return (
                     <div key={i} className="flex gap-2 items-start mt-3">
-                      <select value={r.category} onChange={e => updateNested('risks', i, 'category', e.target.value)} className="w-28 px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                      <select value={r.category} onChange={e => updateNested('risks', i, 'category', e.target.value)} className="w-24 px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="">Category</option>
                         <option value="Commercial">Commercial</option>
                         <option value="Technical">Technical</option>
@@ -898,12 +898,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         <option value="Other">Other</option>
                       </select>
                       <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Describe what could negatively affect project delivery." className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                      <select value={r.severity} onChange={e => updateNested('risks', i, 'severity', e.target.value)} className="px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                      <select value={r.severity} onChange={e => updateNested('risks', i, 'severity', e.target.value)} className="w-20 px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="low">Low</option>
                         <option value="med">Medium</option>
                         <option value="high">High</option>
                       </select>
-                      <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-full ${severityColors[r.severity]}`}>
+                      <span className={`inline-flex items-center text-xs font-semibold px-2 py-1.5 rounded-full ${severityColors[r.severity]}`}>
                         {r.severity === 'low' ? 'Low' : r.severity === 'med' ? 'Medium' : 'High'}
                       </span>
                       <button onClick={() => removeRisk(i)} className="text-red-500 hover:text-red-700 px-2 cursor-pointer">&times;</button>
