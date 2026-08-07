@@ -897,7 +897,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         <option value="Infrastructure">Infrastructure</option>
                         <option value="Other">Other</option>
                       </select>
-                      <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Describe what could negatively affect project delivery." className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <textarea value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} rows={2} placeholder="Describe what could negatively affect project delivery." className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                       <select value={r.severity} onChange={e => updateNested('risks', i, 'severity', e.target.value)} className="w-20 px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="low">Low</option>
                         <option value="med">Medium</option>
