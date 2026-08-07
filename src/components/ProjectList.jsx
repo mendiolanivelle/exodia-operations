@@ -388,11 +388,14 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [form, setForm] = useState({
     roles: [],
     teamAvailabilityConfirmed: false,
-    estimatedDuration: '',
-    durationUnit: 'days',
+    estimatedDurationFrom: '',
+    estimatedDurationTo: '',
     estimatedStartDate: '',
     confidenceLevel: '',
     basisOfEstimate: '',
+    keyAssumptions: '',
+    timelineDependencies: '',
+    timelineStatus: '',
     risks: [],
     dependencies: '',
     clientConstraints: '',
@@ -540,7 +543,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const sectionValid = (idx) => {
     switch (idx) {
       case 0: return form.roles.length > 0 && form.teamAvailabilityConfirmed
-      case 1: return form.estimatedDuration && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate
+      case 1: return form.estimatedDurationFrom && form.estimatedDurationTo && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate && form.timelineStatus
       case 2: return true
       case 3: return form.requiredTools.length > 0 && form.itConfirmation && form.itApproverName
       case 4:
@@ -739,50 +742,86 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
           {/* SECTION 2 */}
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
-            {sectionHeader(1, 'Preliminary Timeline Estimate', 'lucide:calendar')}
+            {sectionHeader(1, 'Timeline Readiness', 'lucide:calendar')}
             {sectionsExpanded[1] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
                 <div className="grid grid-cols-2 gap-5">
                 <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Estimated Duration *</label>
-                    <div className="flex gap-2">
-                      <input type="number" min="1" value={form.estimatedDuration} onChange={e => update('estimatedDuration', e.target.value)} className="w-24 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                      <select value={form.durationUnit} onChange={e => update('durationUnit', e.target.value)} className="px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                        <option value="days">Days</option>
-                        <option value="weeks">Weeks</option>
-                      </select>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[#3E4048] w-6">From</span>
+                        <input type="number" min="1" value={form.estimatedDurationFrom} onChange={e => update('estimatedDurationFrom', e.target.value)} className="w-24 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                        <span className="text-xs text-[#3E4048]">weeks</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[#3E4048] w-6">To</span>
+                        <input type="number" min="1" value={form.estimatedDurationTo} onChange={e => update('estimatedDurationTo', e.target.value)} className="w-24 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                        <span className="text-xs text-[#3E4048]">weeks</span>
+                      </div>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Estimated Start Date *</label>
+                    <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Estimated Start Date *</label>
                     <input type="date" value={form.estimatedStartDate} onChange={e => update('estimatedStartDate', e.target.value)} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Confidence Level *</label>
-                  <div className="flex gap-2">
-                    {['Low', 'Medium', 'High'].map(l => (
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Confidence Level *</label>
+                  <div className="flex gap-3">
+                    {[
+                      { label: 'High', color: 'green', icon: 'lucide:circle' },
+                      { label: 'Medium', color: 'yellow', icon: 'lucide:circle' },
+                      { label: 'Low', color: 'red', icon: 'lucide:circle' },
+                    ].map(l => (
                       <button
-                        key={l}
+                        key={l.label}
                         type="button"
-                        onClick={() => update('confidenceLevel', l)}
-                        className={`px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
-                          form.confidenceLevel === l
+                        onClick={() => update('confidenceLevel', l.label)}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                          form.confidenceLevel === l.label
                             ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
                             : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
                         }`}
                       >
-                        {l}
+                        <Icon icon={l.icon} className={`w-3.5 h-3.5 ${
+                          l.color === 'green' ? 'text-green-500' : l.color === 'yellow' ? 'text-yellow-500' : 'text-red-500'
+                        }`} />
+                        {l.label}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Basis of Estimate *</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Basis of Estimate *</label>
                   <textarea value={form.basisOfEstimate} onChange={e => update('basisOfEstimate', e.target.value)} rows={2} placeholder="Describe how this estimate was derived" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg px-5 py-4 text-xs text-amber-800 leading-relaxed">
-                  This is a preliminary estimate. Final timeline will be locked after client submits detailed requirements.
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Key Assumptions</label>
+                  <textarea value={form.keyAssumptions} onChange={e => update('keyAssumptions', e.target.value)} rows={2} placeholder="List any key assumptions affecting the timeline" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Dependencies</label>
+                  <textarea value={form.timelineDependencies} onChange={e => update('timelineDependencies', e.target.value)} rows={2} placeholder="List any dependencies that affect the timeline" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Timeline Readiness Status *</label>
+                  <div className="flex gap-3">
+                    {['Draft', 'Ready', 'Needs Revision'].map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => update('timelineStatus', s)}
+                        className={`px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                          form.timelineStatus === s
+                            ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
+                            : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
