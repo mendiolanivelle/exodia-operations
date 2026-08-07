@@ -829,14 +829,45 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
             {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle')}
             {sectionsExpanded[2] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
+                {(() => {
+                  const highRisk = form.risks.filter(r => r.severity === 'high').length
+                  const medRisk = form.risks.filter(r => r.severity === 'med').length
+                  const lowRisk = form.risks.filter(r => r.severity === 'low').length
+                  const overall = highRisk > 0 ? 'High' : medRisk > lowRisk ? 'Medium' : lowRisk > 0 ? 'Low' : '-'
+                  const overallColor = overall === 'High' ? 'text-red-600' : overall === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                  const depsCount = form.dependencies.trim() ? form.dependencies.split('\n').filter(Boolean).length : 0
+                  const constraintsCount = form.clientConstraints.trim() ? form.clientConstraints.split('\n').filter(Boolean).length : 0
+                  return (
+                  <div className="grid grid-cols-4 gap-4 bg-white border border-[#CACDD7]/30 rounded-lg p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#1B1A1C]">{form.risks.length}</div>
+                      <div className="text-xs text-[#3E4048]">Project Risks</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#1B1A1C]">{depsCount}</div>
+                      <div className="text-xs text-[#3E4048]">Dependencies</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-[#1B1A1C]">{constraintsCount}</div>
+                      <div className="text-xs text-[#3E4048]">Constraints</div>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-2xl font-bold ${overallColor}`}>{overall}</div>
+                      <div className="text-xs text-[#3E4048]">Overall Risk</div>
+                    </div>
+                  </div>
+                  )
+                })()}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-[#1B1A1C] text-sm font-medium">Project Risks</label>
                     <button onClick={addRisk} type="button" className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Risk</button>
                   </div>
                   {form.risks.length === 0 && <p className="text-xs text-[#3E4048]">No risks added yet.</p>}
-                  {form.risks.map((r, i) => (
-                    <div key={i} className="flex gap-2 items-start mt-2">
+                  {form.risks.map((r, i) => {
+                    const severityColors = { low: 'bg-green-100 text-green-700', med: 'bg-yellow-100 text-yellow-700', high: 'bg-red-100 text-red-700' }
+                    return (
+                    <div key={i} className="flex gap-2 items-start mt-3">
                       <select value={r.category} onChange={e => updateNested('risks', i, 'category', e.target.value)} className="w-28 px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="">Category</option>
                         <option value="Commercial">Commercial</option>
@@ -849,22 +880,26 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         <option value="Infrastructure">Infrastructure</option>
                         <option value="Other">Other</option>
                       </select>
-                      <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Risk Description" className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <input value={r.description} onChange={e => updateNested('risks', i, 'description', e.target.value)} placeholder="Describe what could negatively affect project delivery." className="flex-1 px-3 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                       <select value={r.severity} onChange={e => updateNested('risks', i, 'severity', e.target.value)} className="px-2 py-1.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
                         <option value="low">Low</option>
-                        <option value="med">Med</option>
+                        <option value="med">Medium</option>
                         <option value="high">High</option>
                       </select>
+                      <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-full ${severityColors[r.severity]}`}>
+                        {r.severity === 'low' ? 'Low' : r.severity === 'med' ? 'Medium' : 'High'}
+                      </span>
                       <button onClick={() => removeRisk(i)} className="text-red-500 hover:text-red-700 px-2 cursor-pointer">&times;</button>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Dependencies (optional)</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Dependencies</label>
                   <textarea value={form.dependencies} onChange={e => update('dependencies', e.target.value)} rows={2} placeholder="List any dependencies" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Project Constraints (optional)</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Project Constraints</label>
                   <textarea value={form.clientConstraints} onChange={e => update('clientConstraints', e.target.value)} rows={2} placeholder="List any project constraints" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
