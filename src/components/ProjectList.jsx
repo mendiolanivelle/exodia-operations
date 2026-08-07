@@ -833,14 +833,26 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   const highRisk = form.risks.filter(r => r.severity === 'high').length
                   const medRisk = form.risks.filter(r => r.severity === 'med').length
                   const lowRisk = form.risks.filter(r => r.severity === 'low').length
+                  const total = form.risks.length
                   const overall = highRisk > 0 ? 'High' : medRisk > lowRisk ? 'Medium' : lowRisk > 0 ? 'Low' : '-'
                   const overallColor = overall === 'High' ? 'text-red-600' : overall === 'Medium' ? 'text-yellow-600' : 'text-green-600'
+                  const overallDot = overall === 'High' ? 'bg-red-500' : overall === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'
+                  const basedOn = highRisk > 0
+                    ? `${highRisk} High Risk${highRisk > 1 ? 's' : ''}`
+                    : medRisk > 0
+                    ? `${medRisk} Medium Risk${medRisk > 1 ? 's' : ''}`
+                    : lowRisk > 0
+                    ? `${lowRisk} Low Risk${lowRisk > 1 ? 's' : ''}`
+                    : ''
+                  const categoryCounts = {}
+                  form.risks.forEach(r => { if (r.category) categoryCounts[r.category] = (categoryCounts[r.category] || 0) + 1 })
+                  const topCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]
                   const depsCount = form.dependencies.trim() ? form.dependencies.split('\n').filter(Boolean).length : 0
                   const constraintsCount = form.clientConstraints.trim() ? form.clientConstraints.split('\n').filter(Boolean).length : 0
                   return (
                   <div className="grid grid-cols-4 gap-4 bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-[#1B1A1C]">{form.risks.length}</div>
+                      <div className="text-2xl font-bold text-[#1B1A1C]">{total}</div>
                       <div className="text-xs text-[#3E4048]">Project Risks</div>
                     </div>
                     <div className="text-center">
@@ -852,8 +864,13 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <div className="text-xs text-[#3E4048]">Constraints</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${overallColor}`}>{overall}</div>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className={`inline-block w-2.5 h-2.5 rounded-full ${overallDot}`} />
+                        <span className={`text-2xl font-bold ${overallColor}`}>{overall}</span>
+                      </div>
                       <div className="text-xs text-[#3E4048]">Overall Risk</div>
+                      {basedOn && <div className="text-[10px] text-[#3E4048] mt-0.5">Based on {basedOn}</div>}
+                      {topCategory && <div className="text-[10px] text-[#3E4048]">Highest: {topCategory[0]}</div>}
                     </div>
                   </div>
                   )
