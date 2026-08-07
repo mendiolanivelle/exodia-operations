@@ -395,6 +395,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     basisOfEstimate: '',
     keyAssumptions: '',
     timelineDependencies: '',
+    knownTimelineRisks: '',
     timelineStatus: '',
     risks: [],
     dependencies: '',
@@ -543,7 +544,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const sectionValid = (idx) => {
     switch (idx) {
       case 0: return form.roles.length > 0 && form.teamAvailabilityConfirmed
-      case 1: return form.estimatedDurationFrom && form.estimatedDurationTo && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate && form.timelineStatus
+      case 1: return form.estimatedDurationFrom && form.estimatedDurationTo && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate
       case 2: return true
       case 3: return form.requiredTools.length > 0 && form.itConfirmation && form.itApproverName
       case 4:
@@ -556,6 +557,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       default: return false
     }
   }
+
+  const timelineStatus = !form.estimatedDurationFrom || !form.estimatedDurationTo || !form.estimatedStartDate || !form.confidenceLevel || !form.basisOfEstimate
+    ? { label: 'Draft', color: 'bg-yellow-100 text-yellow-700' }
+    : { label: 'Ready', color: 'bg-green-100 text-green-700' }
 
   const completedSections = sectionsExpanded.map((_, i) => sectionValid(i) ? 1 : 0).reduce((a, b) => a + b, 0)
 
@@ -748,17 +753,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 <div className="grid grid-cols-2 gap-5">
                 <div>
                     <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Estimated Duration *</label>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[#3E4048] w-6">From</span>
-                        <input type="number" min="1" value={form.estimatedDurationFrom} onChange={e => update('estimatedDurationFrom', e.target.value)} className="w-24 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                        <span className="text-xs text-[#3E4048]">weeks</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[#3E4048] w-6">To</span>
-                        <input type="number" min="1" value={form.estimatedDurationTo} onChange={e => update('estimatedDurationTo', e.target.value)} className="w-24 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                        <span className="text-xs text-[#3E4048]">weeks</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[#3E4048]">From</span>
+                      <input type="number" min="1" value={form.estimatedDurationFrom} onChange={e => update('estimatedDurationFrom', e.target.value)} className="w-20 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <span className="text-xs text-[#3E4048]">to</span>
+                      <input type="number" min="1" value={form.estimatedDurationTo} onChange={e => update('estimatedDurationTo', e.target.value)} className="w-20 px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                      <span className="text-xs text-[#3E4048]">Weeks</span>
                     </div>
                   </div>
                   <div>
@@ -770,58 +770,54 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Confidence Level *</label>
                   <div className="flex gap-3">
                     {[
-                      { label: 'High', color: 'green', icon: 'lucide:circle' },
-                      { label: 'Medium', color: 'yellow', icon: 'lucide:circle' },
-                      { label: 'Low', color: 'red', icon: 'lucide:circle' },
+                      { label: 'High', color: 'green', tip: 'Low uncertainty.' },
+                      { label: 'Medium', color: 'yellow', tip: 'Some assumptions remain.' },
+                      { label: 'Low', color: 'red', tip: 'Estimate likely to change.' },
                     ].map(l => (
-                      <button
-                        key={l.label}
-                        type="button"
-                        onClick={() => update('confidenceLevel', l.label)}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
-                          form.confidenceLevel === l.label
-                            ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
-                            : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
-                        }`}
-                      >
-                        <Icon icon={l.icon} className={`w-3.5 h-3.5 ${
-                          l.color === 'green' ? 'text-green-500' : l.color === 'yellow' ? 'text-yellow-500' : 'text-red-500'
-                        }`} />
-                        {l.label}
-                      </button>
+                      <div key={l.label} className="relative group">
+                        <button
+                          type="button"
+                          onClick={() => update('confidenceLevel', l.label)}
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
+                            form.confidenceLevel === l.label
+                              ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
+                              : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon icon="lucide:circle" className={`w-3.5 h-3.5 ${
+                            l.color === 'green' ? 'text-green-500' : l.color === 'yellow' ? 'text-yellow-500' : 'text-red-500'
+                          }`} />
+                          {l.label}
+                        </button>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1B1A1C] text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          {l.tip}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Basis of Estimate *</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Estimation Method *</label>
                   <textarea value={form.basisOfEstimate} onChange={e => update('basisOfEstimate', e.target.value)} rows={2} placeholder="Describe how this estimate was derived" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Key Assumptions</label>
-                  <textarea value={form.keyAssumptions} onChange={e => update('keyAssumptions', e.target.value)} rows={2} placeholder="List any key assumptions affecting the timeline" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <textarea value={form.keyAssumptions} onChange={e => update('keyAssumptions', e.target.value)} rows={3} placeholder={`\u2022 Client provides assets on schedule\n\u2022 Dedicated team available\n\u2022 Scope remains unchanged`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Dependencies</label>
-                  <textarea value={form.timelineDependencies} onChange={e => update('timelineDependencies', e.target.value)} rows={2} placeholder="List any dependencies that affect the timeline" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <textarea value={form.timelineDependencies} onChange={e => update('timelineDependencies', e.target.value)} rows={3} placeholder={`\u2022 Client approval\n\u2022 SDK access\n\u2022 Platform approval\n\u2022 Third-party API`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Timeline Readiness Status *</label>
-                  <div className="flex gap-3">
-                    {['Draft', 'Ready', 'Needs Revision'].map(s => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => update('timelineStatus', s)}
-                        className={`px-5 py-2.5 rounded-lg text-sm font-medium border cursor-pointer transition-colors ${
-                          form.timelineStatus === s
-                            ? 'bg-[#1B1A1C] text-white border-[#1B1A1C]'
-                            : 'bg-white text-[#3E4048] border-[#CACDD7] hover:bg-gray-50'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Known Timeline Risks</label>
+                  <textarea value={form.knownTimelineRisks} onChange={e => update('knownTimelineRisks', e.target.value)} rows={3} placeholder={`Possible delays due to:\n\n\u2022 Asset delivery\n\u2022 New technology\n\u2022 Unknown requirements`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                </div>
+                <div className="flex items-center gap-3 pt-2 border-t border-[#CACDD7]/30">
+                  <span className="text-sm font-medium text-[#1B1A1C]">Timeline Readiness Status</span>
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${timelineStatus.color}`}>
+                    <Icon icon="lucide:circle" className="w-2.5 h-2.5" />
+                    {timelineStatus.label}
+                  </span>
                 </div>
               </div>
             )}
