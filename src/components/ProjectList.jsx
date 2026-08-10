@@ -929,9 +929,51 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
           {/* SECTION 4 */}
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
-            {sectionHeader(3, 'Tools & System Requirements', 'lucide:wrench')}
+            {sectionHeader(3, 'Technical & Equipment Readiness', 'lucide:wrench')}
             {sectionsExpanded[3] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
+                {form.roles.length > 0 && (
+                  <div>
+                    <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Equipment Readiness</label>
+                    <div className="space-y-3">
+                      {form.roles.map((r, i) => {
+                        const equipmentProfile = 'High-Performance Art Workstation'
+                        const available = 0
+                        const gap = r.headcount - available
+                        return (
+                          <div key={i} className="border border-[#CACDD7]/30 rounded-lg bg-white p-4">
+                            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                              <div className="text-[#3E4048] text-xs font-medium">{r.role} &mdash; {r.level}</div>
+                              <div className="text-right">
+                                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${gap > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                  <Icon icon="lucide:circle" className="w-2 h-2" />
+                                  {gap > 0 ? 'Purchase / Provisioning Required' : 'Available'}
+                                </span>
+                              </div>
+                              <div className="text-xs text-[#3E4048]">Required seats: <span className="font-medium text-[#1B1A1C]">{r.headcount}</span></div>
+                              <div className="text-xs text-[#3E4048] text-right">Available equipment: <span className="font-medium text-[#1B1A1C]">{available}</span></div>
+                              <div className="text-xs text-[#3E4048]">Equipment profile: <span className="font-medium text-[#1B1A1C]">{equipmentProfile}</span></div>
+                              <div className="text-xs text-[#3E4048] text-right">Gap: <span className="font-medium text-red-600">{gap}</span></div>
+                            </div>
+                            {gap > 0 && (
+                              <div className="mt-3 pt-3 border-t border-[#CACDD7]/20 flex justify-end">
+                                <a
+                                  href="https://hr.exodiagamedev.com/haf-form"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                                >
+                                  <Icon icon="lucide:external-link" className="w-3 h-3" />
+                                  Create ERP (Equipment Request Form)
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Required Tools / Licenses *</label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
