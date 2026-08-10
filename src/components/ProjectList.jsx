@@ -1009,16 +1009,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                                       <Icon icon="lucide:external-link" className="w-3 h-3" />
                                       Create ERP
                                     </a>
-                                    <a
-                                      href="https://hr.exodiagamedev.com/haf-form"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-xs font-medium text-[#1B1A1C] border border-[#CACDD7] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors no-underline"
-                                    >
-                                      <Icon icon="lucide:external-link" className="w-3 h-3" />
-                                      Open ERP
-                                    </a>
-                                  </div>
+                                    </div>
                                 </div>
                               </div>
                             </div>
