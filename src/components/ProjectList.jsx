@@ -1029,14 +1029,23 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                 )}
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Required Tools / Licenses *</label>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {form.requiredTools.map((t, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 bg-[#1B1A1C] text-white text-xs font-medium px-2.5 py-1 rounded-full">
-                        {t}
-                        <button onClick={() => removeTool(i)} className="hover:text-red-300 cursor-pointer">&times;</button>
-                      </span>
-                    ))}
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Software & Licenses *</label>
+                  <div className="space-y-2 mb-3">
+                    {form.requiredTools.map((t, i) => {
+                      const status = t === 'Unity' || t === 'Unreal' ? 'Available' : t === 'Adobe CC' || t === 'Photoshop' ? 'Additional License Required' : 'Provisioning Required'
+                      const statusColor = status === 'Available' ? 'bg-green-100 text-green-700' : status === 'Additional License Required' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                      return (
+                        <div key={i} className="flex items-center justify-between px-3 py-2 border border-[#CACDD7]/30 rounded-lg bg-white">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-[#1B1A1C]">{t}</span>
+                            <button onClick={() => removeTool(i)} className="text-red-400 hover:text-red-600 cursor-pointer">
+                              <Icon icon="lucide:x" className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusColor}`}>{status}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                   <div className="flex gap-2">
                     <input
