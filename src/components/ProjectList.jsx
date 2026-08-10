@@ -941,33 +941,87 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         const available = 0
                         const gap = r.headcount - available
                         return (
-                          <div key={i} className="border border-[#CACDD7]/30 rounded-lg bg-white p-4">
-                            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                              <div className="text-[#3E4048] text-xs font-medium">{r.role} &mdash; {r.level}</div>
-                              <div className="text-right">
-                                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${gap > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                  <Icon icon="lucide:circle" className="w-2 h-2" />
-                                  {gap > 0 ? 'Purchase / Provisioning Required' : 'Available'}
-                                </span>
+                          <div key={i} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                            <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="text-sm font-semibold text-[#1B1A1C]">{r.role}</span>
+                                  <span className="text-xs text-[#3E4048] ml-2">{r.level}</span>
+                                </div>
+                                {gap > 0 && (
+                                  <span className="flex items-center gap-1 text-xs text-amber-600">
+                                    <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
+                                    Equipment Gap
+                                  </span>
+                                )}
                               </div>
-                              <div className="text-xs text-[#3E4048]">Required seats: <span className="font-medium text-[#1B1A1C]">{r.headcount}</span></div>
-                              <div className="text-xs text-[#3E4048] text-right">Available equipment: <span className="font-medium text-[#1B1A1C]">{available}</span></div>
-                              <div className="text-xs text-[#3E4048]">Equipment profile: <span className="font-medium text-[#1B1A1C]">{equipmentProfile}</span></div>
-                              <div className="text-xs text-[#3E4048] text-right">Gap: <span className="font-medium text-red-600">{gap}</span></div>
                             </div>
-                            {gap > 0 && (
-                              <div className="mt-3 pt-3 border-t border-[#CACDD7]/20 flex justify-end">
-                                <a
-                                  href="https://hr.exodiagamedev.com/haf-form"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
-                                >
-                                  <Icon icon="lucide:external-link" className="w-3 h-3" />
-                                  Create ERP (Equipment Request Form)
-                                </a>
+                            <div className="px-4 py-3 space-y-3">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Seats</label>
+                                  <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#1B1A1C]">{r.headcount}</div>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Available Equipment</label>
+                                  <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#3E4048]">{available}</div>
+                                </div>
                               </div>
-                            )}
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Equipment Profile</label>
+                                <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#1B1A1C]">{equipmentProfile}</div>
+                              </div>
+                              {gap > 0 && (
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1 text-xs text-amber-700">
+                                      <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                                      Not enough equipment available for this role. Needed {r.headcount}, only {available} available.
+                                    </div>
+                                    <span className="text-sm font-bold text-amber-700">{gap}</span>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="grid grid-cols-3 gap-4 pt-1">
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Equipment Status</label>
+                                  <span className="text-xs font-medium text-amber-600">Equipment Gap</span>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">IT Status</label>
+                                  <span className="text-xs text-[#3E4048]">Not Submitted</span>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">ERP Status</label>
+                                  <span className="text-xs text-[#3E4048]">Not Created</span>
+                                </div>
+                              </div>
+                              <div className="pt-2 border-t border-[#CACDD7]/20">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-[#3E4048] font-medium">Action</span>
+                                  <div className="flex items-center gap-2">
+                                    <a
+                                      href="https://hr.exodiagamedev.com/haf-form"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                                    >
+                                      <Icon icon="lucide:external-link" className="w-3 h-3" />
+                                      Create ERP
+                                    </a>
+                                    <a
+                                      href="https://hr.exodiagamedev.com/haf-form"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-xs font-medium text-[#1B1A1C] border border-[#CACDD7] px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors no-underline"
+                                    >
+                                      <Icon icon="lucide:external-link" className="w-3 h-3" />
+                                      Open ERP
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )
                       })}
