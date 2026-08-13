@@ -1,0 +1,10 @@
+id,tracking_id,project_name,client_name,status,decision,phase,pillar,meet_link,discovery_scheduled_at,feasibility_decision_at,created_at,sent_at
+60,AC-2607-005,yugioh,obelisk,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-20T05:54:17.624831+00:00
+59,AC-2607-003,UGC,Kraft,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-16T03:33:23.953478+00:00
+58,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T09:47:00.90135+00:00
+57,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T09:10:19.6587+00:00
+56,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T09:10:13.776815+00:00
+55,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T09:09:32.522158+00:00
+54,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T09:09:23.118666+00:00
+53,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T09:08:50.511637+00:00
+52,AC-2607-001,SAmple,Sample,Sent,,Initiation,,,,,2026-07-20T06:59:57.695653+00:00,2026-07-13T08:21:42.221098+00:00
