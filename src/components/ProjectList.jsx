@@ -407,6 +407,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       { id: 'repo', label: 'Repository Access', checked: false },
       { id: 'client_systems', label: 'Client Systems', checked: false },
       { id: 'apis', label: 'API Access', checked: false },
+      { id: 'vpn', label: 'VPN', checked: false },
+      { id: 'source_control', label: 'Source Control', checked: false },
+      { id: 'build_server', label: 'Build Server', checked: false },
+      { id: 'cloud_platform', label: 'Cloud Platform', checked: false },
+      { id: 'test_env', label: 'Test Environment', checked: false },
     ],
     customAccessItems: [],
     itConfirmation: false,
@@ -547,7 +552,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       case 0: return form.roles.length > 0 && form.teamAvailabilityConfirmed
       case 1: return form.estimatedDurationFrom && form.estimatedDurationTo && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate
       case 2: return true
-      case 3: return form.requiredTools.length > 0 && form.itConfirmation && form.itApproverName
+      case 3: return form.requiredTools.length > 0
       case 4:
         if (!form.decision) return false
         if (!form.opsManagerApproval || !form.opsManagerName || !form.opsManagerDate) return false
@@ -1020,24 +1025,121 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                 )}
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-2 block">Software & Licenses *</label>
-                  <div className="space-y-2 mb-3">
+                  <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Software & License Readiness</label>
+
+                  {form.requiredTools.length > 0 && (() => {
+                    const total = form.requiredTools.length
+                    const available = form.requiredTools.filter(t => t === 'Unity' || t === 'Unreal').length
+                    const gaps = total - available
+                    return (
+                    <div className="grid grid-cols-4 gap-4 bg-white border border-[#CACDD7]/30 rounded-lg p-4 mb-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-[#1B1A1C]">{total}</div>
+                        <div className="text-xs text-[#3E4048]">Software Required</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-[#1B1A1C]">{available}</div>
+                        <div className="text-xs text-[#3E4048]">Available</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">{gaps}</div>
+                        <div className="text-xs text-[#3E4048]">License Gaps</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-full inline-block">Not Submitted</div>
+                        <div className="text-xs text-[#3E4048] mt-1">IT Status</div>
+                      </div>
+                    </div>
+                    )
+                  })()}
+
+                  <div className="space-y-3 mb-4">
                     {form.requiredTools.map((t, i) => {
-                      const status = t === 'Unity' || t === 'Unreal' ? 'Available' : t === 'Adobe CC' || t === 'Photoshop' ? 'Additional License Required' : 'Provisioning Required'
-                      const statusColor = status === 'Available' ? 'bg-green-100 text-green-700' : status === 'Additional License Required' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                      const isAvailable = t === 'Unity' || t === 'Unreal'
+                      const isLimited = t === 'Adobe CC' || t === 'Photoshop'
+                      const reqSeats = 2
+                      const availSeats = isAvailable ? 2 : isLimited ? 1 : 0
+                      const gap = reqSeats - availSeats
+                      const licenseStatus = gap === 0 ? 'Available' : gap > 0 && availSeats > 0 ? 'Limited Availability' : 'License Gap'
+                      const licenseColor = gap === 0 ? 'bg-green-100 text-green-700' : availSeats > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                      const itStatus = gap === 0 ? 'Ready' : 'Not Submitted'
+                      const erpStatus = gap === 0 ? 'Not Required' : 'Not Created'
                       return (
-                        <div key={i} className="flex items-center justify-between px-3 py-2 border border-[#CACDD7]/30 rounded-lg bg-white">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#1B1A1C]">{t}</span>
-                            <button onClick={() => removeTool(i)} className="text-red-400 hover:text-red-600 cursor-pointer">
-                              <Icon icon="lucide:x" className="w-3.5 h-3.5" />
-                            </button>
+                        <div key={i} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                          <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-[#1B1A1C]">{t}</span>
+                                <button onClick={() => removeTool(i)} className="text-red-400 hover:text-red-600 cursor-pointer">
+                                  <Icon icon="lucide:x" className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              {gap > 0 && (
+                                <span className="flex items-center gap-1 text-xs text-amber-600">
+                                  <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
+                                  License Gap
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusColor}`}>{status}</span>
+                          <div className="px-4 py-3 space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Seats</label>
+                                <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#1B1A1C]">{reqSeats}</div>
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Available Licenses</label>
+                                <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#3E4048]">{availSeats}</div>
+                              </div>
+                            </div>
+                            {gap > 0 && (
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1 text-xs text-amber-700">
+                                    <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                                    License gap: {reqSeats} required, only {availSeats} available.
+                                  </div>
+                                  <span className="text-sm font-bold text-amber-700">{gap}</span>
+                                </div>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-3 gap-4 pt-1">
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">License Status</label>
+                                <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${licenseColor}`}>{licenseStatus}</span>
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">IT Status</label>
+                                <span className="text-xs text-[#3E4048]">{itStatus}</span>
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">ERP Status</label>
+                                <span className="text-xs text-[#3E4048]">{erpStatus}</span>
+                              </div>
+                            </div>
+                            {gap > 0 && (
+                              <div className="pt-2 border-t border-[#CACDD7]/20">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-[#3E4048] font-medium">Action</span>
+                                  <a
+                                    href="https://hr.exodiagamedev.com/haf-form"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline"
+                                  >
+                                    <Icon icon="lucide:external-link" className="w-3 h-3" />
+                                    Create ERP
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )
                     })}
                   </div>
+
                   <div className="flex gap-2">
                     <input
                       value={toolInput}
@@ -1055,19 +1157,23 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Infrastructure Needed (optional)</label>
-                  <textarea value={form.infrastructureNeeded} onChange={e => update('infrastructureNeeded', e.target.value)} rows={2} placeholder="Describe infrastructure requirements" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Infrastructure Requirements</label>
+                  <textarea value={form.infrastructureNeeded} onChange={e => update('infrastructureNeeded', e.target.value)} rows={3} placeholder={`\u2022 Build server\n\u2022 Cloud environment\n\u2022 Storage\n\u2022 CI/CD pipeline\n\u2022 VPN\n\u2022 Development server\n\u2022 Test environment\n\u2022 Render farm`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1 block">Access Needed</label>
+                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Access Requirements</label>
                   <div className="space-y-1.5">
-                    {[...form.accessNeeded, ...form.customAccessItems].map(a => (
+                    {form.accessNeeded.map(a => (
                       <label key={a.id} className="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" checked={a.checked} onChange={() => toggleAccess(a.id)} className="accent-[#FF5900] w-4 h-4" />
                         <span className="text-sm text-[#1B1A1C]">{a.label}</span>
-                        {a.id.startsWith('custom_') && (
-                          <button onClick={() => removeCustomAccess(a.id)} className="text-red-400 hover:text-red-600 text-xs ml-1 cursor-pointer">&times;</button>
-                        )}
+                      </label>
+                    ))}
+                    {form.customAccessItems.map(a => (
+                      <label key={a.id} className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" checked={a.checked} onChange={() => toggleAccess(a.id)} className="accent-[#FF5900] w-4 h-4" />
+                        <span className="text-sm text-[#1B1A1C]">{a.label}</span>
+                        <button onClick={() => removeCustomAccess(a.id)} className="text-red-400 hover:text-red-600 text-xs ml-1 cursor-pointer">&times;</button>
                       </label>
                     ))}
                   </div>
@@ -1082,19 +1188,18 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     <button onClick={addCustomAccess} className="text-[#FF5900] text-sm font-medium px-3 hover:bg-orange-50 rounded-lg cursor-pointer">Add</button>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={form.itConfirmation} onChange={e => update('itConfirmation', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
-                    <span className="text-sm text-[#1B1A1C]">IT Confirmation *</span>
-                  </label>
-                  {form.itConfirmation && (
-                    <input
-                      value={form.itApproverName}
-                      onChange={e => update('itApproverName', e.target.value)}
-                      placeholder="IT Approver Name *"
-                      className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]"
-                    />
-                  )}
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">IT Readiness Status</label>
+                  <div className="border border-[#CACDD7]/30 rounded-lg bg-white p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-[#3E4048]">Current Status</span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                        <Icon icon="lucide:circle" className="w-2.5 h-2.5" />
+                        Not Submitted
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#3E4048] mt-2">IT readiness will be reviewed after submission.</p>
+                  </div>
                 </div>
               </div>
             )}
