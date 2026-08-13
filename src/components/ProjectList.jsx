@@ -397,6 +397,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     timelineDependencies: '',
     knownTimelineRisks: '',
     timelineStatus: '',
+    softwareSeats: {},
     risks: [],
     dependencies: '',
     clientConstraints: '',
@@ -518,11 +519,16 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const addTool = (tool) => {
     if (!tool.trim() || form.requiredTools.includes(tool.trim())) return
     update('requiredTools', [...form.requiredTools, tool.trim()])
+    update('softwareSeats', { ...form.softwareSeats, [tool.trim()]: 1 })
     setToolInput('')
   }
 
   const removeTool = (idx) => {
+    const removed = form.requiredTools[idx]
+    const seats = { ...form.softwareSeats }
+    delete seats[removed]
     update('requiredTools', form.requiredTools.filter((_, i) => i !== idx))
+    update('softwareSeats', seats)
   }
 
   const addCustomAccess = () => {
@@ -1029,8 +1035,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
                   {form.requiredTools.length > 0 && (() => {
                     const total = form.requiredTools.length
-                    const available = form.requiredTools.filter(t => t === 'Unity' || t === 'Unreal').length
-                    const gaps = total - available
+                    const gaps = form.requiredTools.filter(t => (form.softwareSeats[t] || 1) > 0).length
                     return (
                     <div className="grid grid-cols-4 gap-4 bg-white border border-[#CACDD7]/30 rounded-lg p-4 mb-4">
                       <div className="text-center">
@@ -1038,7 +1043,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         <div className="text-xs text-[#3E4048]">Software Required</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-[#1B1A1C]">{available}</div>
+                        <div className="text-2xl font-bold text-red-600">0</div>
                         <div className="text-xs text-[#3E4048]">Available</div>
                       </div>
                       <div className="text-center">
@@ -1055,13 +1060,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
                   <div className="space-y-3 mb-4">
                     {form.requiredTools.map((t, i) => {
-                      const isAvailable = t === 'Unity' || t === 'Unreal'
-                      const isLimited = t === 'Adobe CC' || t === 'Photoshop'
-                      const reqSeats = 2
-                      const availSeats = isAvailable ? 2 : isLimited ? 1 : 0
+                      const reqSeats = form.softwareSeats[t] || 1
+                      const availSeats = 0
                       const gap = reqSeats - availSeats
-                      const licenseStatus = gap === 0 ? 'Available' : gap > 0 && availSeats > 0 ? 'Limited Availability' : 'License Gap'
-                      const licenseColor = gap === 0 ? 'bg-green-100 text-green-700' : availSeats > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                      const licenseStatus = gap === 0 ? 'Available' : 'License Gap'
+                      const licenseColor = gap === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       const itStatus = gap === 0 ? 'Ready' : 'Not Submitted'
                       const erpStatus = gap === 0 ? 'Not Required' : 'Not Created'
                       return (
@@ -1086,7 +1089,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Seats</label>
-                                <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#1B1A1C]">{reqSeats}</div>
+                                <input type="number" min="1" value={reqSeats} onChange={e => update('softwareSeats', { ...form.softwareSeats, [t]: parseInt(e.target.value) || 1 })} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                               </div>
                               <div>
                                 <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Available Licenses</label>
