@@ -440,6 +440,8 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [roleCounts, setRoleCounts] = useState({})
   const [roleEmployees, setRoleEmployees] = useState({})
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
+  const [infraModal, setInfraModal] = useState(false)
+  const [infraInput, setInfraInput] = useState('')
 
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
 
@@ -1271,7 +1273,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     {['Build Server', 'Cloud Environment', 'Storage', 'CI/CD Pipeline', 'VPN', 'Development Server', 'Test Environment', 'Render Farm'].filter(o => !form.infrastructureItems.includes(o)).map(o => (
                       <button key={o} onClick={() => { update('infrastructureItems', [...form.infrastructureItems, o]); update('infrastructureSeats', { ...form.infrastructureSeats, [o]: 1 }) }} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2.5 py-1 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
                     ))}
-                    <button onClick={() => { const name = prompt('Enter infrastructure item:'); if (name && name.trim() && !form.infrastructureItems.includes(name.trim())) { const v = name.trim(); update('infrastructureItems', [...form.infrastructureItems, v]); update('infrastructureSeats', { ...form.infrastructureSeats, [v]: 1 }) } }} className="text-xs text-[#FF5900] border border-[#FF5900] px-2.5 py-1 rounded-full hover:bg-orange-50 cursor-pointer">+ Other</button>
+                    <button onClick={() => setInfraModal(true)} className="text-xs text-[#FF5900] border border-[#FF5900] px-2.5 py-1 rounded-full hover:bg-orange-50 cursor-pointer">+ Other</button>
                   </div>
                 </div>
                 <div>
@@ -1318,6 +1320,36 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
               </div>
             )}
           </div>
+
+          {infraModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setInfraModal(false)}>
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[#1B1A1C] text-lg font-bold">Add Infrastructure Item</h3>
+                  <button onClick={() => setInfraModal(false)} className="text-[#3E4048] hover:text-[#1B1A1C] cursor-pointer">
+                    <Icon icon="lucide:x" className="w-5 h-5" />
+                  </button>
+                </div>
+                <input
+                  value={infraInput}
+                  onChange={e => setInfraInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const v = infraInput.trim(); if (v && !form.infrastructureItems.includes(v)) { update('infrastructureItems', [...form.infrastructureItems, v]); update('infrastructureSeats', { ...form.infrastructureSeats, [v]: 1 }); setInfraInput(''); setInfraModal(false) } } }}
+                  placeholder="Enter infrastructure item name"
+                  className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] mb-4"
+                  autoFocus
+                />
+                <div className="flex justify-end gap-3">
+                  <button onClick={() => setInfraModal(false)} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">Cancel</button>
+                  <button
+                    onClick={() => { const v = infraInput.trim(); if (v && !form.infrastructureItems.includes(v)) { update('infrastructureItems', [...form.infrastructureItems, v]); update('infrastructureSeats', { ...form.infrastructureSeats, [v]: 1 }); setInfraInput(''); setInfraModal(false) } }}
+                    className="bg-[#1B1A1C] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* SECTION 5 */}
           <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
