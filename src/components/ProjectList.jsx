@@ -408,13 +408,13 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     infrastructureNeeded: '',
     accessNeeded: [
       { id: 'repo', label: 'Repository Access', checked: false },
-      { id: 'client_systems', label: 'Client Systems', checked: false },
+      { id: 'client_systems', label: 'Client Systems Access', checked: false },
       { id: 'apis', label: 'API Access', checked: false },
-      { id: 'vpn', label: 'VPN', checked: false },
-      { id: 'source_control', label: 'Source Control', checked: false },
-      { id: 'build_server', label: 'Build Server', checked: false },
-      { id: 'cloud_platform', label: 'Cloud Platform', checked: false },
-      { id: 'test_env', label: 'Test Environment', checked: false },
+      { id: 'vpn', label: 'VPN Access', checked: false },
+      { id: 'source_control', label: 'Source Control Access', checked: false },
+      { id: 'build_server', label: 'Build Server Access', checked: false },
+      { id: 'cloud_platform', label: 'Cloud Platform Access', checked: false },
+      { id: 'test_env', label: 'Test Environment Access', checked: false },
     ],
     customAccessItems: [],
     itConfirmation: false,
@@ -1198,6 +1198,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       const reqSeats = form.infrastructureSeats[item] || 1
                       const availSeats = 0
                       const gap = reqSeats - availSeats
+                      const infraStatusLabel = gap === 0 ? 'Available' : 'Infrastructure Gap'
+                      const infraStatusColor = gap === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      const itStatusLabel = 'Not Submitted'
+                      const erpStatusLabel = 'Not Created'
                       return (
                         <div key={i} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
                           <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30">
@@ -1219,7 +1223,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           <div className="px-4 py-3 space-y-3">
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Units</label>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Resources</label>
                                 <input type="number" min="1" value={reqSeats} onChange={e => update('infrastructureSeats', { ...form.infrastructureSeats, [item]: parseInt(e.target.value) || 1 })} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
                               </div>
                               <div>
@@ -1228,28 +1232,34 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                               </div>
                             </div>
                             {gap > 0 && (
-                              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1 text-xs text-amber-700">
-                                    <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
-                                    Infrastructure gap: {reqSeats} required, only {availSeats} available.
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-4">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <div className="flex items-center gap-1 text-xs font-semibold text-amber-700 mb-1">
+                                      <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                                      Infrastructure Gap
+                                    </div>
+                                    <div className="text-xs text-amber-700 space-y-0.5">
+                                      <div>Required: {reqSeats}</div>
+                                      <div>Available: {availSeats}</div>
+                                      <div className="font-semibold">Gap: {gap}</div>
+                                    </div>
                                   </div>
-                                  <span className="text-sm font-bold text-amber-700">{gap}</span>
                                 </div>
                               </div>
                             )}
                             <div className="grid grid-cols-3 gap-4 pt-1">
                               <div>
                                 <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Infrastructure Status</label>
-                                <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Infrastructure Gap</span>
+                                <span className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${infraStatusColor}`}>{infraStatusLabel}</span>
                               </div>
                               <div>
                                 <label className="text-[10px] text-[#3E4048] font-medium block mb-1">IT Status</label>
-                                <span className="text-xs text-[#3E4048]">Not Submitted</span>
+                                <span className="text-xs text-[#3E4048]">{itStatusLabel}</span>
                               </div>
                               <div>
                                 <label className="text-[10px] text-[#3E4048] font-medium block mb-1">ERP Status</label>
-                                <span className="text-xs text-[#3E4048]">Not Created</span>
+                                <span className="text-xs text-[#3E4048]">{erpStatusLabel}</span>
                               </div>
                             </div>
                             {gap > 0 && (
@@ -1270,7 +1280,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mb-2">
-                    {['Build Server', 'Cloud Environment', 'Storage', 'CI/CD Pipeline', 'VPN', 'Development Server', 'Test Environment', 'Render Farm'].filter(o => !form.infrastructureItems.includes(o)).map(o => (
+                    {['Build Server', 'Cloud Environment', 'Storage', 'CI/CD Pipeline', 'VPN Infrastructure', 'Development Server', 'Test Environment', 'Render Farm'].filter(o => !form.infrastructureItems.includes(o)).map(o => (
                       <button key={o} onClick={() => { update('infrastructureItems', [...form.infrastructureItems, o]); update('infrastructureSeats', { ...form.infrastructureSeats, [o]: 1 }) }} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2.5 py-1 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
                     ))}
                     <button onClick={() => setInfraModal(true)} className="text-xs text-[#FF5900] border border-[#FF5900] px-2.5 py-1 rounded-full hover:bg-orange-50 cursor-pointer">+ Other</button>
@@ -1314,7 +1324,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         Not Submitted
                       </span>
                     </div>
-                    <p className="text-xs text-[#3E4048] mt-2">IT readiness will be reviewed after submission.</p>
+                    <p className="text-xs text-[#3E4048] mt-2">IT will review this project's technical readiness after Operations submits the Internal Readiness Review.</p>
                   </div>
                 </div>
               </div>
