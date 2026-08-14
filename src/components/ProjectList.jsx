@@ -398,6 +398,8 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     knownTimelineRisks: '',
     timelineStatus: '',
     softwareSeats: {},
+    infrastructureItems: [],
+    infrastructureSeats: {},
     risks: [],
     dependencies: '',
     clientConstraints: '',
@@ -1160,8 +1162,117 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Infrastructure Requirements</label>
-                  <textarea value={form.infrastructureNeeded} onChange={e => update('infrastructureNeeded', e.target.value)} rows={3} placeholder={`\u2022 Build server\n\u2022 Cloud environment\n\u2022 Storage\n\u2022 CI/CD pipeline\n\u2022 VPN\n\u2022 Development server\n\u2022 Test environment\n\u2022 Render farm`} className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Infrastructure Readiness</label>
+
+                  {form.infrastructureItems.length > 0 && (() => {
+                    const gaps = form.infrastructureItems.filter(item => {
+                      const seats = form.infrastructureSeats[item] || 1
+                      return seats > 0
+                    }).length
+                    return (
+                    <div className="grid grid-cols-4 gap-4 bg-white border border-[#CACDD7]/30 rounded-lg p-4 mb-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-[#1B1A1C]">{form.infrastructureItems.length}</div>
+                        <div className="text-xs text-[#3E4048]">Infrastructure Required</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">0</div>
+                        <div className="text-xs text-[#3E4048]">Available</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">{gaps}</div>
+                        <div className="text-xs text-[#3E4048]">Gaps</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-full inline-block">Not Submitted</div>
+                        <div className="text-xs text-[#3E4048] mt-1">IT Status</div>
+                      </div>
+                    </div>
+                    )
+                  })()}
+
+                  <div className="space-y-3 mb-4">
+                    {form.infrastructureItems.map((item, i) => {
+                      const reqSeats = form.infrastructureSeats[item] || 1
+                      const availSeats = 0
+                      const gap = reqSeats - availSeats
+                      return (
+                        <div key={i} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                          <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-[#1B1A1C]">{item}</span>
+                                <button onClick={() => { update('infrastructureItems', form.infrastructureItems.filter((_, idx) => idx !== i)); const s = { ...form.infrastructureSeats }; delete s[item]; update('infrastructureSeats', s) }} className="text-red-400 hover:text-red-600 cursor-pointer">
+                                  <Icon icon="lucide:x" className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              {gap > 0 && (
+                                <span className="flex items-center gap-1 text-xs text-amber-600">
+                                  <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
+                                  Infrastructure Gap
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="px-4 py-3 space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Required Units</label>
+                                <input type="number" min="1" value={reqSeats} onChange={e => update('infrastructureSeats', { ...form.infrastructureSeats, [item]: parseInt(e.target.value) || 1 })} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Available</label>
+                                <div className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm bg-gray-50 text-[#3E4048]">{availSeats}</div>
+                              </div>
+                            </div>
+                            {gap > 0 && (
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1 text-xs text-amber-700">
+                                    <Icon icon="lucide:alert-triangle" className="w-3 h-3" />
+                                    Infrastructure gap: {reqSeats} required, only {availSeats} available.
+                                  </div>
+                                  <span className="text-sm font-bold text-amber-700">{gap}</span>
+                                </div>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-3 gap-4 pt-1">
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Infrastructure Status</label>
+                                <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Infrastructure Gap</span>
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">IT Status</label>
+                                <span className="text-xs text-[#3E4048]">Not Submitted</span>
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">ERP Status</label>
+                                <span className="text-xs text-[#3E4048]">Not Created</span>
+                              </div>
+                            </div>
+                            {gap > 0 && (
+                              <div className="pt-2 border-t border-[#CACDD7]/20">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-[#3E4048] font-medium">Action</span>
+                                  <a href="https://hr.exodiagamedev.com/haf-form" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-white bg-[#FF5900] px-4 py-2 rounded-lg hover:opacity-90 transition-opacity no-underline">
+                                    <Icon icon="lucide:external-link" className="w-3 h-3" />
+                                    Create ERP
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {['Build Server', 'Cloud Environment', 'Storage', 'CI/CD Pipeline', 'VPN', 'Development Server', 'Test Environment', 'Render Farm'].filter(o => !form.infrastructureItems.includes(o)).map(o => (
+                      <button key={o} onClick={() => { update('infrastructureItems', [...form.infrastructureItems, o]); update('infrastructureSeats', { ...form.infrastructureSeats, [o]: 1 }) }} className="text-xs text-[#3E4048] border border-[#CACDD7] px-2.5 py-1 rounded-full hover:bg-gray-100 cursor-pointer">{o}</button>
+                    ))}
+                    <button onClick={() => { const name = prompt('Enter infrastructure item:'); if (name && name.trim() && !form.infrastructureItems.includes(name.trim())) { const v = name.trim(); update('infrastructureItems', [...form.infrastructureItems, v]); update('infrastructureSeats', { ...form.infrastructureSeats, [v]: 1 }) } }} className="text-xs text-[#FF5900] border border-[#FF5900] px-2.5 py-1 rounded-full hover:bg-orange-50 cursor-pointer">+ Other</button>
+                  </div>
                 </div>
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-medium mb-1.5 block">Access Requirements</label>
