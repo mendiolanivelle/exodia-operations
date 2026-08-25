@@ -440,6 +440,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       coo: { status: 'pending_approval' },
     },
     cooApproved: false,
+    opsRecommendation: '',
   })
 
   const [sectionsExpanded, setSectionsExpanded] = useState([true, true, true, true, true])
@@ -454,6 +455,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [infraModal, setInfraModal] = useState(false)
   const [infraInput, setInfraInput] = useState('')
+  const [departmentsComplete, setDepartmentsComplete] = useState(false)
 
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
 
@@ -1419,6 +1421,26 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                 </div>
 
+                {/* Summary Counts */}
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-green-600">5</div>
+                    <div className="text-[10px] text-[#3E4048] font-medium">Ready</div>
+                  </div>
+                  <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-yellow-600">2</div>
+                    <div className="text-[10px] text-[#3E4048] font-medium">Pending</div>
+                  </div>
+                  <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-red-600">1</div>
+                    <div className="text-[10px] text-[#3E4048] font-medium">Gaps</div>
+                  </div>
+                  <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-3 text-center">
+                    <div className="text-lg font-bold text-yellow-600">Medium</div>
+                    <div className="text-[10px] text-[#3E4048] font-medium">Risk Level</div>
+                  </div>
+                </div>
+
                 {/* Overall Readiness Status */}
                 <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                   <div className="flex items-center justify-between">
@@ -1431,207 +1453,320 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <p className="text-xs text-[#3E4048] mt-2">Overall readiness will be finalized after required departmental reviews are completed.</p>
                 </div>
 
-                {/* Department Review Status */}
-                <div>
-                  <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Department Review Status</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* Operations */}
-                    <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-[#1B1A1C]">Operations</span>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Draft</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#3E4048] font-medium">Status:</span>
-                        <select
-                          value={form.departmentReviews.ops.status}
-                          onChange={e => update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, status: e.target.value } })}
-                          className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
-                        >
-                          <option value="draft">Draft</option>
-                          <option value="submitted">Submitted</option>
-                          <option value="reviewed">Reviewed</option>
-                        </select>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] text-[#3E4048] font-medium">Decision:</span>
-                        <select
-                          value={form.departmentReviews.ops.decision}
-                          onChange={e => update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, decision: e.target.value } })}
-                          className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
-                        >
-                          <option value="">Select...</option>
-                          <option value="recommended_to_proceed">Recommended to Proceed</option>
-                          <option value="recommended_with_conditions">Recommended with Conditions</option>
-                          <option value="recommended_to_hold">Recommended to Hold</option>
-                          <option value="recommended_to_decline">Recommended to Decline</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* HR */}
-                    <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-[#1B1A1C]">HR</span>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#3E4048] font-medium">Status:</span>
-                        <select
-                          value={form.departmentReviews.hr.status}
-                          onChange={e => update('departmentReviews', { ...form.departmentReviews, hr: { status: e.target.value } })}
-                          className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
-                        >
-                          <option value="not_submitted">Not Submitted</option>
-                          <option value="pending_review">Pending Review</option>
-                          <option value="reviewing">Reviewing</option>
-                          <option value="feasible">Feasible</option>
-                          <option value="feasible_with_conditions">Feasible with Conditions</option>
-                          <option value="not_feasible">Not Feasible</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* IT */}
-                    <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-[#1B1A1C]">IT</span>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#3E4048] font-medium">Status:</span>
-                        <select
-                          value={form.departmentReviews.it.status}
-                          onChange={e => update('departmentReviews', { ...form.departmentReviews, it: { status: e.target.value } })}
-                          className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
-                        >
-                          <option value="not_submitted">Not Submitted</option>
-                          <option value="pending_review">Pending Review</option>
-                          <option value="reviewing">Reviewing</option>
-                          <option value="ready">Ready</option>
-                          <option value="ready_with_conditions">Ready with Conditions</option>
-                          <option value="not_ready">Not Ready</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* COO */}
-                    <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold text-[#1B1A1C]">COO</span>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Approval</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#3E4048] font-medium">Status:</span>
-                        <select
-                          value={form.departmentReviews.coo.status}
-                          onChange={e => update('departmentReviews', { ...form.departmentReviews, coo: { status: e.target.value } })}
-                          className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
-                        >
-                          <option value="pending_approval">Pending Approval</option>
-                          <option value="approved">Approved</option>
-                          <option value="approved_with_conditions">Approved with Conditions</option>
-                          <option value="hold">Hold</option>
-                          <option value="declined">Declined</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                {/* Stage separator */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-[#CACDD7]/40" />
+                  <span className="text-[10px] font-semibold text-[#3E4048] uppercase tracking-wider">Stage 1</span>
+                  <div className="h-px flex-1 bg-[#CACDD7]/40" />
                 </div>
 
-                {/* Final Decision */}
-                <div>
-                  <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Final Decision</label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600', desc: 'Move to SOW Creation.' },
-                      { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600', desc: 'Proceed after resolving conditions.' },
-                      { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600', desc: 'Pause until blockers resolved.' },
-                      { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600', desc: 'Close initiation.' },
-                    ].map(opt => (
-                      <label key={opt.value} className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${
-                        form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7] hover:bg-gray-50'
-                      }`}>
-                        <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
-                        <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
-                        <span className="text-sm font-medium text-[#1B1A1C]">{opt.label}</span>
-                      </label>
-                    ))}
+                {/* Operations Assessment */}
+                <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="lucide:clipboard-list" className="w-4 h-4 text-[#FF5900]" />
+                      <span className="text-sm font-semibold text-[#1B1A1C]">Operations Assessment</span>
+                    </div>
+                    <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      form.departmentReviews.ops.status === 'submitted' ? 'bg-green-100 text-green-700' :
+                      form.departmentReviews.ops.status === 'ready_to_submit' ? 'bg-blue-100 text-blue-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {form.departmentReviews.ops.status === 'submitted' ? 'Submitted' :
+                       form.departmentReviews.ops.status === 'ready_to_submit' ? 'Ready to Submit' :
+                       'Draft'}
+                    </span>
                   </div>
-                </div>
-
-                {/* Proceed with Conditions */}
-                {form.finalDecision === 'proceed_with_conditions' && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-[#3E4048] font-medium">Status:</span>
+                    <select
+                      value={form.departmentReviews.ops.status}
+                      onChange={e => update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, status: e.target.value } })}
+                      className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="ready_to_submit">Ready to Submit</option>
+                      <option value="submitted">Submitted</option>
+                    </select>
+                  </div>
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-[#1B1A1C] text-sm font-semibold">Conditions *</label>
-                      <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
-                    </div>
-                    {form.conditionsList.length === 0 && (
-                      <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
-                    )}
-                    <div className="space-y-3">
-                      {form.conditionsList.map((cond) => (
-                        <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
-                          <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
-                            <span className="text-xs font-semibold text-[#1B1A1C]">Condition</span>
-                            <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-xs cursor-pointer">&times;</button>
-                          </div>
-                          <div className="px-4 py-3 space-y-3">
-                            <div>
-                              <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Condition Description</label>
-                              <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Hire Senior Unity Developer before project kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                              <div>
-                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
-                                <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                  <option value="">Select...</option>
-                                  <option value="HR">HR</option>
-                                  <option value="IT">IT</option>
-                                  <option value="Operations">Operations</option>
-                                  <option value="Finance">Finance</option>
-                                  <option value="Legal">Legal</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
-                                <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                              </div>
-                              <div>
-                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
-                                <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                  <option value="Open">Open</option>
-                                  <option value="In Progress">In Progress</option>
-                                  <option value="Resolved">Resolved</option>
-                                  <option value="Waived">Waived</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Operations Recommendation</label>
+                    <div className="space-y-1.5">
+                      {[
+                        { value: 'recommend_proceed', label: 'Recommend Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
+                        { value: 'recommend_conditions', label: 'Recommend Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
+                        { value: 'recommend_hold', label: 'Recommend Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
+                        { value: 'recommend_decline', label: 'Recommend Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
+                      ].map(opt => (
+                        <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                          form.opsRecommendation === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
+                        }`}>
+                          <input type="radio" name="opsRecommendation" value={opt.value} checked={form.opsRecommendation === opt.value} onChange={e => update('opsRecommendation', e.target.value)} className="accent-[#FF5900]" />
+                          <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
+                          <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
+                        </label>
                       ))}
                     </div>
                   </div>
-                )}
+                </div>
 
-                {/* Hold */}
-                {form.finalDecision === 'hold' && (
-                  <div>
-                    <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">Reason for Hold *</label>
-                    <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                    <p className="text-xs text-[#3E4048] mt-2">Opportunity remains in Internal Readiness until outstanding blockers are resolved.</p>
-                  </div>
-                )}
+                {/* Arrow connector */}
+                <div className="flex justify-center">
+                  <Icon icon="lucide:arrow-down" className="w-5 h-5 text-[#CACDD7]" />
+                </div>
 
-                {/* Decline */}
-                {form.finalDecision === 'decline' && (
-                  <div>
-                    <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">Reason for Decline *</label>
-                    <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                    <p className="text-xs text-[#3E4048] mt-2">Close Initiation and archive the opportunity.</p>
+                {/* Stage separator */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-[#CACDD7]/40" />
+                  <span className="text-[10px] font-semibold text-[#3E4048] uppercase tracking-wider">Stage 2</span>
+                  <div className="h-px flex-1 bg-[#CACDD7]/40" />
+                </div>
+
+                {/* Department Reviews */}
+                <div>
+                  <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Department Reviews</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* HR - Read Only */}
+                    <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Icon icon="lucide:users" className="w-4 h-4 text-[#3E4048]" />
+                          <span className="text-sm font-semibold text-[#1B1A1C]">HR</span>
+                        </div>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Status</span>
+                          <span className="text-[#1B1A1C] font-medium">Not Submitted</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Reviewer</span>
+                          <span className="text-[#1B1A1C] font-medium">Not Assigned</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Reviewed</span>
+                          <span className="text-[#3E4048]">—</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* IT - Read Only */}
+                    <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Icon icon="lucide:monitor" className="w-4 h-4 text-[#3E4048]" />
+                          <span className="text-sm font-semibold text-[#1B1A1C]">IT</span>
+                        </div>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Status</span>
+                          <span className="text-[#1B1A1C] font-medium">Not Submitted</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Reviewer</span>
+                          <span className="text-[#1B1A1C] font-medium">—</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Reviewed</span>
+                          <span className="text-[#3E4048]">—</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* COO - Read Only */}
+                    <div className="md:col-span-2 bg-white border border-[#CACDD7]/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Icon icon="lucide:crown" className="w-4 h-4 text-[#3E4048]" />
+                          <span className="text-sm font-semibold text-[#1B1A1C]">COO</span>
+                        </div>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Approval</span>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Status</span>
+                          <span className="text-[#1B1A1C] font-medium">Pending Approval</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Approver</span>
+                          <span className="text-[#1B1A1C] font-medium">COO</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Decision Date</span>
+                          <span className="text-[#3E4048]">—</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Outstanding Items */}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Icon icon="lucide:alert-triangle" className="w-4 h-4 text-amber-600" />
+                    <span className="text-sm font-semibold text-amber-800">Outstanding Items</span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {[
+                      { item: 'Equipment Gap', severity: 'gap' },
+                      { item: 'HR Feasibility Pending', severity: 'pending' },
+                      { item: 'IT Feasibility Pending', severity: 'pending' },
+                      { item: 'ERP Request Not Submitted', severity: 'pending' },
+                    ].map((o, i) => (
+                      <li key={i} className="flex items-center gap-2 text-xs">
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                          o.severity === 'gap' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`} />
+                        <span className="text-amber-800">{o.item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Mock toggle for department review completion */}
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={departmentsComplete} onChange={e => { setDepartmentsComplete(e.target.checked); if (!e.target.checked) update('finalDecision', '') }} className="accent-[#FF5900] w-3.5 h-3.5" />
+                    <span className="text-[10px] text-[#3E4048] font-medium">Mock: Mark department reviews as complete</span>
+                  </label>
+                </div>
+
+                {/* Arrow connector */}
+                <div className="flex justify-center">
+                  <Icon icon="lucide:arrow-down" className="w-5 h-5 text-[#CACDD7]" />
+                </div>
+
+                {/* Stage separator */}
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-[#CACDD7]/40" />
+                  <span className="text-[10px] font-semibold text-[#3E4048] uppercase tracking-wider">Stage 3</span>
+                  <div className="h-px flex-1 bg-[#CACDD7]/40" />
+                </div>
+
+                {/* COO Executive Decision */}
+                <div className={`bg-white border rounded-lg p-4 space-y-4 ${
+                  !departmentsComplete ? 'border-[#CACDD7]/30 opacity-60' : 'border-[#CACDD7]/30'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="lucide:crown" className="w-4 h-4 text-[#FF5900]" />
+                      <span className="text-sm font-semibold text-[#1B1A1C]">COO Final Decision</span>
+                    </div>
+                    {!departmentsComplete && (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                        <Icon icon="lucide:lock" className="w-3 h-3" />
+                        Locked
+                      </span>
+                    )}
+                  </div>
+
+                  {!departmentsComplete && (
+                    <div className="bg-gray-50 border border-[#CACDD7]/30 rounded-lg px-4 py-3">
+                      <p className="text-xs text-[#3E4048]">Final decision is available after required departmental reviews are completed.</p>
+                    </div>
+                  )}
+
+                  {departmentsComplete && (
+                    <>
+                      {/* Final Decision */}
+                      <div>
+                        <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
+                        <div className="space-y-1.5">
+                          {[
+                            { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
+                            { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
+                            { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
+                            { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
+                          ].map(opt => (
+                            <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                              form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
+                            }`}>
+                              <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
+                              <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
+                              <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Proceed with Conditions */}
+                      {form.finalDecision === 'proceed_with_conditions' && (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
+                            <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
+                          </div>
+                          {form.conditionsList.length === 0 && (
+                            <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
+                          )}
+                          <div className="space-y-3">
+                            {form.conditionsList.map((cond) => (
+                              <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                                <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
+                                  <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
+                                  <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
+                                </div>
+                                <div className="px-4 py-3 space-y-3">
+                                  <div>
+                                    <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Condition Description</label>
+                                    <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
+                                      <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                        <option value="">Select...</option>
+                                        <option value="HR">HR</option>
+                                        <option value="IT">IT</option>
+                                        <option value="Operations">Operations</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Legal">Legal</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
+                                      <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                    </div>
+                                    <div>
+                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
+                                      <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                        <option value="Open">Open</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                        <option value="Waived">Waived</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hold */}
+                      {form.finalDecision === 'hold' && (
+                        <div>
+                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
+                          <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                          <p className="text-xs text-[#3E4048] mt-2">Pause Initiation until outstanding blockers or dependencies are resolved.</p>
+                        </div>
+                      )}
+
+                      {/* Decline */}
+                      {form.finalDecision === 'decline' && (
+                        <div>
+                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
+                          <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                          <p className="text-xs text-[#3E4048] mt-2">Close Initiation and archive the opportunity.</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
 
                 {/* Executive Remarks */}
                 <div>
@@ -1659,7 +1794,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         <p className="text-xs text-[#3E4048] mt-1">
                           {form.finalDecision === 'proceed' && 'Proceed to SOW Creation.'}
                           {form.finalDecision === 'proceed_with_conditions' && 'Resolve or formally accept listed conditions before final SOW approval.'}
-                          {form.finalDecision === 'hold' && 'Pause Initiation until outstanding dependencies or blockers are resolved.'}
+                          {form.finalDecision === 'hold' && 'Pause Initiation until outstanding blockers or dependencies are resolved.'}
                           {form.finalDecision === 'decline' && 'Close Initiation and archive the opportunity.'}
                         </p>
                       </div>
@@ -1690,7 +1825,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
             disabled={submitting}
             className="bg-[#FF5900] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Submitting...' : 'Submit for COO Review'}
+            {submitting ? 'Submitting...' : 'Submit Internal Readiness'}
           </button>
         </div>
       </div>
