@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { Icon } from '@iconify/react'
 
@@ -456,6 +456,24 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [infraModal, setInfraModal] = useState(false)
   const [infraInput, setInfraInput] = useState('')
   const [departmentsComplete, setDepartmentsComplete] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [submissionStage, setSubmissionStage] = useState('waiting_hr')
+  const sectionRefs = {
+    resource: useRef(null),
+    timeline: useRef(null),
+    risks: useRef(null),
+    technical: useRef(null),
+  }
+  const scrollToSection = (refKey) => {
+    const idx = ['resource', 'timeline', 'risks', 'technical'].indexOf(refKey)
+    if (idx >= 0 && !sectionsExpanded[idx]) {
+      const next = [...sectionsExpanded]
+      next[idx] = true
+      setSectionsExpanded(next)
+    }
+    const el = sectionRefs[refKey]?.current
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   const TOOL_OPTIONS = ['Unity', 'Unreal', 'Blender', 'Jira', 'Confluence', 'GitHub', 'Photoshop', 'Figma', 'Slack', 'Notion']
 
@@ -614,7 +632,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     setError('')
     try {
       await onSubmit(project, form)
-      onClose()
+      setSubmitted(true)
+      setSubmissionStage('waiting_hr')
+      setDepartmentsComplete(false)
+      update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, status: 'submitted' } })
     } catch (e) {
       setError(e.message || 'Failed to submit')
     } finally {
@@ -663,7 +684,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
         <div className="overflow-y-auto p-6 pt-5 space-y-5 flex-1">
           {/* SECTION 1 */}
-          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+          <div ref={sectionRefs.resource} className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(0, 'Resource Readiness', 'lucide:users')}
             {sectionsExpanded[0] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
@@ -791,7 +812,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           </div>
 
           {/* SECTION 2 */}
-          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+          <div ref={sectionRefs.timeline} className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(1, 'Timeline Readiness', 'lucide:calendar')}
             {sectionsExpanded[1] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
@@ -869,7 +890,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           </div>
 
           {/* SECTION 3 */}
-          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+          <div ref={sectionRefs.risks} className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(2, 'Risks & Constraints', 'lucide:alert-triangle', true)}
             {sectionsExpanded[2] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
@@ -972,7 +993,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           </div>
 
           {/* SECTION 4 */}
-          <div className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
+          <div ref={sectionRefs.technical} className="border border-[#CACDD7]/30 rounded-xl bg-[#F9FAFB]">
             {sectionHeader(3, 'Technical & Equipment Readiness', 'lucide:wrench')}
             {sectionsExpanded[3] && (
               <div className="px-5 pb-6 pt-2 space-y-5">
@@ -1396,6 +1417,42 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
             {sectionsExpanded[4] && (
               <div className="px-5 pb-6 pt-2 space-y-6">
 
+                {submitted && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="lucide:check-circle" className="w-5 h-5 text-green-600" />
+                      <span className="text-sm font-semibold text-green-800">Internal Readiness Submitted</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-green-700">
+                      <span className="font-medium">Current Project Status:</span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                        <Icon icon="lucide:circle" className="w-2 h-2" />
+                        {submissionStage === 'waiting_hr' ? 'Waiting for HR Review' :
+                         submissionStage === 'waiting_it' ? 'Waiting for IT Review' :
+                         submissionStage === 'department_reviews' ? 'Department Reviews In Progress' :
+                         submissionStage === 'waiting_coo' ? 'Waiting for COO Decision' :
+                         'Ready for SOW Creation'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const stages = ['waiting_hr', 'waiting_it', 'department_reviews', 'waiting_coo', 'ready_sow']
+                          const idx = stages.indexOf(submissionStage)
+                          if (idx < stages.length - 1) setSubmissionStage(stages[idx + 1])
+                        }}
+                        className="text-green-600 hover:text-green-800 font-medium underline ml-2 cursor-pointer"
+                      >
+                        Advance
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setSubmitted(false)}
+                      className="text-xs text-green-600 hover:text-green-800 underline cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+
                 {/* Readiness Summary */}
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Readiness Summary</label>
@@ -1460,12 +1517,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <div className="h-px flex-1 bg-[#CACDD7]/40" />
                 </div>
 
-                {/* Operations Assessment */}
+                {/* Operations Recommendation */}
                 <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Icon icon="lucide:clipboard-list" className="w-4 h-4 text-[#FF5900]" />
-                      <span className="text-sm font-semibold text-[#1B1A1C]">Operations Assessment</span>
+                      <span className="text-sm font-semibold text-[#1B1A1C]">Operations Recommendation</span>
                     </div>
                     <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       form.departmentReviews.ops.status === 'submitted' ? 'bg-green-100 text-green-700' :
@@ -1477,19 +1534,19 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                        'Draft'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-[#3E4048] font-medium">Status:</span>
-                    <select
-                      value={form.departmentReviews.ops.status}
-                      onChange={e => update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, status: e.target.value } })}
-                      className="text-xs border border-[#CACDD7] rounded-lg px-2 py-1 focus:outline-none focus:border-[#FF5900] bg-white"
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="ready_to_submit">Ready to Submit</option>
-                      <option value="submitted">Submitted</option>
-                    </select>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-[#3E4048] font-medium">Operations Status</span>
+                    <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      form.departmentReviews.ops.status === 'submitted' ? 'bg-green-100 text-green-700' :
+                      form.departmentReviews.ops.status === 'ready_to_submit' ? 'bg-blue-100 text-blue-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {form.departmentReviews.ops.status === 'submitted' ? 'Submitted' :
+                       form.departmentReviews.ops.status === 'ready_to_submit' ? 'Ready to Submit' :
+                       'Draft'}
+                    </span>
                   </div>
-                  <div>
+                  <div className="border-t border-[#CACDD7]/20 pt-3">
                     <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Operations Recommendation</label>
                     <div className="space-y-1.5">
                       {[
@@ -1522,10 +1579,44 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <div className="h-px flex-1 bg-[#CACDD7]/40" />
                 </div>
 
+                {/* Workflow Timeline */}
+                <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
+                  <label className="text-[#1B1A1C] text-xs font-semibold mb-3 block">Workflow Timeline</label>
+                  <div className="flex items-center justify-between gap-1">
+                    {[
+                      { label: 'Operations', status: 'completed', icon: 'lucide:check' },
+                      { label: 'HR', status: 'current', icon: 'lucide:circle' },
+                      { label: 'IT', status: 'pending', icon: 'lucide:circle' },
+                      { label: 'COO', status: 'pending', icon: 'lucide:circle' },
+                    ].map((step, i) => (
+                      <div key={step.label} className="flex items-center gap-0 flex-1">
+                        <div className="flex flex-col items-center">
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            step.status === 'completed' ? 'bg-green-500 text-white' :
+                            step.status === 'current' ? 'bg-[#FF5900] text-white' :
+                            'bg-gray-200 text-gray-400'
+                          }`}>
+                            <Icon icon={step.icon} className="w-3 h-3" />
+                          </span>
+                          <span className={`text-[10px] mt-1 font-medium ${
+                            step.status === 'completed' ? 'text-green-600' :
+                            step.status === 'current' ? 'text-[#FF5900]' :
+                            'text-[#3E4048]'
+                          }`}>{step.label}</span>
+                        </div>
+                        {i < 3 && <div className={`flex-1 h-px mt-[-1.2rem] ${
+                          step.status === 'completed' ? 'bg-green-400' : 'bg-[#CACDD7]'
+                        }`} />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Department Reviews */}
                 <div>
                   <label className="text-[#1B1A1C] text-sm font-semibold mb-3 block">Department Reviews</label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
                     {/* HR - Read Only */}
                     <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -1533,19 +1624,31 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           <Icon icon="lucide:users" className="w-4 h-4 text-[#3E4048]" />
                           <span className="text-sm font-semibold text-[#1B1A1C]">HR</span>
                         </div>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Review</span>
                       </div>
-                      <div className="space-y-2 text-xs">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Status</span>
-                          <span className="text-[#1B1A1C] font-medium">Not Submitted</span>
+                          <span className="text-[#1B1A1C] font-medium">Pending Review</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Submitted By</span>
+                          <span className="text-[#1B1A1C] font-medium">Operations</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Submitted On</span>
+                          <span className="text-[#1B1A1C] font-medium">Aug 25, 2026</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Reviewer</span>
                           <span className="text-[#1B1A1C] font-medium">Not Assigned</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Reviewed</span>
+                          <span className="text-[#3E4048]">Reviewed On</span>
+                          <span className="text-[#3E4048]">—</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Decision</span>
                           <span className="text-[#3E4048]">—</span>
                         </div>
                       </div>
@@ -1560,17 +1663,29 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         </div>
                         <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
                       </div>
-                      <div className="space-y-2 text-xs">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Status</span>
                           <span className="text-[#1B1A1C] font-medium">Not Submitted</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Submitted By</span>
+                          <span className="text-[#1B1A1C] font-medium">Operations</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Submitted On</span>
+                          <span className="text-[#1B1A1C] font-medium">Aug 25, 2026</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Reviewer</span>
                           <span className="text-[#1B1A1C] font-medium">—</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Reviewed</span>
+                          <span className="text-[#3E4048]">Reviewed On</span>
+                          <span className="text-[#3E4048]">—</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Decision</span>
                           <span className="text-[#3E4048]">—</span>
                         </div>
                       </div>
@@ -1585,10 +1700,18 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         </div>
                         <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Approval</span>
                       </div>
-                      <div className="space-y-2 text-xs">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 text-xs">
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Status</span>
                           <span className="text-[#1B1A1C] font-medium">Pending Approval</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Submitted By</span>
+                          <span className="text-[#1B1A1C] font-medium">Operations</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Submitted On</span>
+                          <span className="text-[#1B1A1C] font-medium">Aug 25, 2026</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Approver</span>
@@ -1596,6 +1719,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Decision Date</span>
+                          <span className="text-[#3E4048]">—</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#3E4048]">Decision</span>
                           <span className="text-[#3E4048]">—</span>
                         </div>
                       </div>
@@ -1609,21 +1736,29 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     <Icon icon="lucide:alert-triangle" className="w-4 h-4 text-amber-600" />
                     <span className="text-sm font-semibold text-amber-800">Outstanding Items</span>
                   </div>
-                  <ul className="space-y-1.5">
+                  <div className="space-y-1">
                     {[
-                      { item: 'Equipment Gap', severity: 'gap' },
-                      { item: 'HR Feasibility Pending', severity: 'pending' },
-                      { item: 'IT Feasibility Pending', severity: 'pending' },
-                      { item: 'ERP Request Not Submitted', severity: 'pending' },
+                      { item: 'Equipment Gap', severity: 'gap', section: 'technical', sectionLabel: 'Equipment Readiness' },
+                      { item: 'HR Feasibility Pending', severity: 'pending', section: 'resource', sectionLabel: 'Resource Readiness' },
+                      { item: 'IT Feasibility Pending', severity: 'pending', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' },
+                      { item: 'ERP Request Not Submitted', severity: 'pending', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' },
                     ].map((o, i) => (
-                      <li key={i} className="flex items-center gap-2 text-xs">
-                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                          o.severity === 'gap' ? 'bg-red-500' : 'bg-yellow-500'
-                        }`} />
-                        <span className="text-amber-800">{o.item}</span>
-                      </li>
+                      <div key={i} className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg hover:bg-amber-100/50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            o.severity === 'gap' ? 'bg-red-500' : 'bg-yellow-500'
+                          }`} />
+                          <span className="text-amber-800">{o.item}</span>
+                        </div>
+                        <button
+                          onClick={() => scrollToSection(o.section)}
+                          className="text-amber-600 hover:text-amber-800 font-medium underline cursor-pointer"
+                        >
+                          View &rarr;
+                        </button>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
 
                 {/* Mock toggle for department review completion */}
@@ -1646,6 +1781,48 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <div className="h-px flex-1 bg-[#CACDD7]/40" />
                 </div>
 
+                {/* COO Executive Summary */}
+                {!departmentsComplete && (
+                  <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Icon icon="lucide:bar-chart-3" className="w-4 h-4 text-[#FF5900]" />
+                      <span className="text-sm font-semibold text-[#1B1A1C]">Executive Summary</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">Operations Recommendation</span>
+                        <span className="text-[#1B1A1C] font-medium">
+                          {form.opsRecommendation === 'recommend_proceed' ? 'Recommend Proceed' :
+                           form.opsRecommendation === 'recommend_conditions' ? 'Recommend Proceed with Conditions' :
+                           form.opsRecommendation === 'recommend_hold' ? 'Recommend Hold' :
+                           form.opsRecommendation === 'recommend_decline' ? 'Recommend Decline' :
+                           'Not Submitted'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">Overall Risk</span>
+                        <span className="text-[#1B1A1C] font-medium">Medium</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">Outstanding Items</span>
+                        <span className="text-[#1B1A1C] font-medium">1</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">HR Review</span>
+                        <span className="text-[#1B1A1C] font-medium">Pending</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">IT Review</span>
+                        <span className="text-[#1B1A1C] font-medium">Pending</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">Overall Readiness</span>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Department Review</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* COO Executive Decision */}
                 <div className={`bg-white border rounded-lg p-4 space-y-4 ${
                   !departmentsComplete ? 'border-[#CACDD7]/30 opacity-60' : 'border-[#CACDD7]/30'
@@ -1665,113 +1842,115 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
                   {!departmentsComplete && (
                     <div className="bg-gray-50 border border-[#CACDD7]/30 rounded-lg px-4 py-3">
-                      <p className="text-xs text-[#3E4048]">Final decision is available after required departmental reviews are completed.</p>
+                      <p className="text-xs text-[#3E4048]">Final decision is available after all required departmental reviews have been completed.</p>
                     </div>
                   )}
 
                   {departmentsComplete && (
                     <>
-                      {/* Final Decision */}
-                      <div>
-                        <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
-                        <div className="space-y-1.5">
-                          {[
-                            { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
-                            { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
-                            { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
-                            { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
-                          ].map(opt => (
-                            <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                              form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
-                            }`}>
-                              <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
-                              <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
-                              <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Proceed with Conditions */}
-                      {form.finalDecision === 'proceed_with_conditions' && (
+                      <div className="border-t border-[#CACDD7]/20 pt-3">
+                        {/* Final Decision */}
                         <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
-                            <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
-                          </div>
-                          {form.conditionsList.length === 0 && (
-                            <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
-                          )}
-                          <div className="space-y-3">
-                            {form.conditionsList.map((cond) => (
-                              <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
-                                <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
-                                  <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
-                                  <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
-                                </div>
-                                <div className="px-4 py-3 space-y-3">
-                                  <div>
-                                    <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Condition Description</label>
-                                    <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                                  </div>
-                                  <div className="grid grid-cols-3 gap-3">
-                                    <div>
-                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
-                                      <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                        <option value="">Select...</option>
-                                        <option value="HR">HR</option>
-                                        <option value="IT">IT</option>
-                                        <option value="Operations">Operations</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="Legal">Legal</option>
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
-                                      <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                                    </div>
-                                    <div>
-                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
-                                      <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                        <option value="Open">Open</option>
-                                        <option value="In Progress">In Progress</option>
-                                        <option value="Resolved">Resolved</option>
-                                        <option value="Waived">Waived</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
+                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
+                          <div className="space-y-1.5">
+                            {[
+                              { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
+                              { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
+                              { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
+                              { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
+                            ].map(opt => (
+                              <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                                form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
+                              }`}>
+                                <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
+                                <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
+                                <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
+                              </label>
                             ))}
                           </div>
                         </div>
-                      )}
 
-                      {/* Hold */}
-                      {form.finalDecision === 'hold' && (
-                        <div>
-                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
-                          <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                          <p className="text-xs text-[#3E4048] mt-2">Pause Initiation until outstanding blockers or dependencies are resolved.</p>
-                        </div>
-                      )}
+                        {/* Proceed with Conditions */}
+                        {form.finalDecision === 'proceed_with_conditions' && (
+                          <div className="mt-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
+                              <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
+                            </div>
+                            {form.conditionsList.length === 0 && (
+                              <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
+                            )}
+                            <div className="space-y-3">
+                              {form.conditionsList.map((cond) => (
+                                <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                                  <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
+                                    <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
+                                    <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
+                                  </div>
+                                  <div className="px-4 py-3 space-y-3">
+                                    <div>
+                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Condition Description</label>
+                                      <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3">
+                                      <div>
+                                        <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
+                                        <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                          <option value="">Select...</option>
+                                          <option value="HR">HR</option>
+                                          <option value="IT">IT</option>
+                                          <option value="Operations">Operations</option>
+                                          <option value="Finance">Finance</option>
+                                          <option value="Legal">Legal</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
+                                        <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                      </div>
+                                      <div>
+                                        <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
+                                        <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                          <option value="Open">Open</option>
+                                          <option value="In Progress">In Progress</option>
+                                          <option value="Resolved">Resolved</option>
+                                          <option value="Waived">Waived</option>
+                                        </select>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
-                      {/* Decline */}
-                      {form.finalDecision === 'decline' && (
-                        <div>
-                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
-                          <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                          <p className="text-xs text-[#3E4048] mt-2">Close Initiation and archive the opportunity.</p>
-                        </div>
-                      )}
+                        {/* Hold */}
+                        {form.finalDecision === 'hold' && (
+                          <div className="mt-4">
+                            <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
+                            <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                            <p className="text-xs text-[#3E4048] mt-2">Pause Initiation until outstanding blockers or dependencies are resolved.</p>
+                          </div>
+                        )}
+
+                        {/* Decline */}
+                        {form.finalDecision === 'decline' && (
+                          <div className="mt-4">
+                            <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
+                            <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                            <p className="text-xs text-[#3E4048] mt-2">Close Initiation and archive the opportunity.</p>
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
                 </div>
 
-                {/* Executive Remarks */}
+                {/* COO Decision Remarks */}
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">Executive Remarks</label>
-                  <textarea value={form.executiveRemarks} onChange={e => update('executiveRemarks', e.target.value)} rows={3} placeholder="Optional remarks from executive review" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">COO Decision Remarks</label>
+                  <textarea value={form.executiveRemarks} onChange={e => update('executiveRemarks', e.target.value)} rows={3} placeholder="Enter final executive remarks..." className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
 
                 {/* Next Step Panel */}
@@ -1801,6 +1980,46 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     </div>
                   </div>
                 )}
+
+                {/* Workflow Visibility */}
+                <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Icon icon="lucide:git-commit" className="w-4 h-4 text-[#3E4048]" />
+                    <span className="text-sm font-semibold text-[#1B1A1C]">Current Workflow</span>
+                  </div>
+                  <div className="space-y-0">
+                    {[
+                      { label: 'Internal Readiness', icon: 'lucide:file-text', status: 'completed' },
+                      { label: 'Submitted', icon: 'lucide:send', status: 'current' },
+                      { label: 'Department Reviews', icon: 'lucide:users', status: 'pending' },
+                      { label: 'Executive Approval', icon: 'lucide:crown', status: 'pending' },
+                      { label: 'SOW Creation', icon: 'lucide:file-plus', status: 'pending' },
+                    ].map((s, i) => (
+                      <div key={s.label} className="flex items-center gap-3 py-1.5">
+                        <div className="flex flex-col items-center">
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                            s.status === 'completed' ? 'bg-green-500' :
+                            s.status === 'current' ? 'bg-[#FF5900]' :
+                            'bg-gray-200'
+                          }`}>
+                            <Icon icon={s.icon} className="w-2.5 h-2.5 text-white" />
+                          </span>
+                          {i < 4 && <div className="w-px h-3 bg-[#CACDD7] mt-0.5" />}
+                        </div>
+                        <span className={`text-xs font-medium ${
+                          s.status === 'completed' ? 'text-green-600' :
+                          s.status === 'current' ? 'text-[#1B1A1C] font-semibold' :
+                          'text-[#3E4048]'
+                        }`}>
+                          {s.label}
+                          {s.status === 'current' && (
+                            <span className="ml-2 inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FF5900]/10 text-[#FF5900]">Current</span>
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
               </div>
             )}
