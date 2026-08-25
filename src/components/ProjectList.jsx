@@ -1418,38 +1418,54 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
               <div className="px-5 pb-6 pt-2 space-y-6">
 
                 {submitted && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center gap-2">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
                       <Icon icon="lucide:check-circle" className="w-5 h-5 text-green-600" />
                       <span className="text-sm font-semibold text-green-800">Internal Readiness Submitted</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-green-700">
-                      <span className="font-medium">Current Project Status:</span>
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-                        <Icon icon="lucide:circle" className="w-2 h-2" />
-                        {submissionStage === 'waiting_hr' ? 'Waiting for HR Review' :
-                         submissionStage === 'waiting_it' ? 'Waiting for IT Review' :
-                         submissionStage === 'department_reviews' ? 'Department Reviews In Progress' :
-                         submissionStage === 'waiting_coo' ? 'Waiting for COO Decision' :
-                         'Ready for SOW Creation'}
-                      </span>
+                    <div className="space-y-2 text-xs text-green-700">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-green-800">Current Status</span>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                          <Icon icon="lucide:circle" className="w-2 h-2" />
+                          {submissionStage === 'waiting_hr' ? 'Waiting for HR Review' :
+                           submissionStage === 'waiting_it' ? 'Waiting for IT Review' :
+                           submissionStage === 'department_reviews' ? 'Department Reviews In Progress' :
+                           submissionStage === 'waiting_coo' ? 'Waiting for COO Decision' :
+                           'Ready for SOW Creation'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-green-800">Next Reviewer</span>
+                        <span className="text-green-800">HR Department</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-green-800">Next Action</span>
+                        <span className="text-green-800">HR will review manpower feasibility before the workflow continues.</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-green-800">Reference ID</span>
+                        <span className="text-green-800 font-mono">IRR-2026-001</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 mt-3 pt-2 border-t border-green-200">
                       <button
                         onClick={() => {
                           const stages = ['waiting_hr', 'waiting_it', 'department_reviews', 'waiting_coo', 'ready_sow']
                           const idx = stages.indexOf(submissionStage)
                           if (idx < stages.length - 1) setSubmissionStage(stages[idx + 1])
                         }}
-                        className="text-green-600 hover:text-green-800 font-medium underline ml-2 cursor-pointer"
+                        className="text-xs text-green-600 hover:text-green-800 font-medium underline cursor-pointer"
                       >
                         Advance
                       </button>
+                      <button
+                        onClick={() => setSubmitted(false)}
+                        className="text-xs text-green-600 hover:text-green-800 underline cursor-pointer"
+                      >
+                        Dismiss
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setSubmitted(false)}
-                      className="text-xs text-green-600 hover:text-green-800 underline cursor-pointer"
-                    >
-                      Dismiss
-                    </button>
                   </div>
                 )}
 
@@ -1584,10 +1600,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <label className="text-[#1B1A1C] text-xs font-semibold mb-3 block">Workflow Timeline</label>
                   <div className="flex items-center justify-between gap-1">
                     {[
-                      { label: 'Operations', status: 'completed', icon: 'lucide:check' },
-                      { label: 'HR', status: 'current', icon: 'lucide:circle' },
-                      { label: 'IT', status: 'pending', icon: 'lucide:circle' },
-                      { label: 'COO', status: 'pending', icon: 'lucide:circle' },
+                      { label: 'Operations', sublabel: 'Submitted', status: 'completed', icon: 'lucide:check' },
+                      { label: 'HR', sublabel: 'Pending Review', status: 'current', icon: 'lucide:circle' },
+                      { label: 'IT', sublabel: 'Pending Review', status: 'pending', icon: 'lucide:circle' },
+                      { label: 'COO', sublabel: 'Pending Decision', status: 'pending', icon: 'lucide:circle' },
                     ].map((step, i) => (
                       <div key={step.label} className="flex items-center gap-0 flex-1">
                         <div className="flex flex-col items-center">
@@ -1603,8 +1619,13 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                             step.status === 'current' ? 'text-[#FF5900]' :
                             'text-[#3E4048]'
                           }`}>{step.label}</span>
+                          <span className={`text-[9px] ${
+                            step.status === 'completed' ? 'text-green-500' :
+                            step.status === 'current' ? 'text-[#FF5900]' :
+                            'text-[#3E4048]'
+                          }`}>{step.sublabel}</span>
                         </div>
-                        {i < 3 && <div className={`flex-1 h-px mt-[-1.2rem] ${
+                        {i < 3 && <div className={`flex-1 h-px mt-[-1.6rem] ${
                           step.status === 'completed' ? 'bg-green-400' : 'bg-[#CACDD7]'
                         }`} />}
                       </div>
@@ -1790,6 +1811,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     </div>
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
                       <div className="flex justify-between">
+                        <span className="text-[#3E4048]">Overall Readiness</span>
+                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Department Review</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="text-[#3E4048]">Operations Recommendation</span>
                         <span className="text-[#1B1A1C] font-medium">
                           {form.opsRecommendation === 'recommend_proceed' ? 'Recommend Proceed' :
@@ -1800,12 +1825,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-[#3E4048]">Overall Risk</span>
-                        <span className="text-[#1B1A1C] font-medium">Medium</span>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="text-[#3E4048]">Outstanding Items</span>
                         <span className="text-[#1B1A1C] font-medium">1</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#3E4048]">Overall Risk</span>
+                        <span className="text-[#1B1A1C] font-medium">Medium</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-[#3E4048]">HR Review</span>
@@ -1814,10 +1839,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <div className="flex justify-between">
                         <span className="text-[#3E4048]">IT Review</span>
                         <span className="text-[#1B1A1C] font-medium">Pending</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">Overall Readiness</span>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Department Review</span>
                       </div>
                     </div>
                   </div>
@@ -1980,46 +2001,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     </div>
                   </div>
                 )}
-
-                {/* Workflow Visibility */}
-                <div className="bg-[#F9FAFB] border border-[#CACDD7]/30 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon icon="lucide:git-commit" className="w-4 h-4 text-[#3E4048]" />
-                    <span className="text-sm font-semibold text-[#1B1A1C]">Current Workflow</span>
-                  </div>
-                  <div className="space-y-0">
-                    {[
-                      { label: 'Internal Readiness', icon: 'lucide:file-text', status: 'completed' },
-                      { label: 'Submitted', icon: 'lucide:send', status: 'current' },
-                      { label: 'Department Reviews', icon: 'lucide:users', status: 'pending' },
-                      { label: 'Executive Approval', icon: 'lucide:crown', status: 'pending' },
-                      { label: 'SOW Creation', icon: 'lucide:file-plus', status: 'pending' },
-                    ].map((s, i) => (
-                      <div key={s.label} className="flex items-center gap-3 py-1.5">
-                        <div className="flex flex-col items-center">
-                          <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                            s.status === 'completed' ? 'bg-green-500' :
-                            s.status === 'current' ? 'bg-[#FF5900]' :
-                            'bg-gray-200'
-                          }`}>
-                            <Icon icon={s.icon} className="w-2.5 h-2.5 text-white" />
-                          </span>
-                          {i < 4 && <div className="w-px h-3 bg-[#CACDD7] mt-0.5" />}
-                        </div>
-                        <span className={`text-xs font-medium ${
-                          s.status === 'completed' ? 'text-green-600' :
-                          s.status === 'current' ? 'text-[#1B1A1C] font-semibold' :
-                          'text-[#3E4048]'
-                        }`}>
-                          {s.label}
-                          {s.status === 'current' && (
-                            <span className="ml-2 inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FF5900]/10 text-[#FF5900]">Current</span>
-                          )}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
               </div>
             )}
