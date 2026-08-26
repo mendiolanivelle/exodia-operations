@@ -456,6 +456,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [infraInput, setInfraInput] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [submissionStage, setSubmissionStage] = useState('waiting_hr')
+  const [submittedToDepartments, setSubmittedToDepartments] = useState(false)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false)
+  const [departmentsComplete, setDepartmentsComplete] = useState(false)
+  const [readinessComplete, setReadinessComplete] = useState(false)
   const sectionRefs = {
     resource: useRef(null),
     timeline: useRef(null),
@@ -632,13 +637,23 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       await onSubmit(project, form)
       setSubmitted(true)
       setSubmissionStage('waiting_hr')
-      setDepartmentsComplete(false)
       update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, status: 'submitted' } })
     } catch (e) {
       setError(e.message || 'Failed to submit')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleSubmitForDepartmentReview = () => {
+    setSubmittedToDepartments(true)
+    setShowSubmitConfirm(false)
+    update('departmentReviews', { ...form.departmentReviews, ops: { ...form.departmentReviews.ops, status: 'submitted' } })
+  }
+
+  const handleCompleteReadiness = () => {
+    setReadinessComplete(true)
+    setShowCompleteConfirm(false)
   }
 
   const sectionHeader = (idx, title, icon, hideCheck) => (
@@ -1415,54 +1430,17 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
             {sectionsExpanded[4] && (
               <div className="px-5 pb-6 pt-2 space-y-6">
 
-                {submitted && (
+                {/* Submission Banner */}
+                {submittedToDepartments && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-2">
                       <Icon icon="lucide:check-circle" className="w-5 h-5 text-green-600" />
-                      <span className="text-sm font-semibold text-green-800">Internal Readiness Submitted</span>
+                      <span className="text-sm font-semibold text-green-800">Operations Assessment Submitted</span>
+                      <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending Department Reviews</span>
                     </div>
-                    <div className="space-y-2 text-xs text-green-700">
-                      <div className="flex justify-between">
-                        <span className="font-medium text-green-800">Current Status</span>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
-                          <Icon icon="lucide:circle" className="w-2 h-2" />
-                          {submissionStage === 'waiting_hr' ? 'Waiting for HR Review' :
-                           submissionStage === 'waiting_it' ? 'Waiting for IT Review' :
-                           submissionStage === 'department_reviews' ? 'Department Reviews In Progress' :
-                           submissionStage === 'waiting_coo' ? 'Waiting for COO Decision' :
-                           'Ready for SOW Creation'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-green-800">Next Reviewer</span>
-                        <span className="text-green-800">HR Department</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-green-800">Next Action</span>
-                        <span className="text-green-800">HR will review manpower feasibility before the workflow continues.</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="font-medium text-green-800">Reference ID</span>
-                        <span className="text-green-800 font-mono">IRR-2026-001</span>
-                      </div>
-                    </div>
+                    <p className="text-xs text-green-700">Operations Assessment has been submitted successfully. The project is currently awaiting reviews from HR and IT. The final Readiness Decision will become available after all required departmental reviews are completed.</p>
                     <div className="flex items-center gap-3 mt-3 pt-2 border-t border-green-200">
-                      <button
-                        onClick={() => {
-                          const stages = ['waiting_hr', 'waiting_it', 'department_reviews', 'waiting_coo', 'ready_sow']
-                          const idx = stages.indexOf(submissionStage)
-                          if (idx < stages.length - 1) setSubmissionStage(stages[idx + 1])
-                        }}
-                        className="text-xs text-green-600 hover:text-green-800 font-medium underline cursor-pointer"
-                      >
-                        Advance
-                      </button>
-                      <button
-                        onClick={() => setSubmitted(false)}
-                        className="text-xs text-green-600 hover:text-green-800 underline cursor-pointer"
-                      >
-                        Dismiss
-                      </button>
+                      <button onClick={() => setSubmittedToDepartments(false)} className="text-xs text-green-600 hover:text-green-800 underline cursor-pointer">Dismiss</button>
                     </div>
                   </div>
                 )}
@@ -1516,9 +1494,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-[#1B1A1C]">Overall Readiness Status</span>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
+                      readinessComplete ? 'bg-green-100 text-green-700' : submittedToDepartments ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
                       <Icon icon="lucide:circle" className="w-2.5 h-2.5" />
-                      Pending Department Review
+                      {readinessComplete ? 'Approved' : 'Pending Department Review'}
                     </span>
                   </div>
                   <p className="text-xs text-[#3E4048] mt-2">Overall readiness will be finalized after required departmental reviews are completed.</p>
