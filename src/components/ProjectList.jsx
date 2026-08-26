@@ -1910,6 +1910,21 @@ function ProjectList() {
   const archivedLeads = potentialProjects.filter(p => p.decision === 'declined')
   const activeLeads = potentialProjects.filter(p => p.decision !== 'accepted' && p.decision !== 'declined')
 
+  const irStatuses = ['Internal Readiness - Draft', 'Internal Readiness - In Progress', 'Internal Readiness - Submitted', 'HR Review', 'IT Review', 'Internal Readiness Approved', 'Ready for SOW Creation']
+  const irStatusColors = {
+    'Internal Readiness - Draft': 'bg-gray-100 text-gray-600',
+    'Internal Readiness - In Progress': 'bg-blue-100 text-blue-700',
+    'Internal Readiness - Submitted': 'bg-yellow-100 text-yellow-700',
+    'HR Review': 'bg-purple-100 text-purple-700',
+    'IT Review': 'bg-cyan-100 text-cyan-700',
+    'Internal Readiness Approved': 'bg-green-100 text-green-700',
+    'Ready for SOW Creation': 'bg-[#FF5900] text-white',
+  }
+  const getIRStatus = (p) => {
+    const idx = p.tracking_id ? p.tracking_id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % irStatuses.length : 0
+    return irStatuses[idx]
+  }
+
   const saveProjectNotes = (trackingId, data) => {
     const updated = potentialProjects.map(p => {
       if (p.tracking_id === trackingId) {
@@ -2194,7 +2209,7 @@ function ProjectList() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           {p.decision === 'accepted' ? (
-<span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                            <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${irStatusColors[getIRStatus(p)]}`}>{getIRStatus(p)}</span>
                           ) : p.decision === 'declined' ? (
                             <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-600 text-white">Feasibility - Decline</span>
                           ) : (
@@ -2214,7 +2229,7 @@ function ProjectList() {
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`text-xs ${p.pillar ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.pillar || '-'}</span>
+                        <span className={`text-xs ${p.pillar || p.decision === 'accepted' ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.decision === 'accepted' ? 'Internal Planning & Readiness' : p.pillar || '-'}</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -2289,13 +2304,13 @@ function ProjectList() {
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.sent_at ? formatDateTime(p.sent_at) : '-'}</td>
                       <td className="px-4 py-3 text-[#3E4048] whitespace-nowrap hidden lg:table-cell">{p.createdAt ? formatDateTime(p.createdAt) : 'Today'}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FF5900] text-white">Feasibility - Accepted</span>
+                        <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${irStatusColors[getIRStatus(p)]}`}>{getIRStatus(p)}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full text-[#1B1A1C]" style={{background: 'linear-gradient(135deg, #ffffff, #d4d4d8)'}}>{p.phase ? p.phase.charAt(0).toUpperCase() + p.phase.slice(1) : 'Initiation'}</span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`text-xs ${p.pillar ? 'text-[#1B1A1C] font-semibold' : 'text-[#CACDD7]'}`}>{p.pillar || '-'}</span>
+                        <span className="text-xs text-[#1B1A1C] font-semibold">Internal Planning & Readiness</span>
                       </td>
                       <td className="px-2 py-3">
                         {(() => {
@@ -2594,7 +2609,7 @@ function ProjectList() {
                 <div className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3">
                   <span className="text-sm text-[#3E4048] font-medium">Status</span>
                   {detailDecidedProject.decision === 'accepted' ? (
-                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-[#FF5900] text-white w-fit">Feasibility - Accepted</span>
+                    <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full w-fit ${irStatusColors[getIRStatus(detailDecidedProject)]}`}>{getIRStatus(detailDecidedProject)}</span>
                   ) : (
                     <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-700 w-fit">Feasibility - Decline</span>
                   )}
