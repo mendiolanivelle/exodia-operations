@@ -454,8 +454,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [infraModal, setInfraModal] = useState(false)
   const [infraInput, setInfraInput] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [submissionStage, setSubmissionStage] = useState('waiting_hr')
   const sectionRefs = {
