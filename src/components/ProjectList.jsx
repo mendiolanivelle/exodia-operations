@@ -440,7 +440,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
       coo: { status: 'pending_approval' },
     },
     cooApproved: false,
-    opsRecommendation: '',
   })
 
   const [sectionsExpanded, setSectionsExpanded] = useState([true, true, true, true, true])
@@ -455,7 +454,8 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false)
   const [infraModal, setInfraModal] = useState(false)
   const [infraInput, setInfraInput] = useState('')
-  const [departmentsComplete, setDepartmentsComplete] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [submissionStage, setSubmissionStage] = useState('waiting_hr')
   const sectionRefs = {
@@ -1533,54 +1533,26 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <div className="h-px flex-1 bg-[#CACDD7]/40" />
                 </div>
 
-                {/* Operations Recommendation */}
-                <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4 space-y-3">
+                {/* Operations Assessment */}
+                <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Icon icon="lucide:clipboard-list" className="w-4 h-4 text-[#FF5900]" />
-                      <span className="text-sm font-semibold text-[#1B1A1C]">Operations Recommendation</span>
+                      <span className="text-sm font-semibold text-[#1B1A1C]">Operations Assessment</span>
                     </div>
                     <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       form.departmentReviews.ops.status === 'submitted' ? 'bg-green-100 text-green-700' :
                       form.departmentReviews.ops.status === 'ready_to_submit' ? 'bg-blue-100 text-blue-700' :
-                      'bg-yellow-100 text-yellow-700'
+                      form.departmentReviews.ops.status === 'in_progress' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-600'
                     }`}>
                       {form.departmentReviews.ops.status === 'submitted' ? 'Submitted' :
-                       form.departmentReviews.ops.status === 'ready_to_submit' ? 'Ready to Submit' :
+                       form.departmentReviews.ops.status === 'ready_to_submit' ? 'Ready for Department Review' :
+                       form.departmentReviews.ops.status === 'in_progress' ? 'In Progress' :
                        'Draft'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-[#3E4048] font-medium">Operations Status</span>
-                    <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      form.departmentReviews.ops.status === 'submitted' ? 'bg-green-100 text-green-700' :
-                      form.departmentReviews.ops.status === 'ready_to_submit' ? 'bg-blue-100 text-blue-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {form.departmentReviews.ops.status === 'submitted' ? 'Submitted' :
-                       form.departmentReviews.ops.status === 'ready_to_submit' ? 'Ready to Submit' :
-                       'Draft'}
-                    </span>
-                  </div>
-                  <div className="border-t border-[#CACDD7]/20 pt-3">
-                    <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Operations Recommendation</label>
-                    <div className="space-y-1.5">
-                      {[
-                        { value: 'recommend_proceed', label: 'Recommend Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
-                        { value: 'recommend_conditions', label: 'Recommend Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
-                        { value: 'recommend_hold', label: 'Recommend Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
-                        { value: 'recommend_decline', label: 'Recommend Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
-                      ].map(opt => (
-                        <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                          form.opsRecommendation === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
-                        }`}>
-                          <input type="radio" name="opsRecommendation" value={opt.value} checked={form.opsRecommendation === opt.value} onChange={e => update('opsRecommendation', e.target.value)} className="accent-[#FF5900]" />
-                          <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
-                          <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-xs text-[#3E4048] mt-3">Operations completes the Readiness Assessment and submits for departmental review.</p>
                 </div>
 
                 {/* Arrow connector */}
@@ -1600,13 +1572,13 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <label className="text-[#1B1A1C] text-xs font-semibold mb-3 block">Workflow Timeline</label>
                   <div className="flex items-center justify-between gap-1">
                     {[
-                      { label: 'Operations', sublabel: 'Submitted', status: 'completed', icon: 'lucide:check' },
-                      { label: 'HR', sublabel: 'Pending Review', status: 'current', icon: 'lucide:circle' },
-                      { label: 'IT', sublabel: 'Pending Review', status: 'pending', icon: 'lucide:circle' },
-                      { label: 'COO', sublabel: 'Pending Decision', status: 'pending', icon: 'lucide:circle' },
+                      { label: 'Operations Assessment', sublabel: 'Assessment', status: 'completed', icon: 'lucide:check' },
+                      { label: 'HR Review', sublabel: 'Pending Review', status: 'current', icon: 'lucide:circle' },
+                      { label: 'IT Review', sublabel: 'Pending Review', status: 'pending', icon: 'lucide:circle' },
+                      { label: 'Readiness Decision', sublabel: 'Pending', status: 'pending', icon: 'lucide:circle' },
                     ].map((step, i) => (
                       <div key={step.label} className="flex items-center gap-0 flex-1">
-                        <div className="flex flex-col items-center">
+                        <div className="flex flex-col items-center min-w-0">
                           <span className={`w-6 h-6 rounded-full flex items-center justify-center ${
                             step.status === 'completed' ? 'bg-green-500 text-white' :
                             step.status === 'current' ? 'bg-[#FF5900] text-white' :
@@ -1614,18 +1586,18 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           }`}>
                             <Icon icon={step.icon} className="w-3 h-3" />
                           </span>
-                          <span className={`text-[10px] mt-1 font-medium ${
+                          <span className={`text-[9px] mt-1 font-medium leading-tight text-center ${
                             step.status === 'completed' ? 'text-green-600' :
                             step.status === 'current' ? 'text-[#FF5900]' :
                             'text-[#3E4048]'
                           }`}>{step.label}</span>
-                          <span className={`text-[9px] ${
+                          <span className={`text-[8px] leading-tight text-center ${
                             step.status === 'completed' ? 'text-green-500' :
                             step.status === 'current' ? 'text-[#FF5900]' :
                             'text-[#3E4048]'
                           }`}>{step.sublabel}</span>
                         </div>
-                        {i < 3 && <div className={`flex-1 h-px mt-[-1.6rem] ${
+                        {i < 3 && <div className={`flex-1 h-px mt-[-1.8rem] ${
                           step.status === 'completed' ? 'bg-green-400' : 'bg-[#CACDD7]'
                         }`} />}
                       </div>
@@ -1643,7 +1615,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Icon icon="lucide:users" className="w-4 h-4 text-[#3E4048]" />
-                          <span className="text-sm font-semibold text-[#1B1A1C]">HR</span>
+                          <span className="text-sm font-semibold text-[#1B1A1C]">HR Review</span>
                         </div>
                         <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Review</span>
                       </div>
@@ -1669,7 +1641,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           <span className="text-[#3E4048]">—</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Decision</span>
+                          <span className="text-[#3E4048]">Remarks</span>
                           <span className="text-[#3E4048]">—</span>
                         </div>
                       </div>
@@ -1680,7 +1652,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Icon icon="lucide:monitor" className="w-4 h-4 text-[#3E4048]" />
-                          <span className="text-sm font-semibold text-[#1B1A1C]">IT</span>
+                          <span className="text-sm font-semibold text-[#1B1A1C]">IT Review</span>
                         </div>
                         <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
                       </div>
@@ -1706,44 +1678,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           <span className="text-[#3E4048]">—</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Decision</span>
-                          <span className="text-[#3E4048]">—</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* COO - Read Only */}
-                    <div className="md:col-span-2 bg-white border border-[#CACDD7]/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Icon icon="lucide:crown" className="w-4 h-4 text-[#3E4048]" />
-                          <span className="text-sm font-semibold text-[#1B1A1C]">COO</span>
-                        </div>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Approval</span>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Status</span>
-                          <span className="text-[#1B1A1C] font-medium">Pending Approval</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Submitted By</span>
-                          <span className="text-[#1B1A1C] font-medium">Operations</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Submitted On</span>
-                          <span className="text-[#1B1A1C] font-medium">Aug 25, 2026</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Approver</span>
-                          <span className="text-[#1B1A1C] font-medium">COO</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Decision Date</span>
-                          <span className="text-[#3E4048]">—</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-[#3E4048]">Decision</span>
+                          <span className="text-[#3E4048]">Remarks</span>
                           <span className="text-[#3E4048]">—</span>
                         </div>
                       </div>
@@ -1782,14 +1717,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                 </div>
 
-                {/* Mock toggle for department review completion */}
-                <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={departmentsComplete} onChange={e => { setDepartmentsComplete(e.target.checked); if (!e.target.checked) update('finalDecision', '') }} className="accent-[#FF5900] w-3.5 h-3.5" />
-                    <span className="text-[10px] text-[#3E4048] font-medium">Mock: Mark department reviews as complete</span>
-                  </label>
-                </div>
-
                 {/* Arrow connector */}
                 <div className="flex justify-center">
                   <Icon icon="lucide:arrow-down" className="w-5 h-5 text-[#CACDD7]" />
@@ -1798,180 +1725,115 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 {/* Stage separator */}
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-[#CACDD7]/40" />
-                  <span className="text-[10px] font-semibold text-[#3E4048] uppercase tracking-wider">Stage 3</span>
+                  <span className="text-[10px] font-semibold text-[#3E4048] uppercase tracking-wider">Stage 3 - Readiness Decision</span>
                   <div className="h-px flex-1 bg-[#CACDD7]/40" />
                 </div>
 
-                {/* COO Executive Summary */}
-                {!departmentsComplete && (
-                  <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Icon icon="lucide:bar-chart-3" className="w-4 h-4 text-[#FF5900]" />
-                      <span className="text-sm font-semibold text-[#1B1A1C]">Executive Summary</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">Overall Readiness</span>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Department Review</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">Operations Recommendation</span>
-                        <span className="text-[#1B1A1C] font-medium">
-                          {form.opsRecommendation === 'recommend_proceed' ? 'Recommend Proceed' :
-                           form.opsRecommendation === 'recommend_conditions' ? 'Recommend Proceed with Conditions' :
-                           form.opsRecommendation === 'recommend_hold' ? 'Recommend Hold' :
-                           form.opsRecommendation === 'recommend_decline' ? 'Recommend Decline' :
-                           'Not Submitted'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">Outstanding Items</span>
-                        <span className="text-[#1B1A1C] font-medium">1</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">Overall Risk</span>
-                        <span className="text-[#1B1A1C] font-medium">Medium</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">HR Review</span>
-                        <span className="text-[#1B1A1C] font-medium">Pending</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#3E4048]">IT Review</span>
-                        <span className="text-[#1B1A1C] font-medium">Pending</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* COO Executive Decision */}
-                <div className={`bg-white border rounded-lg p-4 space-y-4 ${
-                  !departmentsComplete ? 'border-[#CACDD7]/30 opacity-60' : 'border-[#CACDD7]/30'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Icon icon="lucide:crown" className="w-4 h-4 text-[#FF5900]" />
-                      <span className="text-sm font-semibold text-[#1B1A1C]">COO Final Decision</span>
-                    </div>
-                    {!departmentsComplete && (
-                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                        <Icon icon="lucide:lock" className="w-3 h-3" />
-                        Locked
-                      </span>
-                    )}
+                {/* Readiness Decision (Go / No-Go) */}
+                <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Icon icon="lucide:flag" className="w-4 h-4 text-[#FF5900]" />
+                    <span className="text-sm font-semibold text-[#1B1A1C]">Readiness Decision (Go / No-Go)</span>
                   </div>
 
-                  {!departmentsComplete && (
-                    <div className="bg-gray-50 border border-[#CACDD7]/30 rounded-lg px-4 py-3">
-                      <p className="text-xs text-[#3E4048]">Final decision is available after all required departmental reviews have been completed.</p>
+                  <div>
+                    <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
+                    <div className="space-y-1.5">
+                      {[
+                        { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
+                        { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
+                        { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
+                        { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
+                      ].map(opt => (
+                        <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                          form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
+                        }`}>
+                          <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
+                          <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
+                          <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Proceed with Conditions */}
+                  {form.finalDecision === 'proceed_with_conditions' && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
+                        <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
+                      </div>
+                      {form.conditionsList.length === 0 && (
+                        <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
+                      )}
+                      <div className="space-y-3">
+                        {form.conditionsList.map((cond) => (
+                          <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                            <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
+                              <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
+                            </div>
+                            <div className="px-4 py-3 space-y-3">
+                              <div>
+                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Description</label>
+                                <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                              </div>
+                              <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
+                                  <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                    <option value="">Select...</option>
+                                    <option value="HR">HR</option>
+                                    <option value="IT">IT</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Legal">Legal</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
+                                  <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
+                                  <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                    <option value="Open">Open</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Waived">Waived</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {departmentsComplete && (
-                    <>
-                      <div className="border-t border-[#CACDD7]/20 pt-3">
-                        {/* Final Decision */}
-                        <div>
-                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
-                          <div className="space-y-1.5">
-                            {[
-                              { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
-                              { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
-                              { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
-                              { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
-                            ].map(opt => (
-                              <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                                form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
-                              }`}>
-                                <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
-                                <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
-                                <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
+                  {/* Hold */}
+                  {form.finalDecision === 'hold' && (
+                    <div>
+                      <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
+                      <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                      <p className="text-xs text-[#3E4048] mt-2">Resolve blockers before continuing.</p>
+                    </div>
+                  )}
 
-                        {/* Proceed with Conditions */}
-                        {form.finalDecision === 'proceed_with_conditions' && (
-                          <div className="mt-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
-                              <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
-                            </div>
-                            {form.conditionsList.length === 0 && (
-                              <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
-                            )}
-                            <div className="space-y-3">
-                              {form.conditionsList.map((cond) => (
-                                <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
-                                  <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
-                                    <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
-                                    <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
-                                  </div>
-                                  <div className="px-4 py-3 space-y-3">
-                                    <div>
-                                      <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Condition Description</label>
-                                      <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-3">
-                                      <div>
-                                        <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
-                                        <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                          <option value="">Select...</option>
-                                          <option value="HR">HR</option>
-                                          <option value="IT">IT</option>
-                                          <option value="Operations">Operations</option>
-                                          <option value="Finance">Finance</option>
-                                          <option value="Legal">Legal</option>
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
-                                        <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                                      </div>
-                                      <div>
-                                        <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
-                                        <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                          <option value="Open">Open</option>
-                                          <option value="In Progress">In Progress</option>
-                                          <option value="Resolved">Resolved</option>
-                                          <option value="Waived">Waived</option>
-                                        </select>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Hold */}
-                        {form.finalDecision === 'hold' && (
-                          <div className="mt-4">
-                            <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
-                            <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                            <p className="text-xs text-[#3E4048] mt-2">Pause Initiation until outstanding blockers or dependencies are resolved.</p>
-                          </div>
-                        )}
-
-                        {/* Decline */}
-                        {form.finalDecision === 'decline' && (
-                          <div className="mt-4">
-                            <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
-                            <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                            <p className="text-xs text-[#3E4048] mt-2">Close Initiation and archive the opportunity.</p>
-                          </div>
-                        )}
-                      </div>
-                    </>
+                  {/* Decline */}
+                  {form.finalDecision === 'decline' && (
+                    <div>
+                      <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
+                      <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                      <p className="text-xs text-[#3E4048] mt-2">Close Internal Readiness Review.</p>
+                    </div>
                   )}
                 </div>
 
-                {/* COO Decision Remarks */}
+                {/* Operations Decision Remarks */}
                 <div>
-                  <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">COO Decision Remarks</label>
-                  <textarea value={form.executiveRemarks} onChange={e => update('executiveRemarks', e.target.value)} rows={3} placeholder="Enter final executive remarks..." className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                  <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">Operations Decision Remarks</label>
+                  <textarea value={form.executiveRemarks} onChange={e => update('executiveRemarks', e.target.value)} rows={3} placeholder="Enter remarks supporting the final readiness decision..." className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
                 </div>
 
                 {/* Next Step Panel */}
@@ -1993,9 +1855,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         <span className="text-sm font-semibold text-[#1B1A1C] block">Next Step</span>
                         <p className="text-xs text-[#3E4048] mt-1">
                           {form.finalDecision === 'proceed' && 'Proceed to SOW Creation.'}
-                          {form.finalDecision === 'proceed_with_conditions' && 'Resolve or formally accept listed conditions before final SOW approval.'}
-                          {form.finalDecision === 'hold' && 'Pause Initiation until outstanding blockers or dependencies are resolved.'}
-                          {form.finalDecision === 'decline' && 'Close Initiation and archive the opportunity.'}
+                          {form.finalDecision === 'proceed_with_conditions' && 'Resolve conditions before SOW preparation.'}
+                          {form.finalDecision === 'hold' && 'Resolve blockers before continuing.'}
+                          {form.finalDecision === 'decline' && 'Close Internal Readiness Review.'}
                         </p>
                       </div>
                     </div>
