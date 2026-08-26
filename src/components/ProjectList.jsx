@@ -461,6 +461,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false)
   const [departmentsComplete, setDepartmentsComplete] = useState(false)
   const [readinessComplete, setReadinessComplete] = useState(false)
+  const [simEnabled, setSimEnabled] = useState(false)
+  const [simOpsStatus, setSimOpsStatus] = useState('draft')
+  const [simHRStatus, setSimHRStatus] = useState('not_started')
+  const [simITStatus, setSimITStatus] = useState('not_started')
+  const [simPanelExpanded, setSimPanelExpanded] = useState(true)
   const sectionRefs = {
     resource: useRef(null),
     timeline: useRef(null),
@@ -655,6 +660,11 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
     setReadinessComplete(true)
     setShowCompleteConfirm(false)
   }
+
+  const effSubmittedToDepartments = simEnabled ? simOpsStatus === 'submitted_for_review' : submittedToDepartments
+  const effDepartmentsComplete = simEnabled ? (['approved', 'approved_with_conditions'].includes(simHRStatus) && ['approved', 'approved_with_conditions'].includes(simITStatus)) : departmentsComplete
+  const effDecisionLocked = !effSubmittedToDepartments || (effSubmittedToDepartments && !effDepartmentsComplete && !readinessComplete)
+  const effDecisionPendingDept = effSubmittedToDepartments && !effDepartmentsComplete && !readinessComplete
 
   const sectionHeader = (idx, title, icon, hideCheck) => (
     <button
@@ -1495,7 +1505,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-[#1B1A1C]">Overall Readiness Status</span>
                     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
-                      readinessComplete ? 'bg-green-100 text-green-700' : submittedToDepartments ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'
+                      readinessComplete ? 'bg-green-100 text-green-700' : effSubmittedToDepartments ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'
                     }`}>
                       <Icon icon="lucide:circle" className="w-2.5 h-2.5" />
                       {readinessComplete ? 'Approved' : 'Pending Department Review'}
@@ -1708,114 +1718,155 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 </div>
 
                 {/* Readiness Decision (Go / No-Go) */}
-                <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Icon icon="lucide:flag" className="w-4 h-4 text-[#FF5900]" />
-                    <span className="text-sm font-semibold text-[#1B1A1C]">Readiness Decision (Go / No-Go)</span>
-                  </div>
-
-                  <div>
-                    <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
-                    <div className="space-y-1.5">
-                      {[
-                        { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
-                        { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
-                        { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
-                        { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
-                      ].map(opt => (
-                        <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                          form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
-                        }`}>
-                          <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
-                          <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
-                          <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
-                        </label>
-                      ))}
+                <div className={`bg-white border rounded-lg p-4 space-y-4 ${effDecisionLocked ? 'border-[#CACDD7]/30 opacity-60' : 'border-[#CACDD7]/30'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="lucide:flag" className="w-4 h-4 text-[#FF5900]" />
+                      <span className="text-sm font-semibold text-[#1B1A1C]">Readiness Decision (Go / No-Go)</span>
                     </div>
+                    {effDecisionLocked && !effDecisionPendingDept && (
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                        <Icon icon="lucide:lock" className="w-3 h-3" />
+                        Locked
+                      </span>
+                    )}
                   </div>
 
-                  {/* Proceed with Conditions */}
-                  {form.finalDecision === 'proceed_with_conditions' && (
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
-                        <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
-                      </div>
-                      {form.conditionsList.length === 0 && (
-                        <p className="text-xs text-[#3E4048] mb-3">No conditions added yet. Add at least one condition to proceed.</p>
-                      )}
-                      <div className="space-y-3">
-                        {form.conditionsList.map((cond) => (
-                          <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
-                            <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
-                              <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
+                  {effDecisionLocked && !readinessComplete && (
+                    <div className="bg-gray-50 border border-[#CACDD7]/30 rounded-lg px-4 py-3 space-y-2">
+                      {!effSubmittedToDepartments && <p className="text-xs text-[#3E4048]">Submit the Operations Assessment first to enable departmental reviews.</p>}
+                      {effDecisionPendingDept && (
+                        <>
+                          <p className="text-xs text-[#3E4048]">Waiting for required departmental reviews.</p>
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-gray-300" />
+                              <span className="text-[#3E4048]">HR Review: {simEnabled ? simHRStatus.replace(/_/g, ' ') : 'Pending'}</span>
                             </div>
-                            <div className="px-4 py-3 space-y-3">
-                              <div>
-                                <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Description</label>
-                                <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                              </div>
-                              <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
-                                  <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                    <option value="">Select...</option>
-                                    <option value="HR">HR</option>
-                                    <option value="IT">IT</option>
-                                    <option value="Operations">Operations</option>
-                                    <option value="Finance">Finance</option>
-                                    <option value="Legal">Legal</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
-                                  <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
-                                </div>
-                                <div>
-                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
-                                  <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
-                                    <option value="Open">Open</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Resolved">Resolved</option>
-                                    <option value="Waived">Waived</option>
-                                  </select>
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-gray-300" />
+                              <span className="text-[#3E4048]">IT Review: {simEnabled ? simITStatus.replace(/_/g, ' ') : 'Pending'}</span>
                             </div>
                           </div>
-                        ))}
+                          <p className="text-xs text-[#3E4048] mt-1">The final Go / No-Go decision will be available after all required departmental reviews have been completed.</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {!effDecisionLocked && !readinessComplete && (
+                    <>
+                      <div>
+                        <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Final Decision</label>
+                        <div className="space-y-1.5">
+                          {[
+                            { value: 'proceed', label: 'Proceed', icon: 'lucide:check-circle', color: 'text-green-600' },
+                            { value: 'proceed_with_conditions', label: 'Proceed with Conditions', icon: 'lucide:alert-circle', color: 'text-amber-600' },
+                            { value: 'hold', label: 'Hold', icon: 'lucide:pause-circle', color: 'text-blue-600' },
+                            { value: 'decline', label: 'Decline', icon: 'lucide:x-circle', color: 'text-red-600' },
+                          ].map(opt => (
+                            <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                              form.finalDecision === opt.value ? 'border-[#FF5900] bg-orange-50' : 'border-[#CACDD7]/40 hover:bg-gray-50'
+                            }`}>
+                              <input type="radio" name="finalDecision" value={opt.value} checked={form.finalDecision === opt.value} onChange={e => update('finalDecision', e.target.value)} className="accent-[#FF5900]" />
+                              <Icon icon={opt.icon} className={`w-4 h-4 ${opt.color}`} />
+                              <span className="text-xs font-medium text-[#1B1A1C]">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Proceed with Conditions */}
+                      {form.finalDecision === 'proceed_with_conditions' && (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <label className="text-[#1B1A1C] text-xs font-semibold">Conditions *</label>
+                            <button type="button" onClick={addCondition} className="text-xs text-[#FF5900] font-medium hover:underline cursor-pointer">+ Add Condition</button>
+                          </div>
+                          {form.conditionsList.length === 0 && <p className="text-xs text-[#3E4048] mb-3">No conditions added yet.</p>}
+                          <div className="space-y-3">{(form.conditionsList || []).map((cond) => (
+                            <div key={cond.id} className="border border-[#CACDD7]/30 rounded-lg bg-white overflow-hidden">
+                              <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#CACDD7]/30 flex items-center justify-between">
+                                <span className="text-[10px] font-semibold text-[#1B1A1C]">Condition</span>
+                                <button onClick={() => removeCondition(cond.id)} className="text-red-400 hover:text-red-600 text-[10px] cursor-pointer">&times;</button>
+                              </div>
+                              <div className="px-4 py-3 space-y-3">
+                                <div>
+                                  <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Description</label>
+                                  <input value={cond.description} onChange={e => updateCondition(cond.id, 'description', e.target.value)} placeholder="e.g. Provision one high-performance workstation before kickoff." className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div>
+                                    <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Owner</label>
+                                    <select value={cond.owner} onChange={e => updateCondition(cond.id, 'owner', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                      <option value="">Select...</option>
+                                      <option value="HR">HR</option>
+                                      <option value="IT">IT</option>
+                                      <option value="Operations">Operations</option>
+                                      <option value="Finance">Finance</option>
+                                      <option value="Legal">Legal</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Target Date</label>
+                                    <input type="date" value={cond.targetDate} onChange={e => updateCondition(cond.id, 'targetDate', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900]" />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-[#3E4048] font-medium block mb-1">Status</label>
+                                    <select value={cond.status} onChange={e => updateCondition(cond.id, 'status', e.target.value)} className="w-full px-3 py-2 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] bg-white">
+                                      <option value="Open">Open</option>
+                                      <option value="In Progress">In Progress</option>
+                                      <option value="Resolved">Resolved</option>
+                                      <option value="Waived">Waived</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}</div>
+                        </div>
+                      )}
+
+                      {/* Hold */}
+                      {form.finalDecision === 'hold' && (
+                        <div>
+                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
+                          <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                          <p className="text-xs text-[#3E4048] mt-2">Resolve blockers before continuing.</p>
+                        </div>
+                      )}
+
+                      {/* Decline */}
+                      {form.finalDecision === 'decline' && (
+                        <div>
+                          <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
+                          <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
+                          <p className="text-xs text-[#3E4048] mt-2">Close Internal Readiness Review.</p>
+                        </div>
+                      )}
+                    </>
                   )}
 
-                  {/* Hold */}
-                  {form.finalDecision === 'hold' && (
-                    <div>
-                      <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Hold *</label>
-                      <textarea value={form.holdReason} onChange={e => update('holdReason', e.target.value)} rows={3} placeholder="Describe why this opportunity is being held" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                      <p className="text-xs text-[#3E4048] mt-2">Resolve blockers before continuing.</p>
-                    </div>
-                  )}
-
-                  {/* Decline */}
-                  {form.finalDecision === 'decline' && (
-                    <div>
-                      <label className="text-[#1B1A1C] text-xs font-semibold mb-2 block">Reason for Decline *</label>
-                      <textarea value={form.declineReasonFinal} onChange={e => update('declineReasonFinal', e.target.value)} rows={3} placeholder="Explain why this opportunity is being declined" className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                      <p className="text-xs text-[#3E4048] mt-2">Close Internal Readiness Review.</p>
+                  {readinessComplete && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Icon icon="lucide:check-circle" className="w-5 h-5 text-green-600" />
+                        <span className="text-sm font-semibold text-green-800">Internal Readiness Complete</span>
+                      </div>
+                      <p className="text-xs text-green-700 mt-1">The Internal Planning &amp; Readiness phase has been finalized. Proceeding to Statement of Work (SOW) Creation.</p>
                     </div>
                   )}
                 </div>
 
-                {/* Operations Decision Remarks */}
-                <div>
-                  <label className="text-[#1B1A1C] text-sm font-semibold mb-2 block">Operations Decision Remarks</label>
-                  <textarea value={form.executiveRemarks} onChange={e => update('executiveRemarks', e.target.value)} rows={3} placeholder="Enter remarks supporting the final readiness decision..." className="w-full px-3 py-2.5 border border-[#CACDD7] rounded-lg text-sm focus:outline-none focus:border-[#FF5900] resize-none" />
-                </div>
-
-                {/* Next Step Panel */}
-                {form.finalDecision && (
+                {/* Mock: Complete Department Reviews */}
+                {effSubmittedToDepartments && !readinessComplete && (
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={departmentsComplete} onChange={e => { setDepartmentsComplete(e.target.checked); if (!e.target.checked) update('finalDecision', '') }} className="accent-[#FF5900] w-3.5 h-3.5" />
+                      <span className="text-[10px] text-[#3E4048] font-medium">Mock: Complete Department Reviews (legacy toggle)</span>
+                    </label>
+                  </div>
+                )}
                   <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <Icon icon={
@@ -1847,6 +1898,70 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
           </div>
         </div>
 
+        {/* Setup Simulation Panel */}
+        <div className="px-6 pb-2 flex-shrink-0">
+          <div className="border border-dashed border-blue-300 rounded-xl bg-blue-50/50 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setSimPanelExpanded(!simPanelExpanded)}
+              className="w-full flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-blue-50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Icon icon="lucide:wrench" className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-semibold text-blue-800">Development Simulation</span>
+              </div>
+              <div className="flex items-center gap-3">
+                {simEnabled && (
+                  <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 gap-1">
+                    <Icon icon="lucide:play" className="w-2.5 h-2.5" />
+                    Active
+                  </span>
+                )}
+                <Icon icon={simPanelExpanded ? 'lucide:chevron-up' : 'lucide:chevron-down'} className="w-4 h-4 text-blue-600" />
+              </div>
+            </button>
+            {simPanelExpanded && (
+              <div className="px-4 pb-4 pt-1 space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={simEnabled} onChange={e => setSimEnabled(e.target.checked)} className="accent-[#FF5900] w-3.5 h-3.5" />
+                  <span className="text-[10px] text-blue-700 font-medium">Enable Simulation Mode</span>
+                </label>
+                {simEnabled && (
+                  <div className="grid grid-cols-3 gap-3 pt-1">
+                    <div>
+                      <label className="text-[10px] text-blue-700 font-medium block mb-1">Operations Assessment Status</label>
+                      <select value={simOpsStatus} onChange={e => setSimOpsStatus(e.target.value)} className="w-full text-xs border border-blue-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 bg-white">
+                        <option value="draft">Draft</option>
+                        <option value="submitted_for_review">Submitted for Department Review</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-blue-700 font-medium block mb-1">HR Review Status</label>
+                      <select value={simHRStatus} onChange={e => setSimHRStatus(e.target.value)} className="w-full text-xs border border-blue-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 bg-white">
+                        <option value="not_started">Not Started</option>
+                        <option value="pending_review">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="approved_with_conditions">Approved with Conditions</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-blue-700 font-medium block mb-1">IT Review Status</label>
+                      <select value={simITStatus} onChange={e => setSimITStatus(e.target.value)} className="w-full text-xs border border-blue-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500 bg-white">
+                        <option value="not_started">Not Started</option>
+                        <option value="pending_review">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="approved_with_conditions">Approved with Conditions</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         {error && (
           <div className="px-6 pb-2 flex-shrink-0">
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>
@@ -1854,19 +1969,23 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
         )}
 
         <div className="flex items-center justify-end gap-3 px-6 py-5 border-t border-[#CACDD7]/30 flex-shrink-0">
-          <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-            Cancel
-          </button>
-          <button onClick={() => console.log('Save Draft', { project, form })} className="text-[#1B1A1C] border border-[#1B1A1C] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
-            Save Draft
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="bg-[#FF5900] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Submitting...' : 'Submit Internal Readiness'}
-          </button>
+          <button onClick={onClose} className="text-[#3E4048] text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">Cancel</button>
+          {!readinessComplete && !effSubmittedToDepartments && (
+            <button onClick={() => console.log('Save Draft', { project, form })} className="text-[#1B1A1C] border border-[#1B1A1C] px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Save Draft</button>
+          )}
+          {!effSubmittedToDepartments && !readinessComplete && (
+            <button onClick={() => setShowSubmitConfirm(true)} className="bg-[#FF5900] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer">
+              Submit for Department Review
+            </button>
+          )}
+          {effSubmittedToDepartments && effDepartmentsComplete && !readinessComplete && (
+            <button onClick={() => setShowCompleteConfirm(true)} disabled={!form.finalDecision} className="bg-[#FF5900] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              Complete Internal Readiness
+            </button>
+          )}
+          {readinessComplete && (
+            <button onClick={onClose} className="bg-[#1B1A1C] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer">Close</button>
+          )}
         </div>
       </div>
     </div>
