@@ -387,7 +387,6 @@ return (
 function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const [form, setForm] = useState({
     roles: [],
-    teamAvailabilityConfirmed: false,
     estimatedDurationFrom: '',
     estimatedDurationTo: '',
     estimatedStartDate: '',
@@ -619,7 +618,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
 
   const sectionValid = (idx) => {
     switch (idx) {
-      case 0: return form.roles.length > 0 && form.teamAvailabilityConfirmed
+      case 0: return form.roles.length > 0
       case 1: return form.estimatedDurationFrom && form.estimatedDurationTo && form.estimatedStartDate && form.confidenceLevel && form.basisOfEstimate
       case 2: return true
       case 3: return form.requiredTools.length > 0
@@ -909,10 +908,6 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   </div>
                   )
                 })}
-                <label className="flex items-center gap-2.5 cursor-pointer pt-1">
-                  <input type="checkbox" checked={form.teamAvailabilityConfirmed} onChange={e => update('teamAvailabilityConfirmed', e.target.checked)} className="accent-[#FF5900] w-4 h-4" />
-                  <span className="text-sm text-[#1B1A1C]">Team Availability Confirmed *</span>
-                </label>
               </div>
             )}
           </div>
@@ -1928,15 +1923,7 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   )}
                 </div>
 
-                {/* Mock: Complete Department Reviews */}
-                {effSubmittedToDepartments && !readinessComplete && (
-                  <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={departmentsComplete} onChange={e => { setDepartmentsComplete(e.target.checked); if (!e.target.checked) update('finalDecision', '') }} className="accent-[#FF5900] w-3.5 h-3.5" />
-                      <span className="text-[10px] text-[#3E4048] font-medium">Mock: Complete Department Reviews (legacy toggle)</span>
-                    </label>
-                  </div>
-                )}
+                {form.finalDecision && (
                   <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <Icon icon={
