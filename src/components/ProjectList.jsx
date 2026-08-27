@@ -666,6 +666,89 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
   const effDecisionLocked = !effSubmittedToDepartments || (effSubmittedToDepartments && !effDepartmentsComplete && !readinessComplete)
   const effDecisionPendingDept = effSubmittedToDepartments && !effDepartmentsComplete && !readinessComplete
 
+  const effOpsStatus = simEnabled ? simOpsStatus : (submittedToDepartments ? 'submitted_for_review' : 'draft')
+  const effHRStatus = simEnabled ? simHRStatus : (departmentsComplete ? 'approved' : submittedToDepartments ? 'pending_review' : 'not_started')
+  const effITStatus = simEnabled ? simITStatus : (departmentsComplete ? 'approved' : submittedToDepartments ? 'pending_review' : 'not_started')
+  const hrApproved = ['approved', 'approved_with_conditions'].includes(effHRStatus)
+  const itApproved = ['approved', 'approved_with_conditions'].includes(effITStatus)
+
+  const getHRBadge = () => {
+    if (effHRStatus === 'approved') return { label: 'Approved', color: 'bg-green-100 text-green-700' }
+    if (effHRStatus === 'approved_with_conditions') return { label: 'Approved with Conditions', color: 'bg-yellow-100 text-yellow-700' }
+    if (effHRStatus === 'rejected') return { label: 'Rejected', color: 'bg-red-100 text-red-700' }
+    if (effHRStatus === 'pending_review') return { label: 'Pending Review', color: 'bg-yellow-100 text-yellow-700' }
+    return { label: 'Not Started', color: 'bg-gray-100 text-gray-600' }
+  }
+  const getITBadge = () => {
+    if (effITStatus === 'approved') return { label: 'Approved', color: 'bg-green-100 text-green-700' }
+    if (effITStatus === 'approved_with_conditions') return { label: 'Approved with Conditions', color: 'bg-yellow-100 text-yellow-700' }
+    if (effITStatus === 'rejected') return { label: 'Rejected', color: 'bg-red-100 text-red-700' }
+    if (effITStatus === 'pending_review') return { label: 'Pending Review', color: 'bg-yellow-100 text-yellow-700' }
+    return { label: 'Not Started', color: 'bg-gray-100 text-gray-600' }
+  }
+  const getHRSummaryBadge = () => {
+    if (effHRStatus === 'approved') return { status: 'Ready', color: 'bg-green-100 text-green-700' }
+    if (effHRStatus === 'approved_with_conditions') return { status: 'Ready with Conditions', color: 'bg-yellow-100 text-yellow-700' }
+    if (effHRStatus === 'rejected') return { status: 'Not Ready', color: 'bg-red-100 text-red-700' }
+    if (effHRStatus === 'pending_review') return { status: 'Pending', color: 'bg-yellow-100 text-yellow-700' }
+    return { status: 'Pending', color: 'bg-gray-100 text-gray-600' }
+  }
+  const getITSummaryBadge = () => {
+    if (effITStatus === 'approved') return { status: 'Ready', color: 'bg-green-100 text-green-700' }
+    if (effITStatus === 'approved_with_conditions') return { status: 'Ready with Conditions', color: 'bg-yellow-100 text-yellow-700' }
+    if (effITStatus === 'rejected') return { status: 'Not Ready', color: 'bg-red-100 text-red-700' }
+    if (effITStatus === 'pending_review') return { status: 'Pending', color: 'bg-yellow-100 text-yellow-700' }
+    return { status: 'Pending', color: 'bg-gray-100 text-gray-600' }
+  }
+  const getOverallReadinessBadge = () => {
+    if (readinessComplete) return { label: 'Approved', color: 'bg-green-100 text-green-700' }
+    if (effHRStatus === 'rejected' || effITStatus === 'rejected') return { label: 'Department Blocker', color: 'bg-red-100 text-red-700' }
+    if (hrApproved && itApproved) return { label: 'Ready', color: 'bg-green-100 text-green-700' }
+    if (effSubmittedToDepartments) return { label: 'Pending Department Review', color: 'bg-yellow-100 text-yellow-700' }
+    return { label: 'Pending Department Review', color: 'bg-gray-100 text-gray-600' }
+  }
+  const getTimelineHRStatus = () => {
+    if (hrApproved || effHRStatus === 'rejected') return 'completed'
+    if (effHRStatus === 'pending_review' || effHRStatus === 'approved_with_conditions') return 'current'
+    return effSubmittedToDepartments ? 'current' : 'pending'
+  }
+  const getTimelineITStatus = () => {
+    if (itApproved || effITStatus === 'rejected') return 'completed'
+    if (effITStatus === 'pending_review' || effITStatus === 'approved_with_conditions') return 'current'
+    return effSubmittedToDepartments && hrApproved ? 'current' : 'pending'
+  }
+  const getTimelineHRSublabel = () => {
+    if (hrApproved) return 'Approved'
+    if (effITStatus === 'rejected') return 'Rejected'
+    if (effHRStatus === 'pending_review') return 'Pending Review'
+    if (effHRStatus === 'approved_with_conditions') return 'Approved with Cond.'
+    return 'Pending'
+  }
+  const getTimelineITSublabel = () => {
+    if (itApproved) return 'Approved'
+    if (effITStatus === 'rejected') return 'Rejected'
+    if (effITStatus === 'pending_review') return 'Pending Review'
+    if (effITStatus === 'approved_with_conditions') return 'Approved with Cond.'
+    return 'Pending'
+  }
+  const hrBadge = getHRBadge()
+  const itBadge = getITBadge()
+  const hrSummaryBadge = getHRSummaryBadge()
+  const itSummaryBadge = getITSummaryBadge()
+  const overallBadge = getOverallReadinessBadge()
+  const timelineHRStatus = getTimelineHRStatus()
+  const timelineITStatus = getTimelineITStatus()
+  const timelineHRSublabel = getTimelineHRSublabel()
+  const timelineITSublabel = getTimelineITSublabel()
+  const outstandingItems = [
+    { item: 'Equipment Gap', severity: 'gap', section: 'technical', sectionLabel: 'Equipment Readiness' },
+    ...((!hrApproved && !simEnabled) || (simEnabled && !hrApproved && effHRStatus !== 'rejected') ? [{ item: 'HR Feasibility Pending', severity: 'pending', section: 'resource', sectionLabel: 'Resource Readiness' }] : []),
+    ...((!itApproved && !simEnabled) || (simEnabled && !itApproved && effITStatus !== 'rejected') ? [{ item: 'IT Feasibility Pending', severity: 'pending', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' }] : []),
+    ...(effHRStatus === 'rejected' ? [{ item: 'HR Review Rejected', severity: 'gap', section: 'resource', sectionLabel: 'Resource Readiness' }] : []),
+    ...(effITStatus === 'rejected' ? [{ item: 'IT Review Rejected', severity: 'gap', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' }] : []),
+    { item: 'ERP Request Not Submitted', severity: 'pending', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' },
+  ]
+
   const sectionHeader = (idx, title, icon, hideCheck) => (
     <button
       type="button"
@@ -1467,8 +1550,8 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                       { area: 'Software & License Readiness', status: 'Ready', color: 'bg-green-100 text-green-700' },
                       { area: 'Infrastructure Readiness', status: 'Ready', color: 'bg-green-100 text-green-700' },
                       { area: 'Access Readiness', status: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
-                      { area: 'HR Feasibility', status: 'Pending', color: 'bg-gray-100 text-gray-600' },
-                      { area: 'IT Feasibility', status: 'Pending', color: 'bg-gray-100 text-gray-600' },
+                      { area: 'HR Feasibility', status: hrSummaryBadge.status, color: hrSummaryBadge.color },
+                      { area: 'IT Feasibility', status: itSummaryBadge.status, color: itSummaryBadge.color },
                     ].map(item => (
                       <div key={item.area} className="bg-white border border-[#CACDD7]/30 rounded-lg px-3 py-2.5 flex items-center justify-between">
                         <span className="text-xs text-[#3E4048] font-medium">{item.area}</span>
@@ -1504,11 +1587,9 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                 <div className="bg-white border border-[#CACDD7]/30 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-[#1B1A1C]">Overall Readiness Status</span>
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
-                      readinessComplete ? 'bg-green-100 text-green-700' : effSubmittedToDepartments ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${overallBadge.color}`}>
                       <Icon icon="lucide:circle" className="w-2.5 h-2.5" />
-                      {readinessComplete ? 'Approved' : 'Pending Department Review'}
+                      {overallBadge.label}
                     </span>
                   </div>
                   <p className="text-xs text-[#3E4048] mt-2">Overall readiness will be finalized after required departmental reviews are completed.</p>
@@ -1560,10 +1641,10 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                   <label className="text-[#1B1A1C] text-xs font-semibold mb-3 block">Workflow Timeline</label>
                   <div className="flex items-center justify-between gap-1">
                     {[
-                      { label: 'Operations Assessment', sublabel: 'Assessment', status: 'completed', icon: 'lucide:check' },
-                      { label: 'HR Review', sublabel: 'Pending Review', status: 'current', icon: 'lucide:circle' },
-                      { label: 'IT Review', sublabel: 'Pending Review', status: 'pending', icon: 'lucide:circle' },
-                      { label: 'Readiness Decision', sublabel: 'Pending', status: 'pending', icon: 'lucide:circle' },
+                      { label: 'Operations Assessment', sublabel: effSubmittedToDepartments ? 'Submitted' : 'Assessment', status: effSubmittedToDepartments || readinessComplete ? 'completed' : 'current', icon: 'lucide:check' },
+                      { label: 'HR Review', sublabel: timelineHRSublabel, status: timelineHRStatus, icon: timelineHRStatus === 'completed' ? 'lucide:check' : 'lucide:circle' },
+                      { label: 'IT Review', sublabel: timelineITSublabel, status: timelineITStatus, icon: timelineITStatus === 'completed' ? 'lucide:check' : 'lucide:circle' },
+                      { label: 'Readiness Decision', sublabel: readinessComplete ? 'Complete' : effDepartmentsComplete ? 'Ready' : 'Pending', status: readinessComplete ? 'completed' : effDepartmentsComplete ? 'current' : 'pending', icon: readinessComplete || effDepartmentsComplete ? 'lucide:check' : 'lucide:circle' },
                     ].map((step, i) => (
                       <div key={step.label} className="flex items-center gap-0 flex-1">
                         <div className="flex flex-col items-center min-w-0">
@@ -1605,12 +1686,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           <Icon icon="lucide:users" className="w-4 h-4 text-[#3E4048]" />
                           <span className="text-sm font-semibold text-[#1B1A1C]">HR Review</span>
                         </div>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Pending Review</span>
+                        <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${hrBadge.color}`}>{hrBadge.label}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Status</span>
-                          <span className="text-[#1B1A1C] font-medium">Pending Review</span>
+                          <span className="text-[#1B1A1C] font-medium">{hrBadge.label}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Submitted By</span>
@@ -1622,15 +1703,15 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Reviewer</span>
-                          <span className="text-[#1B1A1C] font-medium">Not Assigned</span>
+                          <span className="text-[#1B1A1C] font-medium">{hrApproved ? (simEnabled ? 'Mock HR Reviewer' : 'Jane Doe') : 'Not Assigned'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Reviewed On</span>
-                          <span className="text-[#3E4048]">—</span>
+                          <span className="text-[#1B1A1C] font-medium">{hrApproved ? (simEnabled ? 'Simulation' : 'Aug 26, 2026') : '\u2014'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Remarks</span>
-                          <span className="text-[#3E4048]">—</span>
+                          <span className="text-[#3E4048]">{hrApproved ? (simEnabled ? 'Simulation review completed.' : 'Manpower feasibility confirmed.') : effHRStatus === 'rejected' ? 'Review rejected due to resource constraints.' : '\u2014'}</span>
                         </div>
                       </div>
                     </div>
@@ -1642,12 +1723,12 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                           <Icon icon="lucide:monitor" className="w-4 h-4 text-[#3E4048]" />
                           <span className="text-sm font-semibold text-[#1B1A1C]">IT Review</span>
                         </div>
-                        <span className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Not Submitted</span>
+                        <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full ${itBadge.color}`}>{itBadge.label}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Status</span>
-                          <span className="text-[#1B1A1C] font-medium">Not Submitted</span>
+                          <span className="text-[#1B1A1C] font-medium">{itBadge.label}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Submitted By</span>
@@ -1659,15 +1740,15 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Reviewer</span>
-                          <span className="text-[#1B1A1C] font-medium">—</span>
+                          <span className="text-[#1B1A1C] font-medium">{itApproved ? (simEnabled ? 'Mock IT Reviewer' : 'John Smith') : '\u2014'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Reviewed On</span>
-                          <span className="text-[#3E4048]">—</span>
+                          <span className="text-[#1B1A1C] font-medium">{itApproved ? (simEnabled ? 'Simulation' : 'Aug 26, 2026') : '\u2014'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-[#3E4048]">Remarks</span>
-                          <span className="text-[#3E4048]">—</span>
+                          <span className="text-[#3E4048]">{itApproved ? (simEnabled ? 'Simulation review completed.' : 'Infrastructure readiness confirmed.') : effITStatus === 'rejected' ? 'Review rejected due to infrastructure constraints.' : '\u2014'}</span>
                         </div>
                       </div>
                     </div>
@@ -1681,25 +1762,14 @@ function InternalPlanningReadinessModal({ project, onClose, onSubmit }) {
                     <span className="text-sm font-semibold text-amber-800">Outstanding Items</span>
                   </div>
                   <div className="space-y-1">
-                    {[
-                      { item: 'Equipment Gap', severity: 'gap', section: 'technical', sectionLabel: 'Equipment Readiness' },
-                      { item: 'HR Feasibility Pending', severity: 'pending', section: 'resource', sectionLabel: 'Resource Readiness' },
-                      { item: 'IT Feasibility Pending', severity: 'pending', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' },
-                      { item: 'ERP Request Not Submitted', severity: 'pending', section: 'technical', sectionLabel: 'Technical & Equipment Readiness' },
-                    ].map((o, i) => (
+                    {outstandingItems.length === 0 && <p className="text-xs text-amber-700">No outstanding items.</p>}
+                    {outstandingItems.map((o, i) => (
                       <div key={i} className="flex items-center justify-between text-xs py-1.5 px-2 rounded-lg hover:bg-amber-100/50 transition-colors">
                         <div className="flex items-center gap-2">
-                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                            o.severity === 'gap' ? 'bg-red-500' : 'bg-yellow-500'
-                          }`} />
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${o.severity === 'gap' ? 'bg-red-500' : 'bg-yellow-500'}`} />
                           <span className="text-amber-800">{o.item}</span>
                         </div>
-                        <button
-                          onClick={() => scrollToSection(o.section)}
-                          className="text-amber-600 hover:text-amber-800 font-medium underline cursor-pointer"
-                        >
-                          View &rarr;
-                        </button>
+                        <button onClick={() => scrollToSection(o.section)} className="text-amber-600 hover:text-amber-800 font-medium underline cursor-pointer">View &rarr;</button>
                       </div>
                     ))}
                   </div>
